@@ -4,11 +4,14 @@
     let closed=false,last='';const canvases=new Map();
     function snapshot(){
       const g=getGame(),atTitle=document.body.classList.contains('no-run')&&(!g||g.state==='select'),inGame=!!g&&!document.body.classList.contains('no-run')&&!['select','loading','travel','dead'].includes(g.state);
-      const r=document.getElementById('mini-toggle')?.getBoundingClientRect();
-      return{atTitle,inGame,canExit:!!g&&['playing','camp','paused'].includes(g.state),anchor:r?.width&&r.height?{x:r.x+r.width/2,y:r.y+r.height/2}:null};
+      const mini=document.getElementById('mini-toggle'),r=mini?.getBoundingClientRect();
+      // The circular mount is 40 HUD pixels across. Use the native control's
+      // rendered/local ratio so HUD settings, browser zoom and phone scaling agree.
+      return{atTitle,inGame,canExit:!!g&&['playing','camp','paused'].includes(g.state),anchor:r?.width&&r.height&&mini.offsetWidth?{x:r.x+r.width/2,y:r.y+r.height/2,size:40*r.width/mini.offsetWidth}:null};
     }
     function observe(){if(closed)return;const s=snapshot(),key=JSON.stringify(s);if(key!==last){last=key;changed(s);}}
     const observer=new MutationObserver(observe);observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+    observer.observe(document.documentElement,{attributes:true,attributeFilter:['class','style']});
     const interval=setInterval(observe,250);window.addEventListener('resize',observe);
     function focus(){
       if(closed)return;queueMicrotask(()=>{

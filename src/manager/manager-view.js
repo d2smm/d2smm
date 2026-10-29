@@ -67,7 +67,7 @@
     let rulesHash=null;
     function paint(s,pack,installerBootstrap){
       empty.hidden=!!s.mod;card.hidden=!s.mod;protection.hidden=!s.mod;exportButton.hidden=!s.mod;remove.hidden=!s.mod;
-      session=s.session;const on=!!s.mod?.settings.enabled;launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.setAttribute('aria-expanded',String(panel.open));launcher.setAttribute('aria-label','Open Mod Manager — mods '+(on?'on':'off'));launcher.title='Mod Manager (M) · Mods '+(on?'on':'off');showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
+      session=s.session;const on=!!s.mod?.settings.enabled;launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame||!session.anchor;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.setAttribute('aria-expanded',String(panel.open));launcher.setAttribute('aria-label','Open Mod Manager — mods '+(on?'on':'off'));launcher.title='Mod Manager (M) · Mods '+(on?'on':'off');showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
       attention.paint(s.attention);attention.display({visible:!launcher.hidden,open:panel.open,anchor:session.anchor});
       version.textContent='v'+s.version;
       if(s.mod){

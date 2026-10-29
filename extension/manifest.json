@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "D2 Survivors Mod Loader",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "minimum_chrome_version": "111",
   "description": "Start the in-page mod manager. Installed mods and settings stay in the website's own storage.",
   "permissions": [

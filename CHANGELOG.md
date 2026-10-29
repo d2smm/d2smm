@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+- The gem fills the bottom bar's circular mount and scales with the native HUD instead of remaining a fixed screen size.
+- Its white attention glow scales with the gem; the event list keeps readable text and opens above it.
+- When the native mount is absent, the gem stays hidden. M and the MODS menu remain available.
+
 ## 2.9.0
 
 - Closing Mod Manager or Characters returns keyboard focus to the native canvas. Another open dialog retains focus; a paused game remains paused.

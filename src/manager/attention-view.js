@@ -30,9 +30,9 @@
       launcher.title=entries.length?'':'Mod Manager (M) · Mods '+launcher.dataset.state;
     }
     function display({visible,open,anchor}){
-      host.hidden=!visible;managerOpen=open;
-      host.style.left=anchor?Math.max(0,Math.min(innerWidth-70,anchor.x-35))+'px':'calc(50% - 35px)';host.style.top=anchor?Math.max(0,Math.min(innerHeight-70,anchor.y-35))+'px':'auto';host.style.bottom=anchor?'auto':'max(8px, env(safe-area-inset-bottom))';
-      const mini=visible?document.getElementById('mini-toggle'):null;if(mini!==covered){uncover();if(mini){covered=mini;oldVisibility=mini.style.visibility;mini.style.visibility='hidden';}}visibility();
+      host.hidden=!visible||!anchor;managerOpen=open;
+      if(anchor){const size=anchor.size;host.style.setProperty('--d2mods-gem-size',size+'px');host.style.setProperty('--d2mods-gem-scale',String(size/70));host.style.left=Math.max(0,Math.min(innerWidth-size,anchor.x-size/2))+'px';host.style.top=Math.max(0,Math.min(innerHeight-size,anchor.y-size/2))+'px';}
+      const mini=!host.hidden?document.getElementById('mini-toggle'):null;if(mini!==covered){uncover();if(mini){covered=mini;oldVisibility=mini.style.visibility;mini.style.visibility='hidden';}}visibility();
     }
     paint([]);return Object.freeze({host,paint,display,dispose:uncover});
   }
