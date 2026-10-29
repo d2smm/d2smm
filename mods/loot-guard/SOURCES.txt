@@ -1,0 +1,45 @@
+D2SMM Loot Guard — sources and adaptations
+
+Rule references, inspected 28 October 2026:
+
+Kolton's Pickit:
+https://github.com/kolton/d2bot-with-kolbot/blob/cd1c98e66fc99b94ae403256b42656599ba681a2/d2bs/kolbot/pickit/kolton.nip
+
+Blizzhackers magic and rare collections:
+https://github.com/blizzhackers/pickits/blob/d419fb0de27f11269ca725464dae9f3cc7129946/custom/magic.nip
+https://github.com/blizzhackers/pickits/blob/d419fb0de27f11269ca725464dae9f3cc7129946/custom/rare.nip
+
+The rules are independently implemented, curated adaptations of high-end
+item-combination concepts. They are not verbatim NIP files, a NIP interpreter,
+or a bot integration. No external rule code is downloaded at runtime.
+
+D2 Survivors has a different stat model from D2/D2R. Its actual item modifiers
+are the authority. Properties absent from ordinary magic/rare items, such as
+some D2R socket/ethereal/durability requirements, are not invented here.
+The current strict elite policy is documented in RULES.txt and implemented in
+runtime/rule-catalog.js. Its thresholds are local curation decisions, not a
+claim that the reference pickits use these exact numbers or are universally best.
+
+Engine 3.1.0 makes these conditions exportable and editable as JSON. Package
+1.4.0 selects 48 permanent rules plus an optional magic-item 10% FCR test.
+Common-item testing is off by default. There are no LLD or item-level exceptions.
+Ordinary skills/resist shields and modest magic-find boots do not qualify.
+
+The 249 weapon base categories in runtime/base-kinds.js are factual name/category
+data extracted from D2 Survivors build 20261027.4. No game implementation is
+redistributed. Native contracts are discovered from the loaded game's modules;
+historical build IDs and minified export names are not runtime allowlists.
+
+Sound uses the game's native taunt.baal variant 0, which resolves to its existing
+baallaugh1.m4a resource. The game owns decoding, mute, volume, and playback. No
+audio file is redistributed. Burst alerts have a ten-second cooldown, and
+already-present floor items are primed silently.
+
+Chrome Manifest V3 references:
+https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts
+https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts
+
+The optional extension starts the same page manager as the bookmarklet. Packages
+and settings live in the game origin's IndexedDB. The canonical release feed at
+https://d2s.arken.gg/updates/stable.json supplies explicit checksum-verified updates;
+it is not a player account service. The manager does not upload items or saves.

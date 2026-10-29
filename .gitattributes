@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.png binary
+*.webp binary
+*.ttf binary
+*.zip binary
+vendor/** linguist-vendored -whitespace
+assets/fonts/font-license.txt -whitespace

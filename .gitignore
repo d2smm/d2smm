@@ -1,0 +1,36 @@
+# Generated distributions and native build trees
+/dist/
+/build/
+/build-*/
+/CMakeUserPresets.json
+
+# Local development, credentials, browser profiles and proof output
+/.local/
+/.tmp/
+/.arken/
+/.deployment/
+/proofs/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Game captures and player data never belong in this repository
+/releases/
+/records/
+/saves/
+/backups/
+**/D2-Survivors-save-*
+
+# Editor and operating-system files
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

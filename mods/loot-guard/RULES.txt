@@ -1,0 +1,98 @@
+LOOT GUARD 1.4.0 — STRICT ELITE POLICY (ENGINE 3.1.0)
+
+Only magic and rare items are evaluated. Any ONE rule below is enough. These
+are deliberately conservative stat-combination thresholds, not ordinary upgrades
+or a market-price guarantee. Unmatched items retain the game's native filter.
+All classes are covered. No LLD exceptions. No botting or automated play.
+
+IAS=attack speed, FCR=cast rate, FRW=movement, FHR=hit recovery, MF=magic find,
+ED=enhanced damage (armor ED explicitly means enhanced defense), AR=flat accuracy.
+Stats=Strength+Dexterity. Total resists=sum of all four. All-res=lowest of four.
+Elemental rolls below mean fire/cold/lightning only; poison cannot substitute.
+Skills include All Skills and combine a tree only with its own class.
+Implicit base modifiers never count. AND is required unless OR is written.
+
+RINGS
+1. RARE 10 FCR + at least THREE: 35 life, 75 mana, 25 stats, 60 total resists,
+   100 AR.
+2. RARE 8 life leech + 6 mana leech + 25 stats + 35 life + 40 total resists.
+3. RARE 30 stats + 120 AR + 35 life + (8 life leech OR 9 max damage).
+4. 100 total resists + 35 life + 20 stats.
+5. MAGIC 40 MF; OR RARE 25 MF + 35 life + 60 total resists.
+6. MAGIC 10 FCR + 120 mana.
+
+AMULETS
+7. +2 class + 20 FCR + (50 life OR 80 mana OR 25 stats).
+8. +2 class + 60 life + 80 total resists + 25 stats.
+9. +3 tree + (100 life OR 25 flat damage reduction OR 20 FCR).
+10. MAGIC 50 MF; OR RARE 35 MF +2 class +50 life.
+11. (+3 Warcries OR +2 Barbarian) +80 gold find +30 MF.
+
+GLOVES
+12. MAGIC +3 class/tree and 20 IAS; OR RARE +2 class/tree +20 IAS +20 stats
+    +60 total resists.
+13. RARE 20 IAS +70 total resists +25 stats +3 life leech.
+14. 25 MF +20 IAS +20 stats +60 total resists.
+
+HEADGEAR
+15. +2 class +20 FCR +40 life + (25 stats OR 60 total resists).
+16. MAGIC +3 tree + (20 FCR OR 100 life).
+17. +2 class +30 FRW +50 life + (25 stats OR 60 total resists).
+18. +3 specific skill +2 class/tree + (60 life OR 20 FCR).
+19. AR-percent-per-level >=1 +150 enhanced defense +2 class
+    + (60 life OR 30 stats).
+
+BOOTS
+20. 30 FRW + THREE resistances each >=30 + (10 FHR OR 25 MF).
+21. 30 FRW +10 FHR +100 total resists + TWO fire/cold/lightning rolls >=30.
+22. 30 FRW +25 MF + TWO fire/cold/lightning rolls >=30 +60 elemental total.
+    Gale Track (20 FRW, 20 MF, 6 fire, 37 poison) does NOT qualify.
+
+BELTS
+23. 80 life +24 FHR +25 strength +70 total resists.
+24. 30 strength +60 life +24 FHR +90 total resists.
+
+BODY ARMOR
+25. 100 life +24 FHR +100 total resists +150 enhanced defense.
+26. +2 class +80 life +24 FHR +80 total resists.
+
+SHIELDS
+27. +2 class/tree +30 faster block +20 increased block
+    + (40 all-res OR 80 life).
+28. 45 all-res +30 faster block +20 increased block +2 class/tree.
+29. +3 specific skill +2 class/tree +30 faster block +20 increased block
+    + (40 life OR 60 total resists).
+
+WEAPONS
+30. 350 ED +40 IAS + (20 max damage OR 20 Deadly Strike).
+31. 400 ED +30 IAS + (8 life leech OR 20 max damage).
+32. Scaling max damage AND scaling AR +40 IAS +250 ED.
+33. +3 class/tree +20 FCR +3 specific skill.
+34. +3 specific skill +2 class/tree +20 FCR +80 mana.
+35. +3 Warcries + (30 strength OR 80 gold find).
+36. CLAW: +3 Assassin class/tree +3 specific skill +30 IAS.
+37. JAVELIN: +6 Amazon class/Javelin tree +40 IAS.
+38. BOW/CROSSBOW: 350 ED +20 IAS +20 max damage +2 Amazon class/Bow tree.
+
+CHARMS
+39. +1 tree skiller + (40 life OR 12 FHR).
+40. SMALL: 7 MF + (20 life OR 5 all-res).
+41. SMALL: 20 life + (5 all-res OR 11 single resist).
+42. SMALL: 5 all-res + (20 life OR 7 MF).
+43. SMALL: 20 life +3 max damage +20 AR.
+44. SMALL: 3 max damage +20 AR + (20 life OR 5 FHR).
+45. GRAND: 40 life + (15 all-res OR 10 max damage +70 AR).
+46. GRAND: 10 max damage +70 AR +40 life.
+47. GRAND: 15 all-res +40 life.
+48. LARGE: 35 life + (8 all-res OR 6 max damage +40 AR).
+
+OPTIONAL TESTING — OFF BY DEFAULT
+49. MAGIC item with at least 10 FCR. The checkbox is named
+    "[Testing] Match on common items". It is deliberately broad, and never part
+    of the strict policy. Upgrading to the elite policy disables it once;
+    a later explicit choice to enable it is retained.
+
+The notification checkbox only controls native Baal audio; cooldown and native
+mute/SFX settings remain in force. No item stats, game saves, pickups or prices
+are changed. This filter cannot recover already sold items or prevent native
+floor-item despawn. Exact predicates: mod-system/runtime/rules.js.

@@ -1,0 +1,30 @@
+name: Build
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -S . -B build
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
+      - name: Build native assembler
+        run: cmake --build build --target d2smm-build
+      - name: Check build boundary and documentation
+        run: ctest --test-dir build -R 'build-tool|source-links' --output-on-failure
+      - name: Assemble distribution twice
+        run: |
+          ./build/d2smm-build --source . --output dist/first
+          ./build/d2smm-build --source . --output dist/second
+          diff -r dist/first dist/second

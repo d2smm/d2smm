@@ -1,0 +1,29 @@
+name: Mod proposal
+description: Suggest a useful enhancement that respects the game.
+title: "[Mod] "
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What should improve for the player?
+    validations:
+      required: true
+  - type: textarea
+    id: interaction
+    attributes:
+      label: How would the player use it?
+      description: Describe the controls and expected result.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Game hooks, storage, and risks
+      description: Note save or item changes, cleanup, and unknowns if you know them.
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Game integrity
+      options:
+        - label: This proposal does not automate play, create items, or bypass progression.
+          required: true

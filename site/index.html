@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0907"><meta name="description" content="D2S Mod Manager. Save the bookmarklet, open D2 Survivors, and click it to manage your mods."><title>D2S Mod Manager</title><link rel="stylesheet" href="/style.css"><link rel="preload" href="/assets/cathedral.webp" as="image"><link rel="preload" href="/assets/cinzel.ttf" as="font" type="font/ttf" crossorigin></head>
+<body><div class="backdrop" aria-hidden="true"></div>
+<a class="wordmark" href="https://arken.gg" aria-label="Arken" hidden>Arken</a>
+<main class="hero"><section class="hero__copy" aria-label="Install Mod Manager"><h1>D2S <span>Mod Manager</span></h1>
+<p class="hero__policy">Only mods that respect the integrity of D2 Survivors.<br>Enhancements. No botting or automated play.</p>
+<div class="setup"><p class="setup__instruction" id="bookmark-instruction">Drag this to your bookmarks bar.</p>
+<a id="bookmark" class="setup__bookmark" draggable="true" title="D2SMM" aria-label="D2S Mod Manager" aria-describedby="bookmark-instruction" aria-disabled="true">D2SMM</a>
+<p class="setup__feedback" role="alert" hidden></p>
+<p class="setup__next">Then <a href="https://d2survivors.lol/play/" target="_blank" rel="noopener" data-action="open-game">open D2 Survivors</a> and click your bookmark.<br>Press <kbd>M</kbd> to open Mod Manager.</p>
+<a class="setup__extension" href="/downloads/D2S-Mod-Loader.zip" download hidden>Use the Chrome extension instead</a>
+<p class="setup__automatic" hidden>Starts automatically when you open the game.</p></div></section>
+<section class="gallery" data-gallery aria-label="Mod Manager screenshots" aria-roledescription="carousel">
+<div class="gallery__stack" data-gallery-stack>
+<button class="gallery__card" data-gallery-card data-title="Mod Manager" data-position="front" aria-label="View Mod Manager screenshot"><img src="/assets/gallery/manager.webp" width="800" height="1000" alt="Mod Manager with Loot Guard controls and character and gear shortcuts" fetchpriority="high"></button>
+<button class="gallery__card" data-gallery-card data-title="Gear loadouts" data-position="middle" tabindex="-1" aria-hidden="true" aria-label="View gear loadouts screenshot"><img src="/assets/gallery/loadouts.webp" width="800" height="1000" alt="Equipment slots with real item art and three loadout choices" loading="lazy"></button>
+<button class="gallery__card" data-gallery-card data-title="Characters" data-position="back" tabindex="-1" aria-hidden="true" aria-label="View character chooser screenshot"><img src="/assets/gallery/characters.webp" width="640" height="800" alt="Character chooser with an existing hero and New character button" loading="lazy"></button>
+<button class="gallery__card" data-gallery-card data-title="Item details" data-position="hidden" tabindex="-1" aria-hidden="true" aria-label="View item details screenshot"><img src="/assets/gallery/item-details.webp" width="840" height="1050" alt="Native item statistics displayed over the equipment loadout" loading="lazy"></button>
+</div>
+<div class="gallery__controls"><button data-gallery-step="-1" aria-label="Previous screenshot">‹</button><span data-gallery-counter aria-live="off">1 / 4</span><button data-gallery-step="1" aria-label="Next screenshot">›</button></div>
+<dialog class="gallery__viewer" data-gallery-viewer aria-labelledby="gallery-title"><header><h2 id="gallery-title" data-gallery-title>Mod Manager</h2><button data-gallery-close aria-label="Close screenshot">×</button></header><img alt=""><div class="gallery__viewer-controls"><button data-gallery-step="-1" aria-label="Previous screenshot">‹</button><button data-gallery-step="1" aria-label="Next screenshot">›</button></div></dialog>
+</section></main>
+<footer><span>v<span data-manager-version>2.9.0</span></span></footer>
+<div class="bookmark-guide" data-bookmark-guide hidden><div class="bookmark-guide__shade" data-guide-dismiss></div><div class="bookmark-guide__arrow" aria-hidden="true"><span></span></div><section class="bookmark-guide__instructions" aria-label="Add Mod Manager to bookmarks"><button class="bookmark-guide__close" data-guide-dismiss aria-label="Close bookmark guide">×</button><p id="bookmark-guide-title">Drag this button to your bookmarks bar.</p><p>Then <a href="https://d2survivors.lol/play/" target="_blank" rel="noopener" data-guide-game>open D2 Survivors</a> and click <strong>D2SMM</strong> from your bookmarks bar.</p></section></div>
+<script src="/app.js" defer></script><script src="/gallery.js" defer></script></body></html>

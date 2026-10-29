@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a broken interaction or compatibility issue.
+title: "[Bug] "
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Game build, manager version, and browser
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What happened?
+      description: Include the steps, expected result, and actual result. Do not attach saves or private browser data.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshot or redacted error

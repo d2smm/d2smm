@@ -1,0 +1,24 @@
+{
+  "format": "d2-survivors.mod",
+  "schemaVersion": 1,
+  "id": "loot-guard",
+  "name": "Loot Guard — Caster Ring Example",
+  "version": "1.4.0",
+  "origin": "https://d2survivors.lol",
+  "pathPrefix": "/play/",
+  "adapter": "d2-loot-guard-v1",
+  "capabilities": ["loot-labels", "loot-keep-override", "game-audio"],
+  "description": "One-rule example. Replaces the current rules; export them before importing this file.",
+  "defaults": {"enabled": true, "protectMatches": true, "sound": true, "testFcr": false},
+  "builtinRules": [],
+  "extraRules": [{
+    "id": "example-blue-caster",
+    "reason": "Magic ring with 10 FCR and 120 mana",
+    "when": {"all": [
+      {"field": "type", "op": "eq", "value": "ring"},
+      {"field": "rarity", "op": "eq", "value": "magic"},
+      {"stat": "fcr", "op": "gte", "value": 10},
+      {"stat": "mana", "op": "gte", "value": 120}
+    ]}
+  }]
+}

@@ -1,0 +1,35 @@
+{
+  "early": ["src/manager/updates.js", "src/manager/store.js"],
+  "runtime": [
+    "mods/loot-guard/runtime/base-kinds.js",
+    "mods/loot-guard/runtime/rule-catalog.js",
+    "mods/loot-guard/runtime/rules.js",
+    "mods/loot-guard/runtime/alerts.js",
+    "src/manager/attention.js",
+    "src/manager/packages.js",
+    "src/game/game-contract.js",
+    "mods/characters/runtime/characters-core.js",
+    "mods/characters/runtime/characters-store.js",
+    "mods/characters/runtime/characters-controller.js",
+    "src/game/game-style.js",
+    "mods/characters/runtime/characters-style.js",
+    "mods/characters/runtime/character-name-editor.js",
+    "mods/characters/runtime/equipment-view.js",
+    "mods/characters/runtime/characters-view.js",
+    "mods/characters/runtime/characters.js",
+    "mods/loot-guard/runtime/adapter.js",
+    "src/game/game-menu.js",
+    "src/game/game-ui.js",
+    "src/manager/manager-style.js",
+    "src/manager/attention-view.js",
+    "src/manager/manager-view.js",
+    "src/manager/manager.js"
+  ],
+  "skin": {
+    "button": {"mime": "image/webp", "path": "assets/ui/button.webp"},
+    "font": {"mime": "font/ttf", "path": "assets/fonts/cinzel.ttf"},
+    "gemOff": {"mime": "image/webp", "path": "assets/ui/gem-off.webp"},
+    "gemOn": {"mime": "image/webp", "path": "assets/ui/gem-on.webp"},
+    "panel": {"mime": "image/webp", "path": "assets/ui/panel.webp"}
+  }
+}

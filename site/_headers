@@ -1,0 +1,18 @@
+/manager/*
+  Access-Control-Allow-Origin: https://d2survivors.lol
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: public, max-age=31536000, immutable
+
+/mods/*
+  Access-Control-Allow-Origin: https://d2survivors.lol
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: public, max-age=31536000, immutable
+
+/updates/*
+  Access-Control-Allow-Origin: https://d2survivors.lol
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: no-store
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
