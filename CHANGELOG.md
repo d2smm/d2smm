@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.9.3
+
+- Applied the requested four-stop gold gradient to the installer site's D2S text.
+- Trimmed the bottom three pixels of the main button artwork while preserving its drag target, glow, and keyboard focus outline.
+
 ## 2.9.2
 
 - Lowered the bottom gem slightly, with the offset scaling alongside the HUD.
