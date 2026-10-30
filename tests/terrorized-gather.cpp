@@ -7,7 +7,7 @@ int gatherChecks(){
     constexpr unsigned flags=gatherEnabled|terror|playing|portal|bossWon;
     Gather g;unsigned checks=0;
     auto check=[&](bool ok,const char* name){++checks;if(!ok)std::cerr<<name<<'\n';return ok;};
-    auto begin=[&](unsigned id,unsigned bits=flags){return g.observe(id,10,{95000,95000},{540,300},12,70,bits);};
+    auto begin=[&](unsigned id,unsigned bits=gatherEnabled|terror|playing|portal|bossWon){return g.observe(id,10,{95000,95000},{540,300},12,70,bits);};
     if(!check(!begin(1,flags&~gatherEnabled)&&begin(1)==1,"Disabled gathering does not consume the portal"))return 1;
     if(!check(!g.add({95400,95000},unsigned(DropKind::chest),0),"Gather Run Drops excludes chests by default"))return 1;
     if(!check(g.radius()==150,"Ring diameter is half the shorter view dimension"))return 1;
