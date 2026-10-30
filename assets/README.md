@@ -6,4 +6,6 @@
 
 The original independent README banner has separate [generation provenance](../docs/assets/README.md).
 
-The site's gem is staged directly from `ui/gem-on.webp` and `ui/gem-off.webp`, not a second editable image. It replaces the O in MOD and toggles color as a decorative control. The heading uses live text with a restrained antique-gold bevel matching the gem's metal rim.
+The site's gem is staged directly from `ui/gem-on.webp` and `ui/gem-off.webp`, not a second editable image. It replaces the O in MOD, toggles color, and reveals the footer's GitHub mark. The heading uses live text with a restrained antique-gold bevel matching the gem's metal rim.
+
+The footer's [GitHub mark](../site/assets/github-mark.svg) is the unmodified `mark-github-24.svg` from [Primer Octicons at ea8e6bb](https://github.com/primer/octicons/blob/ea8e6bb79894cc7e85564ee9b53d86b418738d04/icons/mark-github-24.svg), with its [MIT license](../site/assets/github-mark-LICENSE.txt). The black fill and white glow are applied by the site's CSS.
