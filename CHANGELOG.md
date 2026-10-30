@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.6
+
+- Add a solid black circular backing to the blue-gem favicon, retaining the original artwork and transparent corners.
+
 ## 2.9.5
 
 - Reuse the blue gem as the installer site's favicon.

@@ -88,7 +88,7 @@ void sitePreview(const fs::path& site, const fs::path& output) {
     for (const auto& entry : fs::recursive_directory_iterator(site/"assets")) {
         if (!entry.is_regular_file()) continue;
         const auto ext=entry.path().extension().string();
-        const std::string mime=ext==".webp"?"image/webp":ext==".png"?"image/png":ext==".ttf"?"font/ttf":"";
+        const std::string mime=ext==".webp"?"image/webp":ext==".png"?"image/png":ext==".svg"?"image/svg+xml":ext==".ttf"?"font/ttf":"";
         if (mime.empty()) continue;
         const auto url="/"+fs::relative(entry.path(),site).generic_string();
         const auto data="data:"+mime+";base64,"+base64(read(entry.path()));
@@ -189,6 +189,9 @@ void build(const fs::path& input, const fs::path& destination) {
     write(out/"site/assets/font-license.txt",read(root/"assets/fonts/font-license.txt"));
     write(out/"site/assets/gem-on.webp",read(root/"assets/ui/gem-on.webp"));
     write(out/"site/assets/gem-off.webp",read(root/"assets/ui/gem-off.webp"));
+    auto favicon=read(root/"assets/ui/favicon.svg.in");
+    replaceAll(favicon,"@GEM_DATA_URI@","data:image/webp;base64,"+base64(read(root/"assets/ui/gem-off.webp")));
+    write(out/"site/assets/favicon.svg",favicon);
     auto html = read(root/"site/index.html");
     html = std::regex_replace(html,std::regex("data-manager-version>[0-9]+\\.[0-9]+\\.[0-9]+"),"data-manager-version>"+version);
     write(out/"site/index.html",html);
