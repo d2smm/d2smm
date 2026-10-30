@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION='2.9.9';
+  const VERSION='2.9.10';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');

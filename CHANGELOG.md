@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.10
+
+- Use a subtle dark gray scrollbar thumb on a black track in Mod Manager.
+
 ## 2.9.9
 
 - Reduce the Mod Manager dialog to 75% size and keep its scrolling area within the window. The gem continues to follow the game's HUD scale.

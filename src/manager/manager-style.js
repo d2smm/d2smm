@@ -22,7 +22,7 @@ button:disabled,input:disabled{opacity:.45;cursor:wait}
 .d2mods__attention-title{display:block;color:#faf6e9;font:600 18px/1.35 D2ModHeading,Georgia,serif}.d2mods__attention-detail{display:block;margin-top:5px;color:#c9c6bf;font-size:14px}.d2mods__attention-source{display:block;margin-top:5px;color:#9d927d;font-size:12px}
 @media(prefers-reduced-motion:reduce){.d2mods__attention-halo{animation:none}}
 .d2mods__panel{width:min(640px,calc(100vw - 32px));max-height:calc(100svh - 64px);padding:30px;border:1px solid #8b7348;border-radius:2px;background:linear-gradient(145deg,#252628,#121315);color:#eee5d3;box-shadow:0 24px 100px #000b;font:18px/1.5 system-ui,-apple-system,sans-serif}
-dialog.d2mods__panel{zoom:.75;width:min(640px,calc((100vw - 32px)/.75));max-height:calc((100svh - 64px)/.75)}
+dialog.d2mods__panel{zoom:.75;scrollbar-color:#333 #000;width:min(640px,calc((100vw - 32px)/.75));max-height:calc((100svh - 64px)/.75)}
 .d2mods__panel::backdrop{background:#0008}
 .d2mods__header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:26px}
 .d2mods__title{font:600 30px/1.15 Georgia,serif;margin:0;color:#f2dcb3}
