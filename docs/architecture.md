@@ -13,6 +13,8 @@ The bookmark or optional extension starts a bundled browser runtime on `https://
 | [`mods/loot-guard/runtime`](../mods/loot-guard/runtime/) | Item facts, rules, label/filter hooks, and alert requests |
 | [`mods/characters/runtime`](../mods/characters/runtime/) | Archived heroes, loadouts, item conservation, persistence and equipment UI |
 | [`mods/terrorized`](../mods/terrorized/) | Native Terror replay UI and drop gathering; browser C++ owns admission, exact tier/act selection, ring geometry and animation |
+| [`mods/qol`](../mods/qol/) | Native charm transfer, with C++ admission and conservation checks |
+| [`src/manager/core`](../src/manager/core/) | Shared C++ unread ledger, persisted through manager IndexedDB and rendered by reusable control badges |
 
 ## Native-game boundary
 

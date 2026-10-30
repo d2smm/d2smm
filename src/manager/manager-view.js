@@ -58,7 +58,7 @@
     const managerUpdate=button('Update Mod Manager','install-manager-update',actions.installManagerUpdate,'d2mods__button--primary');
     updateActions.append(managerUpdate);
     const notice=el('p','',{'class':'d2mods__notice',role:'status'}),error=el('p','',{'class':'d2mods__notice',role:'alert'});
-    const builtins=[['characters','Characters',actions.characters],['gear-loadouts','Gear Loadouts',actions.gear],['terrorized','Terrorized']].map(([id,name,open])=>D2BuiltinModCard.create({id,name,open,configure:actions.configureBuiltin,report:actions.report,options:id==='terrorized'?[{key:'gatherRunDrops',label:'Gather Run Drops',configure:value=>actions.configurePreferences({terrorizedGatherDrops:value})}]:[]}));
+    const builtins=[['characters','Characters',actions.characters],['gear-loadouts','Gear Loadouts',actions.gear],['terrorized','Terrorized'],['qol','QoL']].map(([id,name,open])=>D2BuiltinModCard.create({id,name,open,configure:actions.configureBuiltin,report:actions.report,options:id==='terrorized'?[{key:'gatherRunDrops',label:'Gather Run Drops',configure:value=>actions.configurePreferences({terrorizedGatherDrops:value})}]:[]}));
     panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
     launcher.addEventListener('click',actions.show);
     let session={inGame:false,atTitle:false,canExit:false,anchor:null};

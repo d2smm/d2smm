@@ -1,0 +1,14 @@
+{
+  "schema": "d2smm.capture.v1",
+  "durationMs": 5000,
+  "fps": 30,
+  "viewport": {"width": 2500, "height": 1400, "deviceScaleFactor": 1, "mobile": false},
+  "prepare": [{"method":"Runtime.evaluate","params":{"expression":"if(!globalThis.__D2GalleryLease?.contextId||!D2QolProof.game.tainted||!D2QolProof.unread())throw Error('Isolated unread charm fixture required');D2QolProof.openInventory();","returnByValue":true}}],
+  "actions": [
+    {"atMs":600,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseMoved","x":2091.1666,"y":653.3333}}},
+    {"atMs":900,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mousePressed","x":2091.1666,"y":653.3333,"button":"left","clickCount":1}}},
+    {"atMs":950,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseReleased","x":2091.1666,"y":653.3333,"button":"left","clickCount":1}}},
+    {"atMs":1500,"command":{"method":"Runtime.evaluate","params":{"expression":"(()=>{const g=D2QolProof.game,hidden=g.hud.d2.charmsButtons.every(b=>b.querySelector('[data-d2smm-badge=charms]').hidden);if(!g.hud.charmsOpen||D2QolProof.unread()||!hidden)throw Error('Charms did not acknowledge the unread badge');return {passed:true,charmsOpen:true,dotCleared:true,itemCopies:D2QolProof.occurrences(D2QolProof.created[0].id)};})()","returnByValue":true}}},
+    {"atMs":1700,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseMoved","x":2480,"y":20}}}
+  ]
+}

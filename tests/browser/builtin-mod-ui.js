@@ -17,15 +17,16 @@
   options.querySelector('summary').click();
   check('Options closes independently of Rules',!options.open&&!root.querySelector('details[data-section=rules]').open);
   const card=id=>root.querySelector(`[data-builtin-mod="${id}"]`);
-  check('All built-ins appear as mod cards',['characters','gear-loadouts','terrorized'].every(id=>!!card(id)));
+  check('All built-ins appear as mod cards',['characters','gear-loadouts','terrorized','qol'].every(id=>!!card(id)));
   check('Terrorized has no unnecessary Open button',!card('terrorized').querySelector('button'));
+  check('QoL has no unnecessary Open button',!card('qol').querySelector('button'));
   const gatherOptions=card('terrorized').querySelector('[data-builtin-options=terrorized]'),gather=card('terrorized').querySelector('[data-builtin-option=gatherRunDrops]'),initialGather=feature('terrorized').options.gatherRunDrops;
   check('Gather uses the collapsed Options disclosure',!!gatherOptions&&!gatherOptions.open&&!!gather);
   gatherOptions.querySelector('summary').click();gather.click();await settle(()=>feature('terrorized').options.gatherRunDrops!==initialGather);
   check('Gather changes through its actual checkbox',gather.checked===!initialGather);
   gather.click();await settle(()=>feature('terrorized').options.gatherRunDrops===initialGather);gatherOptions.querySelector('summary').click();
   check('Duplicate shortcut strip is gone',!root.querySelector('.d2mods__character-actions'));
-  for(const id of ['characters','gear-loadouts','terrorized']){
+  for(const id of ['characters','gear-loadouts','terrorized','qol']){
     check(id+' initially enabled',feature(id).enabled);
     card(id).querySelector('input').click();await settle(()=>!feature(id).enabled);
     check(id+' disables through its actual checkbox',!card(id).querySelector('input').checked&&(!card(id).querySelector('button')||card(id).querySelector('button').disabled));
@@ -38,7 +39,7 @@
   await D2Mods.configurePreferences({showGem:false});await D2Mods.configurePreferences({showGem:true});
   check('Changing gem visibility preserves disabled mods',D2Mods.status().builtinMods.every(m=>!m.enabled));
   const db=D2ModStore.create();let persisted;try{persisted=await db.readPreferences();}finally{db.close();}
-  check('Settings survive reopening their store',persisted.charactersEnabled===false&&persisted.gearLoadoutsEnabled===false&&persisted.terrorizedEnabled===false&&persisted.showGem===true);
+  check('Settings survive reopening their store',persisted.charactersEnabled===false&&persisted.gearLoadoutsEnabled===false&&persisted.terrorizedEnabled===false&&persisted.qolEnabled===false&&persisted.showGem===true);
   check('Gather preference survives master disable and store reopen',persisted.terrorizedGatherDrops===initialGather&&gather.disabled);
   for(const [id,value] of [['missing',true],['characters','false']]){let rejected=false;try{await D2Mods.configureBuiltin(id,value);}catch(error){rejected=true;}check('Invalid built-in setting rejected: '+id,rejected);}
   check('Native save and character metadata are unchanged',raw()===before.save&&await metadata()===before.metadata);

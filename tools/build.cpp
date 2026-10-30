@@ -2,6 +2,8 @@
 #include <openssl/evp.h>
 #include "core.hpp"
 #include "gather.hpp"
+#include "qol.hpp"
+#include "badges.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -32,6 +34,18 @@ void write(const fs::path& path, const std::string& value) {
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/CMakeLists.txt"};
+void stageManagerCore(const fs::path& root,const fs::path& input){
+    const auto bytes=read(input);
+    if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid manager Wasm artifact");
+    Json pin={{"schema","d2smm.native-core.v1"},{"bytes",bytes.size()},{"sha256",sha256(bytes)},{"sources",Json::object()},
+        {"keyLimit",d2smm::badges::keyLimit},{"capacity",d2smm::badges::capacity},
+        {"qolFlags",{{"enabled",d2smm::qol::enabled},{"pickedUp",d2smm::qol::pickedUp},{"sameWorld",d2smm::qol::sameWorld},{"sameClass",d2smm::qol::sameClass},{"cursorClear",d2smm::qol::cursorClear},{"nativeAllowed",d2smm::qol::nativeAllowed},{"notificationsReady",d2smm::qol::notificationsReady},{"notSwapping",d2smm::qol::notSwapping}}}};
+    pin["badgeOperations"]={{"load",unsigned(d2smm::badges::Operation::load)},{"mark",unsigned(d2smm::badges::Operation::mark)},{"clear",unsigned(d2smm::badges::Operation::clear)},{"read",unsigned(d2smm::badges::Operation::read)},{"unread",unsigned(d2smm::badges::Operation::unread)}};
+    for(const auto& source:managerSources)pin["sources"][source]=sha256(read(root/source));
+    write(root/"src/manager/generated/core.wasm",bytes);write(root/"src/manager/generated/core.json",pin.dump(2)+"\n");
+    std::cout<<"Staged manager core: "<<bytes.size()<<" bytes\n";
+}
 void stageTerrorCore(const fs::path& root,const fs::path& input) {
     const auto bytes=read(input);
     if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid Terrorized Wasm artifact");
@@ -190,6 +204,11 @@ void build(const fs::path& input, const fs::path& destination) {
     require(corePin.at("schema")=="d2smm.native-core.v1"&&sha256(coreBytes)==corePin.at("sha256").get<std::string>()&&coreBytes.size()==corePin.at("bytes").get<std::size_t>(),"Terrorized core artifact identity changed");
     for(const auto& file:terrorSources)require(sha256(read(root/"mods/terrorized"/file))==corePin.at("sources").at(file).get<std::string>(),"Terrorized core source changed; regenerate the native artifact");
     source += "globalThis.D2TerrorizedKernel="+Json({{"wasm",base64(coreBytes)},{"flags",corePin.at("flags")},{"gatherFlags",corePin.at("gatherFlags")},{"dropFlags",corePin.at("dropFlags")},{"dropKinds",corePin.at("dropKinds")}}).dump()+";\n";
+    const auto managerPin=Json::parse(read(root/"src/manager/generated/core.json"));
+    const auto managerBytes=read(root/"src/manager/generated/core.wasm");
+    require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
+    for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");
+    source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")}}).dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
         auto module = read(sourcePath(root,path.get<std::string>()));
         if (path == "src/manager/manager.js") {
@@ -269,6 +288,7 @@ int main(int argc, char** argv) {
         if (argc==2 && std::string(argv[1])=="--self-check") { selfCheck(); return 0; }
         if (argc==3 && std::string(argv[1])=="--check-source") { checkSource(argv[2]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-terror-core") { stageTerrorCore(argv[2],argv[3]); return 0; }
+        if (argc==4 && std::string(argv[1])=="--stage-manager-core") { stageManagerCore(argv[2],argv[3]); return 0; }
         if (argc!=5 || std::string(argv[1])!="--source" || std::string(argv[3])!="--output") {
             std::cerr<<"Usage: d2smm-build --source REPOSITORY --output OUTPUT\n"; return 2;
         }

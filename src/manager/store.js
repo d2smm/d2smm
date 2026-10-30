@@ -30,9 +30,9 @@
     });}
     function close(){db?.close();db=null;opening=null;}
     function preferences(value){
-      if(!value)return{revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:false};
-      const result={revision:value.revision,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled,terrorizedEnabled:value.terrorizedEnabled===undefined?true:value.terrorizedEnabled,terrorizedGatherDrops:value.terrorizedGatherDrops===undefined?false:value.terrorizedGatherDrops};
-      if(!Number.isSafeInteger(result.revision)||result.revision<0||['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
+      if(!value)return{revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:false,qolEnabled:true};
+      const result={revision:value.revision,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled,terrorizedEnabled:value.terrorizedEnabled===undefined?true:value.terrorizedEnabled,terrorizedGatherDrops:value.terrorizedGatherDrops===undefined?false:value.terrorizedGatherDrops,qolEnabled:value.qolEnabled===undefined?true:value.qolEnabled};
+      if(!Number.isSafeInteger(result.revision)||result.revision<0||['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','qolEnabled'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
       return result;
     }
     async function readPreferences(){const connection=await open();return new Promise((resolve,reject)=>{
@@ -50,12 +50,18 @@
       });
     }
     async function readRuntime(){const connection=await open();return new Promise((resolve,reject)=>{const tx=connection.transaction('state','readonly'),r=tx.objectStore('state').get('runtime');let value=null;r.onsuccess=()=>value=r.result??null;tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(tx.error);tx.onerror=()=>reject(tx.error);});}
+    async function readBadges(){const connection=await open();return new Promise((resolve,reject)=>{const tx=connection.transaction('state','readonly'),r=tx.objectStore('state').get('controlBadges');let value=null;r.onsuccess=()=>value=r.result??null;tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(tx.error);tx.onerror=()=>reject(tx.error);});}
+    async function mutateBadges(reduce){const connection=await open();return new Promise((resolve,reject)=>{
+      const tx=connection.transaction('state','readwrite'),s=tx.objectStore('state'),r=s.get('controlBadges');let result,problem;
+      r.onsuccess=()=>{try{const current=r.result??{schema:1,revision:0,marks:[]};result=reduce(current);if(result.changed)s.put({schema:1,revision:current.revision+1,marks:result.marks},'controlBadges');}catch(error){problem=error;tx.abort();}};
+      tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(problem||tx.error||Error('Unread changes could not be saved'));tx.onerror=()=>reject(tx.error);
+    });}
     async function writeRuntime(value,expected){const connection=await open();return new Promise((resolve,reject)=>{
       const tx=connection.transaction('state','readwrite'),store=tx.objectStore('state'),r=store.get('runtime');let problem=null;
       r.onsuccess=()=>{if((r.result?.sha256??null)!==(expected?.sha256??null)){problem=Error('Manager selection changed in another tab');tx.abort();return;}if(r.result)store.put(r.result,'previousRuntime');value?store.put(value,'runtime'):store.delete('runtime');};
       tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(problem||tx.error);tx.onerror=()=>reject(tx.error);
     });}
-    return Object.freeze({read,write,close,name,readRuntime,writeRuntime,readPreferences,writePreferences});
+    return Object.freeze({read,write,close,name,readRuntime,writeRuntime,readPreferences,writePreferences,readBadges,mutateBadges});
   }
   globalThis.D2ModStore=Object.freeze({create});
 })();

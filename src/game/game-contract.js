@@ -80,7 +80,7 @@
       if(typeof icon.value!=='function'||typeof name.value!=='function')throw Error('Item presentation is unavailable');
       return{icon:icon.value,describe,name:name.value,evidence:{module:icon.url,icon:icon.name,description:Object.keys(icon.namespace).find(k=>icon.namespace[k]===describe)}};
     }
-    return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,imports};
+    return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,imports,method,calls,binding};
   }
   async function isolate(bindings){
     const frame=document.createElement('iframe');frame.hidden=true;frame.dataset.d2Preparation='';

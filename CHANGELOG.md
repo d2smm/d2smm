@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.11.0
+
+- Add **QoL**, with automatic placement of newly picked-up charms when the native Charm grid has room. Native restrictions, item identities and stat updates are preserved.
+- Add reusable, persistent unread control badges. Charms shows a small red dot until opened; marks are scoped by class and shared across contributing mods.
+
 ## 2.10.1
 
 - Add optional **Gather Run Drops** under Terrorized → Options. A defeated Terror boss's exit portal gathers available floor loot into a view-scaled ring over 1.5 seconds; pickup stays native.
