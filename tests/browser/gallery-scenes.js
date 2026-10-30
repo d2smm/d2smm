@@ -76,7 +76,13 @@ async function installGalleryScenes(seed, sources) {
     receiver.tick(); check('Enabled Loot Guard restores unresolved loot', notices().length === 1);
     unchanged(); return {passed:true, checks:[...checks]};
   }
-  globalThis.D2GalleryScenes = Object.freeze({characters,loot,checkLootLifecycle,clear,
+  function resolveLoot() {
+    if (!receiver || !pickup) throw Error('Open the loot scene first');
+    pickup.dead=true; receiver.tick(); unchanged();
+    check('Collected demo loot clears the actual attention log', !D2Mods.status().attention.some(e=>e.source==='gallery-loot'));
+    return {resolved:true};
+  }
+  globalThis.D2GalleryScenes = Object.freeze({characters,loot,checkLootLifecycle,resolveLoot,clear,
     status:() => ({checks:[...checks], actions:structuredClone(actions), nativeSaveUnchanged:localStorage.getItem(key)===before, origin}),
     dispose:() => { clear(); delete globalThis.D2GalleryScenes; return {passed:true,checks:[...checks]}; }
   });

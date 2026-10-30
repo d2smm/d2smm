@@ -1,0 +1,56 @@
+{
+  "schema": "d2smm.promo-shots.v1",
+  "site": {
+    "durationMs": 9000,
+    "prepare": [{"method":"Runtime.evaluate","params":{"expression":"D2Promo.frame('d2s.arken.gg');D2Promo.move(1900,1050,1);document.fonts.ready","awaitPromise":true}}],
+    "actions": [
+      {"atMs":600,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.moveTo(document.getElementById('bookmark'),900)"}}},
+      {"atMs":1600,"command":{"method":"Runtime.evaluate","params":{"expression":"document.getElementById('bookmark').dispatchEvent(new PointerEvent('pointerenter',{pointerType:'mouse'}))"}}},
+      {"atMs":3200,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.dragBookmark()"}}},
+      {"atMs":6800,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.move(105,91,500)"}}}
+    ]
+  },
+  "install": {
+    "durationMs": 9000,
+    "prepare": [{"method":"Runtime.evaluate","params":{"expression":"if(D2Characters.currentGame()?.state!=='camp')throw Error('Camp required');D2Mods.close();D2Promo.frame('d2survivors.lol/play/',true);D2Promo.move(90,91,1);true"}}],
+    "actions": [
+      {"atMs":900,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Mods.show();D2Promo.front()"}}},
+      {"atMs":3000,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Mods.close();D2Promo.move(2160,400,700)"}}},
+      {"atMs":4100,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.dragPackage()"}}},
+      {"atMs":6000,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Mods.show();D2Promo.front()"}}}
+    ]
+  },
+  "menu": {
+    "durationMs": 8000,
+    "prepare": [{"method":"Runtime.evaluate","params":{"expression":"D2GalleryScenes.clear();D2Mods.close();D2Promo.hideFrame();D2Mods.focusGame();D2Promo.move(1850,900,1);true"}}],
+    "actions": [
+      {"atMs":500,"command":{"method":"Input.dispatchKeyEvent","params":{"type":"keyDown","key":"Escape","code":"Escape","windowsVirtualKeyCode":27}}},
+      {"atMs":550,"command":{"method":"Input.dispatchKeyEvent","params":{"type":"keyUp","key":"Escape","code":"Escape","windowsVirtualKeyCode":27}}},
+      {"atMs":1700,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.move(1250,821,800)"}}},
+      {"atMs":2500,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseMoved","x":1250,"y":821}}},
+      {"atMs":3900,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mousePressed","x":1250,"y":821,"button":"left","clickCount":1}}},
+      {"atMs":3950,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseReleased","x":1250,"y":821,"button":"left","clickCount":1}}},
+      {"atMs":4500,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.front();if(!document.getElementById('d2-mod-system').shadowRoot.querySelector('dialog').open)throw Error('MODS did not open manager');true"}}}
+    ]
+  },
+  "characters": {
+    "durationMs": 8000,
+    "prepare": [{"method":"Runtime.evaluate","params":{"expression":"D2Mods.close();D2Mods.focusGame();D2Promo.move(1800,1000,1);true"}}],
+    "actions": [
+      {"atMs":500,"command":{"method":"Runtime.evaluate","params":{"expression":"D2GalleryScenes.characters();D2Promo.front();true"}}},
+      {"atMs":2400,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.moveTo(document.getElementById('d2-characters').shadowRoot.querySelector('[data-character-index=\"1\"]'),900)"}}},
+      {"atMs":5100,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.moveTo(document.getElementById('d2-characters').shadowRoot.querySelector('[data-character-action=new]'),900)"}}}
+    ]
+  },
+  "loot": {
+    "durationMs": 11000,
+    "prepare": [{"method":"Runtime.evaluate","params":{"expression":"D2GalleryScenes.clear();D2Mods.close();D2Promo.hideFrame();D2Promo.move(1800,720,1);true"}}],
+    "actions": [
+      {"atMs":1100,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.rareDrop()","awaitPromise":true,"returnByValue":true}}},
+      {"atMs":3700,"command":{"method":"Runtime.evaluate","params":{"expression":"D2Promo.moveTo(document.getElementById('d2-mod-system').shadowRoot.querySelector('[data-action=open-manager]'),1100)"}}},
+      {"atMs":4800,"command":{"method":"Input.dispatchMouseEvent","params":{"type":"mouseMoved","x":1246.5,"y":1352.16}}},
+      {"atMs":5300,"command":{"method":"Runtime.evaluate","params":{"expression":"if(document.getElementById('d2-mod-system').shadowRoot.querySelector('[data-attention-log]').hidden)throw Error('Loot log did not open');true","returnByValue":true}}},
+      {"atMs":9600,"command":{"method":"Runtime.evaluate","params":{"expression":"D2GalleryScenes.resolveLoot()","returnByValue":true}}}
+    ]
+  }
+}

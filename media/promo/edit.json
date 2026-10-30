@@ -1,0 +1,15 @@
+{
+  "schema":"d2smm.promo-edit.v1",
+  "width":1920,"height":1080,"fps":30,"audioGain":3.2,
+  "scenes":[
+    {"id":"intro","kind":"still","source":"docs/assets/readme-banner.png","duration":4,"title":"","subtitle":"","box":[140,90,1640,810]},
+    {"id":"site","kind":"clip","source":"site.mp4","duration":9,"title":"ONE BOOKMARK","subtitle":"d2s.arken.gg","crop":[0,0,2200,1232],"box":[60,130,1800,870]},
+    {"id":"install","kind":"clip","source":"install.mp4","duration":9,"title":"DROP IN YOUR MODS","subtitle":"A small manager. Your own enhancements.","box":[60,130,1800,870]},
+    {"id":"menu","kind":"clip","source":"menu.mp4","duration":8,"title":"RIGHT IN THE GAME","subtitle":"MODS · inside the native menu","crop":[800,170,900,1100],"box":[570,140,780,860]},
+    {"id":"characters","kind":"clip","source":"characters.mp4","duration":8,"title":"YOUR CHARACTERS","subtitle":"Same class. Different builds.","crop":[930,350,640,720],"box":[485,150,950,830]},
+    {"id":"loadouts","kind":"still","source":"site/assets/gallery/loadouts.webp","duration":5,"title":"YOUR GEAR. YOUR BUILD.","subtitle":"Three loadouts. The real items you earned.","box":[470,155,980,810]},
+    {"id":"details","kind":"still","source":"site/assets/gallery/item-details.webp","duration":5,"title":"EVERY DETAIL AT A GLANCE","subtitle":"Inspect your equipment before you switch.","box":[440,155,1040,810]},
+    {"id":"loot","kind":"clip","source":"loot.mp4","duration":11,"title":"NEVER MISS THE DROP","subtitle":"Beast Loop · an elite caster ring","crop":[650,550,1200,850],"box":[310,150,1300,830]},
+    {"id":"outro","kind":"still","source":"docs/assets/readme-banner.png","duration":7,"title":"","subtitle":"d2s.arken.gg","box":[150,100,1620,800]}
+  ]
+}

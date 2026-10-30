@@ -91,3 +91,27 @@ For game-access changes, exercise the actual menu, close the manager, and verify
 Use normal game controls, process-native captures, and targeted state reads. Do not add TEST COPY or FPS overlays to product UI. Report controlled boundary checks separately from actual gameplay proof. A screenshot of an idle menu does not prove save or item conservation.
 
 New tests should cover a concrete risk; do not duplicate the implementation or build a new framework for a small visual fix.
+
+## Promo production
+
+[`media/promo/edit.json`](../media/promo/edit.json) owns scene order, timing, crops and captions. [`shots.json`](../media/promo/shots.json) owns the timed browser actions; [`presentation.js`](../media/promo/presentation.js) supplies editorial pointers, simulated browser chrome and the explicitly simulated drop flash. None of these files is included in the shipped manager.
+
+Build the native media tools with `cmake --build build --target d2smm-cdp d2smm-media`. Encoding requires FFmpeg with `drawtext`, invoked through the configured native `cx` wrapper.
+
+`d2smm-cdp --record WEBSOCKET RECIPE NEW_OUTPUT` records process-native screencast frames and their timing. A `d2smm.capture.v1` recipe requires the verified `browserContextId`, `targetId`, a duration of 500–30000 milliseconds, and timed `actions` containing CDP commands. Its optional `prepare` commands run before recording. Capture uses 2500×1400 by default and rejects a mismatched compositor size. Never substitute a player's target for the disposable context. Recording activates that exact owned tab before fixing its viewport.
+
+Encode each approved capture into a reusable clip:
+
+```sh
+build/d2smm-media --encode /absolute/capture-directory /absolute/media-root/clips/site.mp4
+```
+
+The edit expects `site.mp4`, `install.mp4`, `menu.mp4`, `characters.mp4` and `loot.mp4` in `clips/`, plus the retained repository artwork. To revise captions, timing or framing without recapturing those clips, edit the JSON and render to a new export name:
+
+```sh
+build/d2smm-media --render "$PWD" /absolute/media-root /absolute/media-root/exports/D2SMM-Promo-v2.mp4
+```
+
+Retain the capture frames and receipts, encoded clips, per-scene masters, original synthesized soundtrack, edit receipt and final export outside temporary cleanup. The initial production is under `.local/promo-20261030/`; generated media stays ignored. Preserve previously accepted exports when revising the film.
+
+The browser bookmarks gesture is composited; it does not create real browser bookmarks. Character and loot scenes use the shared synthetic fixtures, including `D2GalleryScenes.resolveLoot()` to clear the real attention log after simulated pickup. Loadout stills are the accepted gallery images. Do not describe this production as natural gameplay, native save-switch proof, or an already published release. Local commits do not authorize uploading the film or deploying the site.
