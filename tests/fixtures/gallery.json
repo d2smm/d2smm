@@ -38,7 +38,7 @@
       {"stat": "strength", "value": 20},
       {"stat": "life", "value": 40},
       {"stat": "mana", "value": 90},
-      {"stat": "resistLightning", "value": 30}
+      {"stat": "lightningResist", "value": 30}
     ]
   },
   "expectedRule": "ring-caster",
