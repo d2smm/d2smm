@@ -1,6 +1,7 @@
 #include <nlohmann/json.hpp>
 #include <openssl/evp.h>
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -151,8 +152,9 @@ void build(const fs::path& input, const fs::path& destination) {
     source += "globalThis.D2ModsDefaultPackage=" + Json(packageText).dump() + ";\n";
     const auto pin = Json::parse(read(root/"vendor/acorn/source.json"));
     const auto parser = read(root/"vendor/acorn/generated/acorn.js"), license = read(root/"vendor/acorn/LICENSE");
-    require(sha256(parser) == pin.at("sha256") && parser.size() == pin.at("bytes"), "Acorn source identity changed");
-    require(sha256(license) == pin.at("licenseSha256"), "Acorn license identity changed");
+    require(sha256(parser) == pin.at("sha256").get<std::string>() &&
+            parser.size() == pin.at("bytes").get<std::size_t>(), "Acorn source identity changed");
+    require(sha256(license) == pin.at("licenseSha256").get<std::string>(), "Acorn license identity changed");
     source += "/* Acorn " + pin.at("version").get<std::string>() + "\n" + license + "*/\n";
     source += "(()=>{const module={exports:{}};const exports=module.exports;\n"+parser+"\nglobalThis.D2JavaScriptParser=module.exports;})();\n";
     Json skin = Json::object();
