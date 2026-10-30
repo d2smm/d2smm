@@ -1,5 +1,15 @@
 // Uses actual native drops and the boss/portal lifecycle in the host-verified,
 // tainted Terrorized Incognito fixture. Never use with a player's game or save.
+async function prepareGatherProof(seed){
+  const game=D2Characters.currentGame(),demo=globalThis.__D2TerrorDemo;
+  if(!globalThis.__D2GalleryLease?.contextId||!demo||demo.game!==game||!game?.tainted)throw Error('Prepared isolated Terror fixture required');
+  await game.startReplay(game.kit,demo.expected.tier);
+  // Pause in the same browser task: an agent/tool round trip must not leave
+  // a disposable level-one hero fighting Terror enemies during setup.
+  if(game.state!=='playing')throw Error('Native replay did not start');
+  game.pause();
+  return seedGatherDrops(seed);
+}
 async function seedGatherDrops(seed){
   const g=D2Characters.currentGame(),lease=globalThis.__D2GalleryLease;
   if(!lease?.contextId||!lease.targetId||!globalThis.__D2TerrorDemo||!g?.tainted||!g.world?.terror||g.won||g.state!=='paused'||g.world.pickups.length)throw Error('Use the untouched isolated Terror replay fixture');
@@ -37,8 +47,10 @@ async function seedGatherDrops(seed){
     },
     result(){const state=D2Mods.status().terrorized.gather,remaining=drops.filter(d=>d.kind!=='gold'&&d.kind!=='xp');
       const intact=d=>d.p.item===d.item&&JSON.stringify(d.p.item)===d.itemJson&&d.p.value===d.value;
-      const passed=state.phase===3&&!state.problem&&remaining.every(d=>intact(d)&&(w.pickups.includes(d.p)&&!d.p.dead||!d.item&&d.kind!=='chest'&&d.p.dead&&d.p.magnet));
-      return{passed,status:state,originUnchanged:performance.timeOrigin===origin,runId:g.runId,expectedGroundDrops:remaining.length,remaining:remaining.filter(d=>!d.p.dead).length,nativeGoldXpCollected:drops.filter(d=>d.kind==='gold'||d.kind==='xp').map(d=>({kind:d.kind,dead:d.p.dead})),positions:remaining.map(d=>({name:d.item?.name??d.kind,kind:d.kind,x:d.p.x,y:d.p.y,nativeCollected:d.p.dead&&d.p.magnet,radius:Math.hypot(d.p.x-w.player.x,d.p.y-w.player.y),spriteMatches:!d.p.sprite.destroyed&&d.p.sprite.x===d.p.x&&d.p.sprite.y===d.p.y})),frames:trace.length};
+      const chestsUnmoved=drops.filter(d=>d.kind==='chest').every(d=>d.p.x===d.source.x&&d.p.y===d.source.y);
+      const looseItemsMoved=drops.filter(d=>d.item).every(d=>d.p.x!==d.source.x||d.p.y!==d.source.y);
+      const passed=state.phase===3&&!state.problem&&looseItemsMoved&&(status.chests||chestsUnmoved)&&remaining.every(d=>intact(d)&&(w.pickups.includes(d.p)&&!d.p.dead||!d.item&&d.kind!=='chest'&&d.p.dead&&d.p.magnet));
+      return{passed,status:state,chestsUnmoved,looseItemsMoved,originUnchanged:performance.timeOrigin===origin,runId:g.runId,expectedGroundDrops:remaining.length,remaining:remaining.filter(d=>!d.p.dead).length,nativeGoldXpCollected:drops.filter(d=>d.kind==='gold'||d.kind==='xp').map(d=>({kind:d.kind,dead:d.p.dead})),positions:remaining.map(d=>({name:d.item?.name??d.kind,kind:d.kind,x:d.p.x,y:d.p.y,nativeCollected:d.p.dead&&d.p.magnet,radius:Math.hypot(d.p.x-w.player.x,d.p.y-w.player.y),spriteMatches:!d.p.sprite.destroyed&&d.p.sprite.x===d.p.x&&d.p.sprite.y===d.p.y})),frames:trace.length};
     },
     dispose(){if(timer)clearInterval(timer);timer=null;}
   });

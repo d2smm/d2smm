@@ -46,7 +46,7 @@ static void render(const fs::path& repo,const fs::path& media,const fs::path& ou
         const auto box=scene.at("box");const int x=box[0],y=box[1],w=box[2],h=box[3];
         const auto title=work/(id+"-title.txt"),sub=work/(id+"-subtitle.txt");write(title,scene.at("title"));write(sub,scene.at("subtitle"));
         std::vector<std::string> args={"-loop","1","-i",path(repo/"site/assets/cathedral.webp")};
-        if(kind=="still")append(args,{"-loop","1"});else append(args,{"-stream_loop","-1"});append(args,{"-i",path(input)});
+        if(kind=="still")append(args,{"-loop","1"});else{append(args,{"-stream_loop","-1"});if(scene.contains("startSeconds"))append(args,{"-ss",number(scene.at("startSeconds"))});}append(args,{"-i",path(input)});
         std::string filter="[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,eq=brightness=-0.21:saturation=0.55,boxblur=6:1,fps=30,setsar=1[bg];[1:v]";
         if(scene.contains("crop")){auto c=scene["crop"];filter+="crop="+number(c[2])+":"+number(c[3])+":"+number(c[0])+":"+number(c[1])+",";}
         filter+="scale="+std::to_string(w)+":"+std::to_string(h)+":force_original_aspect_ratio=decrease,fps=30,setsar=1";

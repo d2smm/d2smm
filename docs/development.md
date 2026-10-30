@@ -82,6 +82,8 @@ Some checks refer to the current official package version. Update their expectat
 
 ## Real interaction proof
 
+For a quick gathering-settings check, send `dist/gather-settings-command.json` to the verified isolated camp/title target with `build/d2smm-cdp`. It checks defaults, saved choices, both actual checkboxes and the master switch, then restores the prior settings. It leaves the native save unchanged and removes its temporary test store. This focused command avoids rerunning the whole built-in UI suite. Category selection and cancellation are also covered by the existing `terrorized-policy` native check; the full gathering fixture checks that excluded chests stay at their original coordinates.
+
 ### Standard gallery seeds
 
 For QoL, use [`qol-game-fixture.js`](../tests/browser/qol-game-fixture.js) in a fresh, host-verified Incognito camp. Its pickup fixture exercises the native `carry` path and verifies the exact item identity, stats and unread mark. The full-grid case leaves five free cells that cannot fit another Grand Charm. [`qol-read-capture.json`](../tests/fixtures/qol-read-capture.json) records opening Charms and clearing the dot; verify the button coordinates before capture if the game UI changes.
@@ -91,6 +93,8 @@ For isolated CDP tests, create a dedicated private context and a target with `ne
 Regenerate the shared manager/QoL Wasm with `cmake --build build --target d2smm-build d2smm-manager-wasm`, then `build/d2smm-build --stage-manager-core . build/generated/manager.wasm`. Native checks are in the `d2smm-qol-checks` target and `qol` CTest group. The same explicit native Clang setting used for Terrorized applies.
 
 Gather Run Drops has a separate native-game fixture: [`gather-game-fixture.js`](../tests/browser/gather-game-fixture.js). Use the fresh, tainted replay produced by the isolated Terrorized completion fixture, enable Gather through its checkbox, and evaluate `seedGatherDrops` with [`gallery.json`](../tests/fixtures/gallery.json). It settles the native victory before applying a visual-only level-99 seed, avoiding unrelated skill-choice queues in the capture. No player save is imported.
+
+For repeat runs after the isolated Terrorized fixture has been prepared, call `prepareGatherProof(seed)` from that same gathering fixture. It starts the native replay, pauses immediately and seeds drops in one browser operation, avoiding agent-delay deaths during setup.
 
 Fill the verified `browserContextId` and `targetId` into a copy of [`gather-capture.json`](../tests/fixtures/gather-capture.json), then use `d2smm-cdp --record <page-websocket> <recipe> <new-output-directory>`. Its final `D2GatherProof.result()` reports object conservation and native automatic pickup separately. Keep the raw frames and receipt with the recording; inspect the motion and perform a normal item pickup afterward. Never aim this fixture at a user's game context.
 

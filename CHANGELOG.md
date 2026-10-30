@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.1
+
+- Enable **Gather Run Drops** by default while preserving saved preferences. Unopened chests stay in place.
+- Add a separate **Gather Chests** option, off by default. Each category can be enabled independently.
+- Save a focused, repeatable gathering-settings check and add the gathering demonstration to the promo edit.
+
 ## 2.11.0
 
 - Add **QoL**, with automatic placement of newly picked-up charms when the native Charm grid has room. Native restrictions, item identities and stat updates are preserved.

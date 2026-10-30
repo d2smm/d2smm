@@ -10,6 +10,7 @@
     {"id":"loadouts","kind":"still","source":"site/assets/gallery/loadouts.webp","duration":5,"title":"YOUR GEAR. YOUR BUILD.","subtitle":"Three loadouts. The real items you earned.","box":[470,155,980,810]},
     {"id":"details","kind":"still","source":"site/assets/gallery/item-details.webp","duration":5,"title":"EVERY DETAIL AT A GLANCE","subtitle":"Inspect your equipment before you switch.","box":[440,155,1040,810]},
     {"id":"loot","kind":"clip","source":"loot.mp4","duration":11,"title":"NEVER MISS THE DROP","subtitle":"Beast Loop · an elite caster ring","crop":[650,550,1200,850],"box":[310,150,1300,830]},
+    {"id":"gather","kind":"clip","source":"gather.mp4","startSeconds":0.8,"duration":7,"title":"GATHER THE SPOILS","subtitle":"Terrorized · Gather Run Drops","crop":[160,180,2180,1030],"box":[60,140,1800,860],"captureRecipe":"tests/fixtures/gather-capture.json","fixture":"tests/browser/gather-game-fixture.js"},
     {"id":"outro","kind":"still","source":"docs/assets/readme-banner.png","duration":7,"title":"","subtitle":"d2s.arken.gg","box":[150,100,1620,800]}
   ]
 }

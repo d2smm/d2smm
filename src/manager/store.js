@@ -30,9 +30,9 @@
     });}
     function close(){db?.close();db=null;opening=null;}
     function preferences(value){
-      if(!value)return{revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:false,qolEnabled:true};
-      const result={revision:value.revision,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled,terrorizedEnabled:value.terrorizedEnabled===undefined?true:value.terrorizedEnabled,terrorizedGatherDrops:value.terrorizedGatherDrops===undefined?false:value.terrorizedGatherDrops,qolEnabled:value.qolEnabled===undefined?true:value.qolEnabled};
-      if(!Number.isSafeInteger(result.revision)||result.revision<0||['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','qolEnabled'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
+      if(!value)return{revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true};
+      const result={revision:value.revision,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled,terrorizedEnabled:value.terrorizedEnabled===undefined?true:value.terrorizedEnabled,terrorizedGatherDrops:value.terrorizedGatherDrops===undefined?true:value.terrorizedGatherDrops,terrorizedGatherChests:value.terrorizedGatherChests===undefined?false:value.terrorizedGatherChests,qolEnabled:value.qolEnabled===undefined?true:value.qolEnabled};
+      if(!Number.isSafeInteger(result.revision)||result.revision<0||['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
       return result;
     }
     async function readPreferences(){const connection=await open();return new Promise((resolve,reject)=>{

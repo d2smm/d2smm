@@ -8,11 +8,13 @@ double maximum(double a,double b){return a>b?a:b;}
 double length(Point p){return __builtin_sqrt(p.x*p.x+p.y*p.y);}
 Point subtract(Point a,Point b){return {a.x-b.x,a.y-b.y};}
 double shortest(double angle){while(angle>pi)angle-=2*pi;while(angle<-pi)angle+=2*pi;return angle;}
+bool selected(unsigned kind,unsigned flags){return flags&(kind==static_cast<unsigned>(DropKind::chest)?gatherChests:gatherEnabled);}
 }
-void Gather::cancel(){phase_=0;count_=0;overflow_=false;}
+void Gather::cancel(){phase_=0;count_=0;selection_=0;overflow_=false;}
 unsigned Gather::observe(unsigned id,double time,Point center,Point view,double body,double pickup,unsigned flags){
-    constexpr unsigned required=gatherEnabled|terror|portal|bossWon;
-    if(!id||(flags&required)!=required||(flags&(gatherTraining|timeUp|gatherDebug))){cancel();return 0;}
+    constexpr unsigned required=terror|portal|bossWon;
+    if(!id||!(flags&(gatherEnabled|gatherChests))||(flags&required)!=required||(flags&(gatherTraining|timeUp|gatherDebug))){cancel();return 0;}
+    if(id==consumed_&&phase_==2)for(unsigned i=0;i<count_;++i)if(!selected(slots_[i].kind,flags))slots_[i].active=false;
     // Native choices and pause screens retain the same world/portal. Their
     // stopped game clock holds the motion without consuming or cancelling it.
     if(!(flags&playing))return 0;
@@ -22,15 +24,15 @@ unsigned Gather::observe(unsigned id,double time,Point center,Point view,double 
     center_=center;clearance_=maximum(body+10,pickup)+16;
     radius_=maximum((view.x<view.y?view.x:view.y)*.5,clearance_);
     if(!finite(radius_))return 0;
-    consumed_=id;started_=last_=time;phase_=1;return 1;
+    consumed_=id;started_=last_=time;selection_=flags;phase_=1;return 1;
 }
 unsigned Gather::add(Point from,unsigned kind,unsigned flags){
-    if(phase_!=1||flags||kind<static_cast<unsigned>(DropKind::item)||kind>static_cast<unsigned>(DropKind::xp)||!finite(from))return 0;
+    if(phase_!=1||flags||kind<static_cast<unsigned>(DropKind::item)||kind>static_cast<unsigned>(DropKind::xp)||!selected(kind,selection_)||!finite(from))return 0;
     const auto relative=subtract(from,center_);const auto r=length(relative);
     if(!finite(r))return 0;
     if(count_==capacity){overflow_=true;return 0;}
     auto& slot=slots_[count_];slot.from=slot.current=from;slot.fromRadius=r;
-    slot.angle=math::angle(relative.y,relative.x);slot.active=true;order_[count_]=count_;
+    slot.angle=math::angle(relative.y,relative.x);slot.kind=kind;slot.active=true;order_[count_]=count_;
     return ++count_;
 }
 bool Gather::layout(){
