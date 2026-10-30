@@ -1,6 +1,7 @@
-LOOT GUARD 1.4.0 — STRICT ELITE POLICY (ENGINE 3.1.0)
+LOOT GUARD 1.5.0 — STRICT ELITE POLICY (ENGINE 4.0.0)
 
-Only magic and rare items are evaluated. Any ONE rule below is enough. These
+Magic/rare rules keep their original scope; named unique/runeword exceptions
+are listed separately below. Any ONE applicable rule is enough. These
 are deliberately conservative stat-combination thresholds, not ordinary upgrades
 or a market-price guarantee. Unmatched items retain the game's native filter.
 All classes are covered. No LLD exceptions. No botting or automated play.
@@ -86,8 +87,15 @@ CHARMS
 47. GRAND: 15 all-res +40 life.
 48. LARGE: 35 life + (8 all-res OR 6 max damage +40 AR).
 
+NAMED UNIQUES AND RUNEWORDS — ON BY DEFAULT
+49. UNIQUE War Traveler boots: exactly 50 MF, 190 enhanced defense and 10 thorns.
+    All three variable rolls must be perfect; 50 MF alone is not enough.
+50–61. RUNEWORD Exile, Infinity, Doom, Breath of the Dying (BotD), Grief,
+    Last Wish, Death, Enigma, Phoenix, Dream, Pride or Faith — any roll.
+    Other uniques and runewords do not inherit the ordinary magic/rare rules.
+
 OPTIONAL TESTING — OFF BY DEFAULT
-49. MAGIC item with at least 10 FCR. The checkbox is named
+62. MAGIC item with at least 10 FCR. The checkbox is named
     "[Testing] Match on common items". It is deliberately broad, and never part
     of the strict policy. Upgrading to the elite policy disables it once;
     a later explicit choice to enable it is retained.
@@ -95,4 +103,5 @@ OPTIONAL TESTING — OFF BY DEFAULT
 The notification checkbox only controls native Baal audio; cooldown and native
 mute/SFX settings remain in force. No item stats, game saves, pickups or prices
 are changed. This filter cannot recover already sold items or prevent native
-floor-item despawn. Exact predicates: mod-system/runtime/rules.js.
+floor-item despawn. Exact predicates: runtime/rule-catalog.js. Native matcher:
+core/loot.cpp.

@@ -1,93 +1,106 @@
 {
-   "adapter" : "d2-loot-guard-v1",
-   "builtinRules" : [
-      "ring-caster",
-      "ring-dual-leech",
-      "ring-melee",
-      "ring-resists",
-      "ring-fortune",
-      "ring-blue-caster",
-      "amulet-caster",
-      "amulet-skills-support",
-      "amulet-tree",
-      "amulet-fortune",
-      "amulet-gold",
-      "gloves-skills-speed",
-      "gloves-rare-speed",
-      "gloves-fortune",
-      "head-caster",
-      "head-tree",
-      "head-physical",
-      "head-staffmod",
-      "head-visionary",
-      "boots-trires",
-      "boots-resists",
-      "boots-fortune",
-      "belt-life-resists",
-      "belt-strength",
-      "body-survival",
-      "body-skills",
-      "shield-skills",
-      "shield-block",
-      "shield-staffmod",
-      "weapon-cruel-speed",
-      "weapon-exceptional-ed",
-      "weapon-fools",
-      "weapon-caster",
-      "weapon-staffmod",
-      "weapon-warcries",
-      "claws-skills-speed",
-      "amazon-javelin",
-      "amazon-bow",
-      "charm-skiller",
-      "small-charm-mf",
-      "small-charm-life",
-      "small-charm-allres",
-      "small-charm-dual",
-      "small-charm-physical",
-      "grand-charm-life",
-      "grand-charm-physical",
-      "grand-charm-resists",
-      "large-charm-dual"
-   ],
-   "capabilities" : [
-      "loot-labels",
-      "loot-keep-override",
-      "game-audio"
-   ],
-   "defaults" : {
-      "enabled" : true,
-      "protectMatches" : true,
-      "sound" : true,
-      "testFcr" : false
-   },
-   "description" : "Strict elite-only magic and rare combinations across all classes. Common-item testing is off by default.",
-   "extraRules" : [
-      {
-         "id" : "test-magic-fcr",
-         "reason" : "Test rule: magic item with 10%+ FCR",
-         "toggle" : "testFcr",
-         "when" : {
-            "all" : [
-               {
-                  "field" : "rarity",
-                  "op" : "eq",
-                  "value" : "magic"
-               },
-               {
-                  "op" : "gte",
-                  "stat" : "fcr",
-                  "value" : 10
-               }
-            ]
-         }
+  "adapter": "d2-loot-guard-v1",
+  "builtinRules": [
+    "ring-caster",
+    "ring-dual-leech",
+    "ring-melee",
+    "ring-resists",
+    "ring-fortune",
+    "ring-blue-caster",
+    "amulet-caster",
+    "amulet-skills-support",
+    "amulet-tree",
+    "amulet-fortune",
+    "amulet-gold",
+    "gloves-skills-speed",
+    "gloves-rare-speed",
+    "gloves-fortune",
+    "head-caster",
+    "head-tree",
+    "head-physical",
+    "head-staffmod",
+    "head-visionary",
+    "boots-trires",
+    "boots-resists",
+    "boots-fortune",
+    "belt-life-resists",
+    "belt-strength",
+    "body-survival",
+    "body-skills",
+    "shield-skills",
+    "shield-block",
+    "shield-staffmod",
+    "weapon-cruel-speed",
+    "weapon-exceptional-ed",
+    "weapon-fools",
+    "weapon-caster",
+    "weapon-staffmod",
+    "weapon-warcries",
+    "claws-skills-speed",
+    "amazon-javelin",
+    "amazon-bow",
+    "charm-skiller",
+    "small-charm-mf",
+    "small-charm-life",
+    "small-charm-allres",
+    "small-charm-dual",
+    "small-charm-physical",
+    "grand-charm-life",
+    "grand-charm-physical",
+    "grand-charm-resists",
+    "large-charm-dual",
+    "war-traveler-perfect",
+    "runeword-exile",
+    "runeword-infinity",
+    "runeword-doom",
+    "runeword-breath-of-the-dying",
+    "runeword-grief",
+    "runeword-last-wish",
+    "runeword-death",
+    "runeword-enigma",
+    "runeword-phoenix",
+    "runeword-dream",
+    "runeword-pride",
+    "runeword-faith"
+  ],
+  "capabilities": [
+    "loot-labels",
+    "loot-keep-override",
+    "game-audio"
+  ],
+  "defaults": {
+    "enabled": true,
+    "protectMatches": true,
+    "sound": true,
+    "testFcr": false
+  },
+  "description": "Strict elite magic/rare rules, perfect War Traveler, and selected high-end runewords. Common-item testing is off by default.",
+  "extraRules": [
+    {
+      "id": "test-magic-fcr",
+      "reason": "Test rule: magic item with 10%+ FCR",
+      "toggle": "testFcr",
+      "when": {
+        "all": [
+          {
+            "field": "rarity",
+            "op": "eq",
+            "value": "magic"
+          },
+          {
+            "op": "gte",
+            "stat": "fcr",
+            "value": 10
+          }
+        ]
       }
-   ],
-   "format" : "d2-survivors.mod",
-   "id" : "loot-guard",
-   "name" : "Loot Guard",
-   "origin" : "https://d2survivors.lol",
-   "pathPrefix" : "/play/",
-   "schemaVersion" : 1,
-   "version" : "1.4.0"
+    }
+  ],
+  "format": "d2-survivors.mod",
+  "id": "loot-guard",
+  "name": "Loot Guard",
+  "origin": "https://d2survivors.lol",
+  "pathPrefix": "/play/",
+  "schemaVersion": 1,
+  "version": "1.5.0"
 }

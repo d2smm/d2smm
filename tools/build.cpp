@@ -4,6 +4,7 @@
 #include "gather.hpp"
 #include "qol.hpp"
 #include "badges.hpp"
+#include "loot.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -35,6 +36,18 @@ void write(const fs::path& path, const std::string& value) {
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 const std::vector<std::string> managerSources={"src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
+void stageLootCore(const fs::path& root,const fs::path& input){
+    const auto bytes=read(input);
+    if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid loot Wasm artifact");
+    Json pin={{"schema","d2smm.native-core.v1"},{"bytes",bytes.size()},{"sha256",sha256(bytes)},{"sources",Json::object()},
+      {"fields",d2smm::loot::fields},{"stats",d2smm::loot::stats},{"metrics",d2smm::loot::metrics},{"rarities",d2smm::loot::rarities},{"errors",d2smm::loot::errors},{"textLimit",d2smm::loot::textLimit}};
+    pin["kinds"]={{"stat",d2smm::loot::stat},{"field",d2smm::loot::field},{"metric",d2smm::loot::metric},{"all",d2smm::loot::all},{"any",d2smm::loot::any},{"atLeast",d2smm::loot::atLeast}};
+    pin["comparisons"]={{"eq",d2smm::loot::eq},{"gte",d2smm::loot::gte},{"gt",d2smm::loot::gt},{"lte",d2smm::loot::lte}};
+    for(const auto& file:lootSources)pin["sources"][file]=sha256(read(root/"mods/loot-guard"/file));
+    write(root/"mods/loot-guard/generated/core.wasm",bytes);write(root/"mods/loot-guard/generated/core.json",pin.dump(2)+"\n");
+    std::cout<<"Staged loot core: "<<bytes.size()<<" bytes\n";
+}
 void stageManagerCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);
     if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid manager Wasm artifact");
@@ -209,6 +222,12 @@ void build(const fs::path& input, const fs::path& destination) {
     require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
     for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");
     source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")}}).dump()+";\n";
+    const auto lootPin=Json::parse(read(root/"mods/loot-guard/generated/core.json"));
+    const auto lootBytes=read(root/"mods/loot-guard/generated/core.wasm");
+    require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
+    for(const auto& file:lootSources)require(sha256(read(root/"mods/loot-guard"/file))==lootPin.at("sources").at(file).get<std::string>(),"Loot core source changed; regenerate the native artifact");
+    Json lootKernel=lootPin;lootKernel.erase("sources");lootKernel["wasm"]=base64(lootBytes);
+    source+="globalThis.D2LootKernel="+lootKernel.dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
         auto module = read(sourcePath(root,path.get<std::string>()));
         if (path == "src/manager/manager.js") {
@@ -257,6 +276,7 @@ void build(const fs::path& input, const fs::path& destination) {
     const auto load = "(async()=>{"+std::string(guard)+"const before=localStorage.getItem('d2-survivors/save/v1');globalThis.D2ModsBootstrap="+descriptor.dump()+";eval("+Json(source).dump()+");await D2ModsStartup;await D2Mods.ready;if(before!==localStorage.getItem('d2-survivors/save/v1'))throw Error('Candidate load changed native save');return{version:D2Mods.version,saveUnchanged:true};})()";
     write(out/"gallery-load-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",load},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     Json fixtureSources=Json::array();
+    fixtureSources.push_back("globalThis.D2LootKernel="+lootKernel.dump()+";");
     for(const auto& name:{"base-kinds.js","rule-catalog.js","rules.js","alerts.js","adapter.js"})fixtureSources.push_back(read(root/"mods/loot-guard/runtime"/name));
     const auto fixtures=Json::parse(read(root/"tests/fixtures/gallery.json"));
     const auto fixtureScript=read(root/"tests/browser/gallery-scenes.js")+"\ninstallGalleryScenes("+fixtures.dump()+","+fixtureSources.dump()+")";
@@ -278,6 +298,10 @@ void build(const fs::path& input, const fs::path& destination) {
     write(out/"builtin-mod-hooks-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",builtinCheck},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"builtin-mod-ui-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/builtin-mod-ui.js")},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"gather-settings-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/gather-settings.js")},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    for(const auto& [file,command]:std::vector<std::pair<std::string,std::string>>{{"loot-guard-checks.js","loot-rules-command.json"},{"rules-json-checks.js","loot-json-command.json"},{"loot-guard-alert-checks.js","loot-alerts-command.json"}}){
+      const auto expression="(async()=>{"+std::string(guard)+"await D2Mods.ready;await D2Mods.installText(D2ModsDefaultPackage);return eval("+Json(read(root/"tests/browser"/file)).dump()+");})()";
+      write(out/command,Json({{"method","Runtime.evaluate"},{"params",{{"expression",expression},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    }
     std::cout << "D2SMM " << version << ": " << source.size() << " bytes\nSHA-256 " << hash << "\nOutput " << out << '\n';
 }
 } // namespace
@@ -290,6 +314,7 @@ int main(int argc, char** argv) {
         if (argc==3 && std::string(argv[1])=="--check-source") { checkSource(argv[2]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-terror-core") { stageTerrorCore(argv[2],argv[3]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-manager-core") { stageManagerCore(argv[2],argv[3]); return 0; }
+        if (argc==4 && std::string(argv[1])=="--stage-loot-core") { stageLootCore(argv[2],argv[3]); return 0; }
         if (argc!=5 || std::string(argv[1])!="--source" || std::string(argv[3])!="--output") {
             std::cerr<<"Usage: d2smm-build --source REPOSITORY --output OUTPUT\n"; return 2;
         }

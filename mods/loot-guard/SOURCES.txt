@@ -20,8 +20,13 @@ The current strict elite policy is documented in RULES.txt and implemented in
 runtime/rule-catalog.js. Its thresholds are local curation decisions, not a
 claim that the reference pickits use these exact numbers or are universally best.
 
-Engine 3.1.0 makes these conditions exportable and editable as JSON. Package
-1.4.0 selects 48 permanent rules plus an optional magic-item 10% FCR test.
+Engine 4.0.0 executes the editable conditions in browser C++/Wasm. Package
+1.5.0 selects 48 magic/rare rules, perfect War Traveler, twelve named runewords,
+and an optional magic-item 10% FCR test. The named additions are explicit user
+preferences, not claims from the pickit references. The game's public
+https://d2survivors.lol/d2/itemstats.json defines War Traveler's variable maxima:
+50 magic find, 190 enhanced defense and 10 thorns. Runtime modifier mappings
+preserve those values; Breath of the Dying is the canonical name for BotD.
 Common-item testing is off by default. There are no LLD or item-level exceptions.
 Ordinary skills/resist shields and modest magic-find boots do not qualify.
 

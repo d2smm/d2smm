@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION='2.11.1';
+  const VERSION='2.12.0';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
@@ -136,7 +136,7 @@
   document.addEventListener('dragover',dragOver,true);document.addEventListener('drop',drop,true);window.addEventListener('keydown',hotkey,true);window.addEventListener('message',message);window.addEventListener('d2mods:loot-status',lootStatus);
   window.addEventListener('keyup',releaseHotkey,true);window.addEventListener('blur',resetHotkey);
   channel.onmessage=event=>{if(event.data?.badgesChanged)void badges.reload().catch(error=>console.warn('[D2SMM] unread refresh',error));else void task(load).catch(report);};
-  const ready=task(async()=>{mount();persistent=await navigator.storage?.persisted?.()??false;await badges.ready;await load();});
+  const ready=task(async()=>{mount();persistent=await navigator.storage?.persisted?.()??false;await Promise.all([badges.ready,D2LootRules.ready]);await load();});
   async function dispose(){await queue;closed=true;await qol.dispose();await badgeControls.dispose();await badges.dispose();await terrorized.dispose();gameUI.dispose();view?.dispose();globalThis.D2LootGuard.dispose();attention.dispose();await globalThis.D2Characters?.dispose();await gameMenu.dispose();await globalThis.D2GameContract?.dispose();globalThis.D2GameSkin?.dispose();db.close();channel.close();document.removeEventListener('dragover',dragOver,true);document.removeEventListener('drop',drop,true);window.removeEventListener('keydown',hotkey,true);window.removeEventListener('keyup',releaseHotkey,true);window.removeEventListener('blur',resetHotkey);window.removeEventListener('message',message);window.removeEventListener('d2mods:loot-status',lootStatus);document.getElementById('d2-mod-system')?.remove();delete globalThis.D2Mods;delete globalThis.D2LootGuard;delete globalThis.D2Characters;}
   globalThis.D2Mods=Object.freeze({version:VERSION,ready,status:summary,show,focusGame:gameUI.focus,close:()=>panel?.close(),installFile,installText,configure,configurePreferences,configureBuiltin,uninstall,dispose,exportText,checkUpdates,installModUpdate,installManagerUpdate,attention:Object.freeze({source:attention.source}),badges:Object.freeze({source:badges.source}),notify:text=>{notice=String(text).slice(0,400);paint();}});
   ready.catch(report);

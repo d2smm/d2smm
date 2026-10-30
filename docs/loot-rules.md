@@ -30,9 +30,11 @@ An example package is in [`examples/elite-caster-ring.json`](../examples/elite-c
 | `{"field": "rarity", "op": "eq", "value": "rare"}` | Compare an item field |
 | `{"metric": "allResist", "op": "gte", "value": 30}` | Compare a derived metric |
 
-Numeric operators: `gte`, `gt`, `lte`, `eq`. Fields `type`, `rarity`, `base`, and `kind` support `eq` only. `kind` comes from the base-category table; do not invent categories from the displayed name.
+Numeric operators: `gte`, `gt`, `lte`, `eq`. Fields `type`, `rarity`, `base`, `name`, and `kind` support `eq` only. Names are exact canonical game names. `kind` comes from the base-category table; do not invent categories from the displayed name.
 
-Only **magic and rare** items are evaluated. Implicit base modifiers are excluded, so base weapon damage is not enhanced damage. Rules are not an LLD or required-level classifier. Different matching rules are alternatives: any selected rule may match.
+Rules target **magic and rare** items unless they declare `rarities`, such as `"rarities": ["unique"]` or `"rarities": ["runeword"]`. A named rule also uses an exact `name` condition, for example `{"field":"name","op":"eq","value":"Enigma"}`. Existing rules therefore do not start matching unrelated uniques or runewords. Implicit base modifiers are excluded, so base weapon damage is not enhanced damage. Rules are not an LLD or required-level classifier. Different matching rules are alternatives: any selected rule may match.
+
+The defaults include War Traveler only at **50 MF / 190 enhanced defense / 10 thorns**, and Exile, Infinity, Doom, Breath of the Dying, Grief, Last Wish, Death, Enigma, Phoenix, Dream, Pride and Faith at any roll. Export JSON to edit these conditions or add another named item; `thorns` is an admitted stat.
 
 The validator allows at most 100 `extraRules`, 12 children per group, condition depth 6, and a 256 KiB package. It rejects unknown keys and unsupported stats. [`packages.js`](../src/manager/packages.js) is the exact schema/allowlist authority; [`rule-catalog.js`](../mods/loot-guard/runtime/rule-catalog.js) contains complete production examples.
 

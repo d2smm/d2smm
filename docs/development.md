@@ -82,6 +82,10 @@ Some checks refer to the current official package version. Update their expectat
 
 ## Real interaction proof
 
+Loot Guard's matcher is in `mods/loot-guard/core/`. Regenerate it with `cmake --build build --target d2smm-build d2smm-loot-wasm`, then `build/d2smm-build --stage-loot-core . build/generated/loot.wasm`. The existing configured native Clang is required. `d2smm-loot-checks` / `ctest -R loot` cover native admission and matching. The saved browser cases in `tests/browser/loot-guard-checks.js` cover the shipped catalog, including every named runeword and imperfect War Traveler rejections; `rules-json-checks.js` covers editable named rules and import rollback.
+
+The build emits `loot-rules-command.json`, `loot-json-command.json` and `loot-alerts-command.json` beside the candidate bundle. Send them through the native CDP tool to a verified isolated game after loading that candidate. They select the candidate's default rules in the test manager; never run them against a player's edited rule set. A candidate reload with the same version needs the existing manager's `dispose()` first, otherwise the normal version guard deliberately retains the installed runtime.
+
 For a quick gathering-settings check, send `dist/gather-settings-command.json` to the verified isolated camp/title target with `build/d2smm-cdp`. It checks defaults, saved choices, both actual checkboxes and the master switch, then restores the prior settings. It leaves the native save unchanged and removes its temporary test store. This focused command avoids rerunning the whole built-in UI suite. Category selection and cancellation are also covered by the existing `terrorized-policy` native check; the full gathering fixture checks that excluded chests stay at their original coordinates.
 
 ### Standard gallery seeds

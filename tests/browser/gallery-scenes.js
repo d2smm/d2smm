@@ -51,6 +51,7 @@ async function installGalleryScenes(seed, sources) {
     frame = document.createElement('iframe'); frame.hidden = true; document.body.append(frame);
     const w = frame.contentWindow;
     for (const source of sources.slice(0,-1)) w.eval(source);
+    await w.D2LootRules.ready;
     // Controlled native boundary, exclusively in the detached test realm.
     class NativeBoundary { tick() {} loot() { return 'hide'; } refilter() {} }
     w.D2GameContract = {connect:async () => ({Game:NativeBoundary, url:'gallery-controlled-boundary',
@@ -61,8 +62,8 @@ async function installGalleryScenes(seed, sources) {
     pickup = {item:structuredClone(seed.drop)}; receiver = new NativeBoundary(); receiver.world = {pickups:[pickup]};
     receiver.tick();
     const result = w.D2LootRules.evaluate(pickup.item,{testFcr:false});
-    check('Beast Loop passes the elite caster-ring rule with testing off', result.match && result.rules.includes(seed.expectedRule));
-    check('Real loot adapter raises an unresolved Beast Loop notice', D2Mods.status().attention.some(e => e.source === 'gallery-loot' && e.title === seed.drop.name && e.expiresAt === null));
+    check(seed.drop.name+' passes its expected rule with testing off', result.match && result.rules.includes(seed.expectedRule));
+    check('Real loot adapter raises an unresolved '+seed.drop.name+' notice', D2Mods.status().attention.some(e => e.source === 'gallery-loot' && e.title === seed.drop.name && e.expiresAt === null));
     unchanged(); return {scene:'loot', result, attention:D2Mods.status().attention};
   }
   function checkLootLifecycle() {

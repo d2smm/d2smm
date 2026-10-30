@@ -30,7 +30,7 @@
   function active() { return config.enabled && !error; }
   function result(item) {
     if (!item || typeof item !== 'object') return { match: false, reasons: [], rules: [] };
-    const signature = [packGeneration,config.testFcr,item.base, item.type, item.rarity, ...(item.mods || []).map(m => `${m.stat}:${m.value}:${!!m.implicit}`)].join('|');
+    const signature = [packGeneration,config.testFcr,item.name,item.base, item.type, item.rarity, ...(item.mods || []).map(m => `${m.stat}:${m.value}:${!!m.implicit}`)].join('|');
     let entry = cache.get(item);
     if (!entry || entry.signature !== signature) {
       entry = { signature, value: globalThis.D2LootRules.evaluate(item,{testFcr:config.testFcr}) };
@@ -39,7 +39,7 @@
     return entry.value;
   }
   function note(item, value) {
-    if (!['magic', 'rare'].includes(item?.rarity) || seen.has(item)) return;
+    if (!value.valid || seen.has(item)) return;
     seen.add(item); checked++;
     if (!value.match) return;
     matched++;

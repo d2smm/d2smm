@@ -1,6 +1,6 @@
 # Loot Guard
 
-Exceptional magic and rare drops, across every class.
+Exceptional magic and rare drops, perfect War Traveler, and selected high-end runewords across every class.
 
 - `*** Item Name ***` highlights.
 - Optional protection from native hiding and auto-sell.

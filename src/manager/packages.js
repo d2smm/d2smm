@@ -1,8 +1,7 @@
 (() => {
   'use strict';
   const allowedSettings=['enabled','protectMatches','sound','testFcr'];
-  const stats=new Set(['fcr','attackSpeed','frw','life','mana','strength','dexterity','vitality','energy','magicFind','goldFind','fireResist','coldResist','lightningResist','poisonResist','enhancedDamage','enhancedDefense','attackRatingPoints','attackRatingPerLevel','attackRatingPercentPerLevel','maxDamage','minDamage','maxDamagePerLevel','lifeLeech','manaLeech','deadlyStrike','crushingBlow','openWounds','fhr','fasterBlock','block','damageReduced','damageReduction','allSkills',...Array.from({length:7},(_,i)=>`classskills${i}`),...Array.from({length:21},(_,i)=>`skilltab${i}`)]);
-  const fields=new Set(['type','rarity','base','kind']);
+  const stats=new Set(D2LootRules.stats),fields=new Set(D2LootRules.fields);
   function object(value,label){if(!value||typeof value!=='object'||Array.isArray(value))throw Error(`${label} must be an object`);}
   function keys(value,allowed,label){object(value,label);for(const key of Object.keys(value))if(!allowed.includes(key))throw Error(`${label}: unknown field ${key}`);}
   function text(value,label,max=160){if(typeof value!=='string'||!value.trim()||value.length>max)throw Error(`Invalid ${label}`);return value;}
@@ -34,10 +33,12 @@
     if(!Array.isArray(value.extraRules)||value.extraRules.length>100)throw Error('At most 100 additional rules are supported');
     const ids=new Set(value.builtinRules);
     for(const rule of value.extraRules){
-      keys(rule,['id','reason','when','toggle'],'Extra rule');text(rule.id,'rule ID',80);text(rule.reason,'rule reason',160);
+      keys(rule,['id','reason','when','toggle','rarities'],'Extra rule');text(rule.id,'rule ID',80);text(rule.reason,'rule reason',160);
       if(ids.has(rule.id))throw Error(`Duplicate rule ${rule.id}`);ids.add(rule.id);
       if(rule.toggle!==undefined&&rule.toggle!=='testFcr')throw Error('Unsupported rule switch');condition(rule.when);
+      if(rule.rarities!==undefined&&(!Array.isArray(rule.rarities)||rule.rarities.length<1||rule.rarities.length>4))throw Error('Rarity scope needs 1–4 rarities');
     }
+    D2LootRules.validatePackage(value);
     return structuredClone(value);
   }
   async function decode(source){

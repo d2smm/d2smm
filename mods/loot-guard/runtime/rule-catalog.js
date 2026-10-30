@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const rules=[],all=(...all)=>({all}),any=(...any)=>({any}),s=(stat,value,op='gte')=>({stat,op,value}),m=(metric,value)=>({metric,op:'gte',value}),f=(field,value)=>({field,op:'eq',value}),type=t=>f('type',t),magic=f('rarity','magic'),rare=f('rarity','rare');
-  const add=(id,reason,when,source='pickit-adapted')=>rules.push({id,reason,when,source});
+  const add=(id,reason,when,source='pickit-adapted',rarities)=>rules.push({id,reason,when,source,...rarities?{rarities}:{}});
   add('ring-caster','10 FCR rare ring with three exceptional supporting rolls',all(type('ring'),rare,s('fcr',10),{atLeast:3,conditions:[s('life',35),s('mana',75),m('attributes',25),m('resistTotal',60),s('attackRatingPoints',100)]}));
   add('ring-dual-leech','Elite dual-leech ring: 8/6 leech, 25 stats, 35 life, 40 resists',all(type('ring'),rare,s('lifeLeech',8),s('manaLeech',6),m('attributes',25),s('life',35),m('resistTotal',40)));
   add('ring-melee','Elite melee ring: 30 stats, 120 AR, 35 life and damage/leech',all(type('ring'),rare,m('attributes',30),s('attackRatingPoints',120),s('life',35),any(s('lifeLeech',8),s('maxDamage',9))));
@@ -51,7 +51,9 @@
   add('grand-charm-physical','10 max damage / 70 AR / 40 life Grand Charm',all(f('base','Grand Charm'),s('maxDamage',10),s('attackRatingPoints',70),s('life',40)));
   add('grand-charm-resists','15 all-res / 40 life Grand Charm',all(f('base','Grand Charm'),m('allResist',15),s('life',40)));
   add('large-charm-dual','35 life Large Charm with 8 all-res or 6 max / 40 AR',all(f('base','Large Charm'),s('life',35),any(m('allResist',8),all(s('maxDamage',6),s('attackRatingPoints',40)))));
-  add('test-magic-fcr','Test rule: magic item with 10%+ FCR',all(magic,s('fcr',10)),'temporary-user-verification');
+  add('war-traveler-perfect','Perfect War Traveler: 50 MF, 190 enhanced defense, 10 thorns',all(type('boots'),f('rarity','unique'),f('name','War Traveler'),s('magicFind',50,'eq'),s('enhancedDefense',190,'eq'),s('thorns',10,'eq')),'user-priority',['unique']);
+  for(const[id,name]of [['exile','Exile'],['infinity','Infinity'],['doom','Doom'],['breath-of-the-dying','Breath of the Dying'],['grief','Grief'],['last-wish','Last Wish'],['death','Death'],['enigma','Enigma'],['phoenix','Phoenix'],['dream','Dream'],['pride','Pride'],['faith','Faith']])add('runeword-'+id,name+' runeword (any roll)',all(f('rarity','runeword'),f('name',name)),'user-priority',['runeword']);
+  add('test-magic-fcr','Test rule: magic item with 10%+ FCR',all(magic,s('fcr',10)),'temporary-user-verification');rules[rules.length-1].toggle='testFcr';
   function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
   globalThis.D2LootRuleData=freeze(rules);
 })();

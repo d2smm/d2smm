@@ -1,58 +1,57 @@
-/* Independently implemented keep rules informed by Kolton/Blizzhackers pickits.
- * D2 Survivors modifiers are the authority. See SOURCES.txt for adaptations. */
+// Typed transport to the browser C++ matcher. Rule data and presentation stay JS.
 (() => {
   'use strict';
-  if (globalThis.D2LootRules?.version === '3.1.0') return;
-  const classes = ['amazon', 'sorceress', 'necromancer', 'paladin', 'barbarian', 'druid', 'assassin'];
-  const rules = globalThis.D2LootRuleData;
-  let selected=null,extra=[];
-  function facts(item) {
-    if (!item || !['magic', 'rare'].includes(item.rarity) || !Array.isArray(item.mods)) return null;
-    const stats = Object.create(null);
-    for (const mod of item.mods) {
-      if (!mod || typeof mod.stat !== 'string' || !Number.isFinite(mod.value)) return null;
-      // Base weapon damage is not an enhanced-damage affix.
-      if (mod.implicit) continue;
-      stats[mod.stat] = (stats[mod.stat] || 0) + mod.value;
+  const data=D2LootRuleData,meta=D2LootKernel,encoder=new TextEncoder();let core=null,current=[];
+  const empty=()=>({match:false,rules:[],reasons:[],valid:false});
+  const requireOK=ok=>{if(!ok)throw Error(meta.errors[core.loot_error()]||'Invalid loot rules');};
+  function input(value,slot=0){
+    if(typeof value!=='string')throw Error('Expected loot-rule text');const bytes=encoder.encode(value);
+    if(bytes.length>meta.textLimit)throw Error('Loot-rule text is too long');
+    new Uint8Array(core.memory.buffer,core.loot_input(slot),meta.textLimit).set(bytes);return bytes.length;
+  }
+  function condition(node){
+    if(node.all){node.all.forEach(condition);requireOK(core.loot_group(meta.kinds.all,node.all.length,0));}
+    else if(node.any){node.any.forEach(condition);requireOK(core.loot_group(meta.kinds.any,node.any.length,0));}
+    else if(node.conditions){node.conditions.forEach(condition);requireOK(core.loot_group(meta.kinds.atLeast,node.conditions.length,node.atLeast));}
+    else if(node.field)requireOK(core.loot_text(meta.fields.indexOf(node.field),meta.comparisons[node.op]??-1,input(node.value)));
+    else requireOK(core.loot_number(node.stat?meta.kinds.stat:meta.kinds.metric,(node.stat?meta.stats:meta.metrics).indexOf(node.stat??node.metric),meta.comparisons[node.op]??-1,node.value));
+  }
+  function compile(rules,commit){
+    if(!core)throw Error('Loot Guard is still loading');core.loot_begin();
+    for(const rule of rules){
+      requireOK(core.loot_rule(Number(rule.rarities!==undefined),Number(rule.toggle==='testFcr')));
+      if(rule.rarities!==undefined)for(const rarity of rule.rarities)requireOK(core.loot_rarity(meta.rarities.indexOf(rarity)));
+      condition(rule.when);requireOK(core.loot_end());
     }
-    const get = key => stats[key] || 0;
-    const res = ['fireResist', 'coldResist', 'lightningResist', 'poisonResist'].map(get);
-    const classSkills = classes.map((_, i) => get(`classskills${i}`));
-    const trees = Array.from({ length: 21 }, (_, i) => get(`skilltab${i}`));
-    const specific = Object.entries(stats).filter(([key]) => key.startsWith('skill:'));
-    const classMax = Math.max(...classSkills) + get('allSkills');
-    const treeMax = Math.max(...trees) + get('allSkills');
-    const combined = Math.max(...trees.map((v, i) => v + classSkills[Math.floor(i / 3)])) + get('allSkills');
-    const kind = globalThis.D2LootBaseKinds?.[item.base] || '';
-    return { item, get, res, resistTotal: res.reduce((a, b) => a + b, 0),
-      resistCount: res.filter(v => v >= 30).length, allResist: Math.min(...res),elementalTotal:res.slice(0,3).reduce((a,b)=>a+b,0),elementalCount:res.slice(0,3).filter(v=>v>=30).length,
-      classMax, treeMax, combined, specific, skillMax: Math.max(0, ...specific.map(([, v]) => v)),
-      attributes: get('strength') + get('dexterity'), kind,bestResist:Math.max(...res),
-      assassinSkills:Math.max(get('skilltab18'),get('skilltab19'),get('skilltab20'))+get('classskills6'),javelinSkills:get('classskills0')+get('skilltab2'),bowSkills:get('classskills0')+get('skilltab0'),
-      is: type => item.type === type, magic: item.rarity === 'magic', rare: item.rarity === 'rare',
-      offensiveSupport: get('attackSpeed') >= 20 || get('deadlyStrike') >= 10 || get('lifeLeech') >= 5 || get('manaLeech') >= 5 };
+    if(commit){requireOK(core.loot_commit());current=rules;}
   }
-
-  function predicate(node,f){
-    if(node.all)return node.all.every(child=>predicate(child,f));
-    if(node.any)return node.any.some(child=>predicate(child,f));
-    if(node.conditions)return node.conditions.filter(child=>predicate(child,f)).length>=node.atLeast;
-    const actual=node.metric?f[node.metric]:node.field==='kind'?f.kind:node.field?f.item[node.field]:f.get(node.stat);
-    return node.op==='eq'?actual===node.value:node.op==='gte'?actual>=node.value:node.op==='gt'?actual>node.value:node.op==='lte'?actual<=node.value:false;
+  function select(pack){return pack?[...pack.builtinRules.map(id=>{const rule=data.find(r=>r.id===id);if(!rule)throw Error('Unknown built-in rule '+id);return rule;}),...pack.extraRules]:data;}
+  function usePackage(pack){compile(structuredClone(select(pack)),true);}
+  function validatePackage(pack){compile(select(pack),false);}
+  function evaluate(item,{testFcr=true}={}){
+    if(!core||!item||typeof item!=='object')return empty();
+    core.loot_item(Number(Array.isArray(item.mods)));
+    for(const key of ['type','rarity','base','name']){
+      const present=typeof item[key]==='string';
+      if(present&&encoder.encode(item[key]).length>meta.textLimit)return empty();
+      core.loot_field(meta.fields.indexOf(key),input(present?item[key]:''),Number(present));
+    }
+    if(Array.isArray(item.mods))for(const mod of item.mods){
+      const typed=typeof mod?.stat==='string'&&typeof mod?.value==='number';
+      if(typed&&encoder.encode(mod.stat).length>meta.textLimit)return empty();
+      core.loot_modifier(input(typed?mod.stat:''),typed?mod.value:NaN,Number(!!mod?.implicit),Number(typed));
+    }
+    if(!core.loot_evaluate(Number(testFcr)))return empty();
+    const matches=current.filter((_,index)=>core.loot_match(index));
+    return{match:!!matches.length,rules:matches.map(r=>r.id),reasons:matches.map(r=>r.reason),valid:true};
   }
-  function usePackage(pack){
-    selected=pack?new Set(pack.builtinRules):null;
-    extra=pack?structuredClone(pack.extraRules):[];
-  }
-  function evaluate(item, {testFcr=true}={}) {
-    const f = facts(item);
-    if (!f) return { match: false, rules: [], reasons: [], valid: false };
-    const matched = rules.filter(rule => (!selected||selected.has(rule.id)) && (testFcr || rule.id !== 'test-magic-fcr') && predicate(rule.when,f));
-    for(const rule of extra)if((rule.toggle!=='testFcr'||testFcr)&&predicate(rule.when,f))matched.push(rule);
-    return { match: matched.length > 0, rules: matched.map(r => r.id), reasons: matched.map(r => r.reason), valid: true };
-  }
-  function exportPackage(pack){return structuredClone({...pack,builtinRules:[],extraRules:[...pack.builtinRules.map(id=>{const rule=rules.find(r=>r.id===id);if(!rule)throw Error('Unknown built-in rule '+id);return{id:rule.id,reason:rule.reason,when:rule.when,...id==='test-magic-fcr'?{toggle:'testFcr'}:{}};}),...pack.extraRules]});}
-  Object.defineProperty(globalThis, 'D2LootRules', { value: Object.freeze({ version: '3.1.0', evaluate,usePackage,exportPackage,
-    metrics:Object.freeze(['resistTotal','resistCount','allResist','elementalTotal','elementalCount','bestResist','classMax','treeMax','combined','skillMax','attributes','assassinSkills','javelinSkills','bowSkills']),
-    catalog: Object.freeze(rules.map(({ id, reason, source }) => Object.freeze({ id, reason, source }))) }), configurable: true });
+  function exportPackage(pack){return structuredClone({...pack,builtinRules:[],extraRules:select(pack).map(({id,reason,when,rarities,toggle})=>({id,reason,when,...rarities?{rarities}:{},...toggle?{toggle}:{}}))});}
+  const ready=WebAssembly.instantiate(Uint8Array.from(atob(meta.wasm),c=>c.charCodeAt(0)),{}).then(({instance})=>{
+    core=instance.exports;
+    for(const[base,kind]of Object.entries(D2LootBaseKinds))requireOK(core.loot_base(input(base),input(kind,1)));
+    usePackage(null);
+  });
+  Object.defineProperty(globalThis,'D2LootRules',{value:Object.freeze({version:'4.0.0',ready,evaluate,usePackage,validatePackage,exportPackage,
+    fields:Object.freeze(meta.fields),stats:Object.freeze(meta.stats),metrics:Object.freeze(meta.metrics),
+    catalog:Object.freeze(data.map(({id,reason,source})=>Object.freeze({id,reason,source}))) }),configurable:true});
 })();

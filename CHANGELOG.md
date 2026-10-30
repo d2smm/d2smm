@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.12.0
+
+- Loot Guard 1.5.0 adds perfect War Traveler (50 MF, 190 enhanced defense, 10 thorns) and Exile, Infinity, Doom, Breath of the Dying, Grief, Last Wish, Death, Enigma, Phoenix, Dream, Pride and Faith at any roll to the defaults.
+- Support exact item-name conditions and explicit rarity scopes in editable rules. Existing magic/rare rules retain their scope.
+- Move loot matching and derived item facts into the browser C++ core; rejected rule imports leave the accepted program intact.
+
 ## 2.11.1
 
 - Enable **Gather Run Drops** by default while preserving saved preferences. Unopened chests stay in place.
