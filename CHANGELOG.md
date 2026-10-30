@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.9
+
+- Reduce the Mod Manager dialog to 75% size and keep its scrolling area within the window. The gem continues to follow the game's HUD scale.
+
 ## 2.9.8
 
 - List Characters and Gear Loadouts alongside Loot Guard, with independent persistent switches and Open actions.
