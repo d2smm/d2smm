@@ -224,6 +224,9 @@ void build(const fs::path& input, const fs::path& destination) {
         {{"method","Emulation.clearDeviceMetricsOverride"}}
     });
     write(out/"gallery-menu-command.json",menuCommands.dump()+"\n");
+    const auto builtinCheck=read(root/"tests/browser/builtin-mod-hooks.js")+"\ncheckBuiltinHooks("+Json(read(root/"mods/characters/runtime/characters-core.js")).dump()+","+Json(read(root/"mods/characters/runtime/characters.js")).dump()+")";
+    write(out/"builtin-mod-hooks-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",builtinCheck},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    write(out/"builtin-mod-ui-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/builtin-mod-ui.js")},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     std::cout << "D2SMM " << version << ": " << source.size() << " bytes\nSHA-256 " << hash << "\nOutput " << out << '\n';
 }
 } // namespace

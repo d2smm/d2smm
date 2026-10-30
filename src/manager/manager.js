@@ -1,11 +1,12 @@
 (() => {
   'use strict';
-  const VERSION='2.9.7';
+  const VERSION='2.9.8';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
   const blank={enabled:false,protectMatches:true,sound:true,testFcr:false};
-  let preferences={revision:0,showGem:true};
+  let preferences={revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true};
+  function applyBuiltins(){globalThis.D2Characters.configureFeatures({characters:preferences.charactersEnabled,gearLoadouts:preferences.gearLoadoutsEnabled});}
   const attention=D2ModAttention.create({onChange:entries=>view?.paintAttention(entries)});
   globalThis.D2LootGuard.setAttention(attention.source('loot-guard','Loot Guard'));
   const gameMenu=D2ModGameMenu.create(()=>show());
@@ -17,7 +18,7 @@
     globalThis.D2ModPackages.validate(record.pack);globalThis.D2ModPackages.settings(record.settings);
     globalThis.D2LootGuard.configure(record.settings,record.pack);
   }
-  async function load(){let[value,display]=await Promise.all([db.read(),db.readPreferences()]);assertOpen();if(value?.pack){const decoded=await globalThis.D2ModPackages.decode(value.source);if(decoded.sha256!==value.sha256)throw Error('Stored mod checksum differs. Reinstall its file.');value.pack=decoded.pack;if(value.elitePolicyVersion!==1)value=await db.write({...value,settings:{...value.settings,testFcr:false},elitePolicyVersion:1},value.revision);}assertOpen();record=value;preferences=display;apply();initialized=true;paint();}
+  async function load(){let[value,display]=await Promise.all([db.read(),db.readPreferences()]);assertOpen();if(value?.pack){const decoded=await globalThis.D2ModPackages.decode(value.source);if(decoded.sha256!==value.sha256)throw Error('Stored mod checksum differs. Reinstall its file.');value.pack=decoded.pack;if(value.elitePolicyVersion!==1)value=await db.write({...value,settings:{...value.settings,testFcr:false},elitePolicyVersion:1},value.revision);}assertOpen();record=value;preferences=display;applyBuiltins();apply();initialized=true;paint();}
   async function installText(source,{customRules=false}={}){return task(async()=>{
     const decoded=await globalThis.D2ModPackages.decode(source);assertOpen();
     if(record?.pack&&record.pack.id!==decoded.pack.id)throw Error('A loot mod is already installed. Remove it before installing another.');
@@ -48,9 +49,10 @@
   });}
   async function uninstall(){return task(async()=>{record=await db.write(null,record?.revision??0);assertOpen();apply();notice='Mod removed';channel.postMessage({changed:true});return summary();});}
   async function configurePreferences(changes){return task(async()=>{
-    if(!changes||Object.keys(changes).length!==1||typeof changes.showGem!=='boolean')throw Error('Invalid display setting');
-    preferences=await db.writePreferences(changes.showGem,preferences.revision);assertOpen();notice='';channel.postMessage({changed:true});return summary();
+    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['showGem','charactersEnabled','gearLoadoutsEnabled'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
+    preferences=await db.writePreferences({...preferences,...changes},preferences.revision);assertOpen();applyBuiltins();notice='';channel.postMessage({changed:true});return summary();
   });}
+  async function configureBuiltin(id,enabled){if(!['characters','gear-loadouts'].includes(id)||typeof enabled!=='boolean')throw Error('Invalid built-in mod setting');return configurePreferences({[id==='characters'?'charactersEnabled':'gearLoadoutsEnabled']:enabled});}
   async function checkUpdates(){if(checking)return;if(installing||busy)throw Error('Wait for the current mod operation');checking=true;notice='';paint();try{updates=await globalThis.D2ModUpdates.check(record?.pack?{id:record.pack.id,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules}:null,VERSION);notice=updates.mod||updates.manager?'':'Everything is up to date';return updates;}catch(error){updates=null;throw error;}finally{checking=false;paint();}}
   async function installModUpdate(){
     if(busy||installing||checking)throw Error('Wait for the current mod operation');
@@ -86,6 +88,7 @@
     }finally{installing=false;if(!closed)paint();}
   }
   function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,preferences:{showGem:preferences.showGem},
+    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled}],
     mod:record?.pack?{id:record.pack.id,name:record.pack.name,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules,settings:{...record.settings},ruleCount:record.pack.builtinRules.length+record.pack.extraRules.length,revision:record.revision}:null,
     runtime:globalThis.D2LootGuard.snapshot(),attention:attention.snapshot(),gameMenu:gameMenu.status(),session:gameUI.snapshot()};}
   function report(error){notice=error.message||String(error);console.error('[D2 Mods]',error);show();paint();}
@@ -94,7 +97,7 @@
   function paint(){view?.paint(summary(),record?.pack,installerBootstrap);}
   function mount(){
     view=globalThis.D2ModView.create({
-      show,report,configure,configurePreferences,installFile,exportText,uninstall,checkUpdates,installModUpdate,installManagerUpdate,focusGame:gameUI.focus,
+      show,report,configure,configurePreferences,configureBuiltin,installFile,exportText,uninstall,checkUpdates,installModUpdate,installManagerUpdate,focusGame:gameUI.focus,
       characters:()=>{panel.close();globalThis.D2Characters.show({section:'characters'});},
       gear:()=>{panel.close();globalThis.D2Characters.show({section:'gear'});},
       toggleFilter:()=>configure({enabled:!record.settings.enabled}),
@@ -130,6 +133,6 @@
   channel.onmessage=()=>task(load).catch(report);
   const ready=task(async()=>{mount();persistent=await navigator.storage?.persisted?.()??false;await load();});
   async function dispose(){await queue;closed=true;gameUI.dispose();view?.dispose();globalThis.D2LootGuard.dispose();attention.dispose();await globalThis.D2Characters?.dispose();await gameMenu.dispose();await globalThis.D2GameContract?.dispose();globalThis.D2GameSkin?.dispose();db.close();channel.close();document.removeEventListener('dragover',dragOver,true);document.removeEventListener('drop',drop,true);window.removeEventListener('keydown',hotkey,true);window.removeEventListener('keyup',releaseHotkey,true);window.removeEventListener('blur',resetHotkey);window.removeEventListener('message',message);window.removeEventListener('d2mods:loot-status',lootStatus);document.getElementById('d2-mod-system')?.remove();delete globalThis.D2Mods;delete globalThis.D2LootGuard;delete globalThis.D2Characters;}
-  globalThis.D2Mods=Object.freeze({version:VERSION,ready,status:summary,show,focusGame:gameUI.focus,close:()=>panel?.close(),installFile,installText,configure,configurePreferences,uninstall,dispose,exportText,checkUpdates,installModUpdate,installManagerUpdate,attention:Object.freeze({source:attention.source}),notify:text=>{notice=String(text).slice(0,400);paint();}});
+  globalThis.D2Mods=Object.freeze({version:VERSION,ready,status:summary,show,focusGame:gameUI.focus,close:()=>panel?.close(),installFile,installText,configure,configurePreferences,configureBuiltin,uninstall,dispose,exportText,checkUpdates,installModUpdate,installManagerUpdate,attention:Object.freeze({source:attention.source}),notify:text=>{notice=String(text).slice(0,400);paint();}});
   ready.catch(report);
 })();

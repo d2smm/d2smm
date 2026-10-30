@@ -22,6 +22,7 @@
     "src/game/game-ui.js",
     "src/manager/manager-style.js",
     "src/manager/attention-view.js",
+    "src/manager/builtin-mod-card.js",
     "src/manager/manager-view.js",
     "src/manager/manager.js"
   ],

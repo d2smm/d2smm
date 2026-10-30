@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.8
+
+- List Characters and Gear Loadouts alongside Loot Guard, with independent persistent switches and Open actions.
+- Use the same Enabled control for all three mods; keep Loot Guard's sound, testing, and protection settings under Options, separate from Rules.
+- Disabling a built-in stops new feature actions while retaining saved heroes, loadouts, reserved-gear protections, and in-flight transactions.
+- The gem is purple when any mod is enabled and blue when all are off.
+- Remove the README tagline.
+
 ## 2.9.7
 
 - Give both title lines the same gold gradient and shorten the integrity statement, keeping its first sentence on one line on desktop.

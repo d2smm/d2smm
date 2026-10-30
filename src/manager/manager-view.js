@@ -28,9 +28,10 @@
       const input=el('input',undefined,{type:'checkbox','data-setting':key,'aria-label':label});inputs[key]=input;
       input.addEventListener('change',()=>actions.configure({[key]:input.checked}).catch(actions.report));row.append(text,input);return row;
     }
-    const filter=setting('enabled','Loot filter');inputs.enabled.dataset.action='toggle-filter';
-    const options=el('div',undefined,{'class':'d2mods__options'});
-    options.append(setting('sound','[Notification] Sound on matched drops'),setting('testFcr','[Testing] Match on common items'));
+    const filter=setting('enabled','Enabled');inputs.enabled.dataset.action='toggle-filter';inputs.enabled.setAttribute('aria-label','Loot Guard enabled');
+    const options=el('details',undefined,{'class':'d2mods__details d2mods__options','data-section':'options'});
+    const protection=setting('protectMatches','Protect matches from hide / auto-sell');
+    options.append(el('summary','Options'),setting('sound','[Notification] Sound on matched drops'),setting('testFcr','[Testing] Match on common items'),protection);
     const rules=el('details',undefined,{'class':'d2mods__details','data-section':'rules'}),ruleList=el('ol',undefined,{'class':'d2mods__rules'});
     const ruleSummary=el('summary','Rules');rules.append(ruleSummary,ruleList);
     const modUpdate=button('Update Loot Guard','install-mod-update',actions.installModUpdate,'d2mods__button--primary');
@@ -39,7 +40,6 @@
     card.append(heading,managerRequired,modUpdateActions,filter,options,rules);
     const more=el('details',undefined,{'class':'d2mods__details','data-section':'more'}),fileActions=el('div',undefined,{'class':'d2mods__actions'});
     const showGemRow=el('label',undefined,{class:'d2mods__row'}),showGem=el('input',undefined,{type:'checkbox','data-preference':'showGem','aria-label':'Show gem button'});showGemRow.append(el('span','Show gem button'),showGem);showGem.addEventListener('change',()=>actions.configurePreferences({showGem:showGem.checked}).catch(actions.report));
-    const protection=setting('protectMatches','Protect matches from hide / auto-sell');
     const input=el('input',undefined,{type:'file',accept:'.json,.d2installer.html,application/json,text/html','data-mod-file':''});input.hidden=true;
     const install=button('Install mod file','install',()=>input.click(),'d2mods__button--quiet');
     input.addEventListener('change',()=>{if(input.files[0])actions.installFile(input.files[0]).catch(actions.report);input.value='';});
@@ -47,19 +47,19 @@
     const importJSON=button('Import JSON','import-json',()=>jsonInput.click(),'d2mods__button--quiet');
     jsonInput.addEventListener('change',()=>{if(jsonInput.files[0])actions.installFile(jsonInput.files[0]).catch(actions.report);jsonInput.value='';});
     const exportButton=button('Export JSON','export',()=>{const source=actions.exportText();if(!source)return;const url=URL.createObjectURL(new Blob([source],{type:'application/json'})),a=el('a');a.href=url;a.download='loot-guard.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},'d2mods__button--quiet');
-    const remove=button('Remove mod','remove',actions.uninstall,'d2mods__button--quiet d2mods__button--danger');
+    const remove=button('Remove Loot Guard','remove',actions.uninstall,'d2mods__button--quiet d2mods__button--danger');
     fileActions.append(install,remove);
     const ruleActions=el('div',undefined,{'class':'d2mods__actions'});ruleActions.append(importJSON,exportButton,jsonInput);rules.insertBefore(ruleActions,ruleList);
     const bookmark=el('a','Mod Manager bookmark',{'class':'d2mods__bookmark','data-action':'bookmark'});bookmark.title='Drag to your bookmarks bar';bookmark.hidden=true;
-    more.append(el('summary','More options'),showGemRow,protection,fileActions,input,bookmark);
+    more.append(el('summary','More options'),showGemRow,fileActions,input,bookmark);
     const footer=el('footer',undefined,{'class':'d2mods__footer'}),check=button('Check for updates','check-updates',actions.checkUpdates),version=el('span','',{'class':'d2mods__version'});
     footer.append(check,version);
     const updateActions=el('div',undefined,{'class':'d2mods__actions','data-update-actions':''});
     const managerUpdate=button('Update Mod Manager','install-manager-update',actions.installManagerUpdate,'d2mods__button--primary');
     updateActions.append(managerUpdate);
     const notice=el('p','',{'class':'d2mods__notice',role:'status'}),error=el('p','',{'class':'d2mods__notice',role:'alert'});
-    const characters=button('Characters','characters',actions.characters),gear=button('Gear loadouts','gear',actions.gear),characterActions=el('div',undefined,{class:'d2mods__character-actions'});characterActions.append(characters,gear);
-    panel.append(header,characterActions,empty,card,more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
+    const builtins=[['characters','Characters',actions.characters],['gear-loadouts','Gear Loadouts',actions.gear]].map(([id,name,open])=>D2BuiltinModCard.create({id,name,open,configure:actions.configureBuiltin,report:actions.report}));
+    panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
     launcher.addEventListener('click',actions.show);
     let session={inGame:false,atTitle:false,canExit:false,anchor:null};
     panel.addEventListener('close',()=>{launcher.setAttribute('aria-expanded','false');attention.display({visible:!launcher.hidden,open:false,anchor:session.anchor});actions.focusGame();});
@@ -67,7 +67,8 @@
     let rulesHash=null;
     function paint(s,pack,installerBootstrap){
       empty.hidden=!!s.mod;card.hidden=!s.mod;protection.hidden=!s.mod;exportButton.hidden=!s.mod;remove.hidden=!s.mod;
-      session=s.session;const on=!!s.mod?.settings.enabled;launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame||!session.anchor;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.setAttribute('aria-expanded',String(panel.open));launcher.setAttribute('aria-label','Open Mod Manager — mods '+(on?'on':'off'));launcher.title='Mod Manager (M) · Mods '+(on?'on':'off');showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
+      for(const c of builtins)c.paint(s.builtinMods.find(m=>m.id===c.id),s);
+      session=s.session;const on=!!s.mod?.settings.enabled||s.builtinMods.some(m=>m.enabled);launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame||!session.anchor;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.setAttribute('aria-expanded',String(panel.open));launcher.setAttribute('aria-label','Open Mod Manager — mods '+(on?'on':'off'));launcher.title='Mod Manager (M) · Mods '+(on?'on':'off');showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
       attention.paint(s.attention);attention.display({visible:!launcher.hidden,open:panel.open,anchor:session.anchor});
       version.textContent='v'+s.version;
       if(s.mod){

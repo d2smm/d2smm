@@ -30,20 +30,22 @@
     });}
     function close(){db?.close();db=null;opening=null;}
     function preferences(value){
-      if(!value)return{revision:0,showGem:true};
-      if(!Number.isSafeInteger(value.revision)||value.revision<0||typeof value.showGem!=='boolean')throw Error('Invalid manager display settings');
-      return{revision:value.revision,showGem:value.showGem};
+      if(!value)return{revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true};
+      const result={revision:value.revision,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled};
+      if(!Number.isSafeInteger(result.revision)||result.revision<0||['showGem','charactersEnabled','gearLoadoutsEnabled'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
+      return result;
     }
     async function readPreferences(){const connection=await open();return new Promise((resolve,reject)=>{
       const tx=connection.transaction('state','readonly'),r=tx.objectStore('state').get('preferences');let value,problem;
       r.onsuccess=()=>{try{value=preferences(r.result);}catch(error){problem=error;tx.abort();}};
       tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(problem||tx.error||Error('Display settings read aborted'));tx.onerror=()=>reject(tx.error);
     });}
-    async function writePreferences(showGem,expectedRevision){
-      if(typeof showGem!=='boolean'||!Number.isSafeInteger(expectedRevision)||expectedRevision<0)throw Error('Invalid manager display settings');
+    async function writePreferences(value,expectedRevision){
+      if(!Number.isSafeInteger(expectedRevision)||expectedRevision<0)throw Error('Invalid manager settings');
+      const candidate=preferences({...value,revision:expectedRevision+1});
       const connection=await open();return new Promise((resolve,reject)=>{
         const tx=connection.transaction('state','readwrite'),s=tx.objectStore('state'),r=s.get('preferences');let next,problem;
-        r.onsuccess=()=>{try{const old=preferences(r.result);if(old.revision!==expectedRevision)throw Error('Display settings changed in another tab. Reopen Mod Manager and try again.');next={revision:expectedRevision+1,showGem};s.put(next,'preferences');}catch(error){problem=error;tx.abort();}};
+        r.onsuccess=()=>{try{const old=preferences(r.result);if(old.revision!==expectedRevision)throw Error('Mod settings changed in another tab. Reopen Mod Manager and try again.');next=candidate;s.put(next,'preferences');}catch(error){problem=error;tx.abort();}};
         tx.oncomplete=()=>resolve(next);tx.onabort=()=>reject(problem||tx.error||Error('Display settings save aborted'));tx.onerror=()=>reject(tx.error);
       });
     }

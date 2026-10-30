@@ -10,7 +10,7 @@ The official installer and release feed live at [d2s.arken.gg](https://d2s.arken
 4. Exercise the affected browser behavior and retain proof outside the public source tree.
 5. Commit and tag the accepted release. Publishing is a separate maintainer action.
 
-The runtime currently has a **1 MiB** ceiling enforced by installed updaters and the build. Version 2.9.0 is close to that limit. Do not add another copy of a parser or texture; a future limit change requires a deliberate loader migration.
+The runtime currently has a **1 MiB** ceiling enforced by installed updaters and the build. Version 2.9.8 is close to that limit. Do not add another copy of a parser or texture; a future limit change requires a deliberate loader migration.
 
 ## Static hosting
 

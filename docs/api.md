@@ -14,6 +14,8 @@ const json = D2Mods.exportText(); // null when no loot package is installed
 
 For user-directed actions, `configure({enabled, sound, testFcr, protectMatches})` accepts a partial settings change; `configurePreferences({showGem})` changes gem visibility. Both return promises and persist through the manager's queue. `installFile(file)` validates a JSON file before installation. Do not invoke these actions silently on behalf of another mod.
 
+`configureBuiltin('characters', enabled)` and `configureBuiltin('gear-loadouts', enabled)` persist the two built-in switches. `status().builtinMods` reports their IDs, enabled states, and versions. Disabling stops new feature actions; it does not cancel an admitted transaction, delete metadata, release reserved stash space, or move equipment. Characters still restores its assigned equipment when the manual Gear Loadouts interface is off. Re-enable the relevant mod to manage retained data. Both built-ins update with Mod Manager.
+
 `checkUpdates()` reads the canonical feed. `installManagerUpdate()` and `installModUpdate()` are explicit user actions. Let the manager UI enforce their ordering and native exit flow.
 
 `status()` is a diagnostic snapshot. Its nested native/runtime fields are not a versioned gameplay API. `D2GameContract`, `D2Characters`, and `D2LootGuard` internals may change with compatibility work; new consumers should propose a narrow shared contract.

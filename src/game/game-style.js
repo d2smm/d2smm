@@ -21,9 +21,8 @@ button:focus-visible{outline:2px solid #e2bf71;outline-offset:2px}
 .equipment__slot{border:1px solid #6c6046;border-image:none;background:linear-gradient(#060707e8,#131310d9);box-shadow:inset 0 0 0 2px #000,inset 0 0 14px #000;min-height:0;padding:3px;filter:none!important}
 .equipment__slot:hover{background:#15130e;box-shadow:inset 0 0 0 2px #000,0 0 6px #ac7c3544}.equipment__empty{font-size:13px;color:#a79779}
 .item-tooltip{isolation:isolate;border:12px solid transparent;border-image:var(--d2-panel) 10% / 12px / 0 stretch;background:#080706;padding:20px 14px 14px;box-shadow:0 16px 40px #000e}.item-tooltip__close{font-size:23px;min-height:28px;right:0;top:0;padding:0 3px}
-.d2mods__character-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}.d2mods__character-actions .d2mods__button{width:100%;margin:0;padding:9px 7px;font:600 18px D2ModHeading,Georgia,serif;text-align:center}
 .d2mods__status{border-radius:1px;background:#19150e;color:#e2c07d}.d2mods__row input{accent-color:#c8a762}
-@media(max-width:600px){dialog,.d2mods__panel{border-width:18px;border-image-width:18px;padding:18px 12px;width:calc(100vw - 20px);max-height:96svh}h2,.d2mods__title{font-size:24px}.characters__card,.d2mods__card{padding:12px}.d2mods__character-actions{gap:5px}.d2mods__character-actions .d2mods__button{font-size:15px;padding:8px 3px}.characters__tab{font-size:14px}.characters__tabs{margin-bottom:16px}.characters__name button[data-name-confirm],.characters__name button[data-name-cancel]{padding:2px 5px;min-height:38px}.characters__rename{font-size:19px}}
+@media(max-width:600px){dialog,.d2mods__panel{border-width:18px;border-image-width:18px;padding:18px 12px;width:calc(100vw - 20px);max-height:96svh}h2,.d2mods__title{font-size:24px}.characters__card,.d2mods__card{padding:12px}.characters__tab{font-size:14px}.characters__tabs{margin-bottom:16px}.characters__name button[data-name-confirm],.characters__name button[data-name-cancel]{padding:2px 5px;min-height:38px}.characters__rename{font-size:19px}}
 `;
   globalThis.D2GameSkin=Object.freeze({css,ready,dispose:()=>document.fonts.delete(font)});
 })();

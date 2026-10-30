@@ -35,6 +35,8 @@ The tool writes `dist/bootstrap.js`, its checksum descriptor, a hosted bookmarkl
 
 Use a separate browser profile or Incognito context with a disposable game. Do not import a player's only save. The live game must remain the actual upstream origin because the adapters intentionally enforce it.
 
+Fresh profiles may first reach `/play/setup.html`. Complete that normal file-source choice (the available Hosted Files option or your own game files), then continue past the native intro and click Play. Wait for the actual camp state; a loaded setup page or a fixed short delay is not game readiness.
+
 For a local candidate, build the optional unpacked extension and load `dist/extension/` using Chrome's **Load unpacked** control in your test profile. This is a development loader, not a Chrome Web Store listing. A previously selected newer runtime can supersede an older local candidate; start with clean isolated mod storage when testing that boundary.
 
 On macOS, an optional native CDP transport is available:
@@ -59,6 +61,8 @@ For the installer website, the build also emits `dist/site-preview-command.json`
 | `attention-checks.js` | Attention module loaded; controlled registry lifetime |
 | `rules-json-checks.js` | Official Loot Guard enabled; changes **mod** rules, restores official rules, and verifies native save bytes unchanged |
 | `game-exit-checks.js` | Defines `checkGameExit(source)`; pass the text of `src/game/game-menu.js`. Controlled native-action receivers verify cancellation and teardown |
+| `builtin-mod-hooks.js` | Native builder emits `builtin-mod-hooks-command.json`; actual core/integration in a detached realm checks independent activation and retained protections |
+| `builtin-mod-ui.js` | Native builder emits `builtin-mod-ui-command.json`; isolated real game checks the cards, persisted settings, gem state, and unchanged native save/metadata; leaves built-ins off for restart verification |
 
 Some checks refer to the current official package version. Update their expectation deliberately when releasing a new package; do not weaken failed assertions to accommodate a bug.
 

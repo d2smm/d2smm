@@ -29,7 +29,7 @@ button:disabled,input:disabled{opacity:.45;cursor:wait}
 .d2mods__key{font:13px system-ui;color:#b5a88f;border:1px solid #514834;padding:3px 7px;border-radius:4px;white-space:nowrap}
 .d2mods__close{width:44px;height:44px;border:0;background:transparent;font-size:30px;line-height:1;color:#bdb098;border-radius:6px}.d2mods__close:hover{background:#ffffff0a;color:#fff0d1}
 .d2mods__card{border:1px solid #514733;border-radius:2px;padding:24px;background:#101214b0}
-.d2mods__button[data-action=characters]{width:100%;margin-bottom:20px;text-align:left;font:22px Georgia,serif;padding:16px 18px}
+.d2mods__builtin{margin-top:16px}.d2mods__builtin .d2mods__card-heading{margin-bottom:4px}
 .d2mods__card-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:19px}
 .d2mods__name{font-size:21px;font-weight:650}.d2mods__metadata{font-size:14px;color:#b9aa8d;margin-top:3px}
 .d2mods__update-requirement{font-size:15px;color:#e8c68a;margin:0 0 16px}

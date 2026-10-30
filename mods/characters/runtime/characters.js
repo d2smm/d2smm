@@ -2,6 +2,14 @@
   'use strict';
   let instance=null,api=null,presentation=null,nativeSelect=null,closed=false,problem='',view=null,attached=false,connection=null;
   let armoryCache=null;
+  let features={characters:false,gearLoadouts:false};
+  function requireFeature(key){if(!features[key])throw Error((key==='characters'?'Characters':'Gear Loadouts')+' is off. Turn it on in Mod Manager.');}
+  function configureFeatures(value){
+    if(typeof value?.characters!=='boolean'||typeof value?.gearLoadouts!=='boolean')throw Error('Invalid built-in mod settings');
+    features={characters:value.characters,gearLoadouts:value.gearLoadouts};
+    if(attached&&!meta().pending)problem='';
+    if(view?.isOpen()&&!features[view.section()==='gear'?'gearLoadouts':'characters'])view.close();
+  }
   const patches=[],raw=()=>localStorage.getItem('d2-survivors/save/v1')||'';
   const controller=D2CharacterController.create({db:D2CharacterStore.create(),getGame:()=>instance,getNative:()=>api,readRaw:raw,changed:()=>publish()});
   const meta=()=>controller.metadata(),managed=cls=>!!meta().classes[cls];
@@ -26,7 +34,7 @@
       nativeSelect=Game.prototype.swapHero;
       patch(Game.prototype,'tick',original=>function(...args){instance=this;return original.apply(this,args);});
       patch(Game.prototype,'swapHero',original=>function(cls,...args){
-        if(!controller.busy()&&this.camp&&this.state==='camp'&&!this.swapping){
+        if(features.characters&&!controller.busy()&&this.camp&&this.state==='camp'&&!this.swapping){
           const hero=this.save.heroes?.[cls],level=(hero?.run??hero?.kept)?.run?.level??1;
           if(level>=99||(meta().classes[cls]?.characters.length??0)>1){
             instance=this;
@@ -38,7 +46,7 @@
         return original.call(this,cls,...args);
       });
       patch(Game.prototype,'openStashTab',original=>function(cls){const tab=original.call(this,cls);return managed(cls)&&tab==='personal'?'shared1':tab;});
-      patch(Game.prototype,'openAkara',original=>function(selected,section){if(managed(this.kit?.id)&&(selected==='restart'||section==='earlier')){show({classId:this.kit.id,section:'characters',intent:selected==='restart'?'create':'choose'});return;}return original.apply(this,arguments);});
+      patch(Game.prototype,'openAkara',original=>function(selected,section){if(managed(this.kit?.id)&&(selected==='restart'||section==='earlier')){if(!features.characters){refuse(this,'Turn on Characters to manage saved heroes.');return;}show({classId:this.kit.id,section:'characters',intent:selected==='restart'?'create':'choose'});return;}return original.apply(this,arguments);});
       for(const key of ['dropHeld','discardHeld'])patch(Game.prototype,key,original=>function(...args){const blocked=operationBlock();if(blocked){refuse(this,blocked);return;}if(reserved(this.save.cursor?.item)||inVault(this,this.save.cursor?.item)){refuse(this);return;}return original.apply(this,args);});
       patch(Game.prototype,'gearActions',original=>function(cls,...args){
         const game=this,actions=original.call(this,cls,...args),owner=args[2]?.doll?.owner??'hero';
@@ -50,6 +58,7 @@
           actions.openStashTab=function(tab){
             if(!managed(cls)||tab!=='personal')return open.call(this,tab);
             const blocked=operationBlock();if(blocked){refuse(game,blocked);return;}
+            if(!features.gearLoadouts){refuse(game,'Turn on Gear Loadouts to access this reserved stash.');return;}
             if(game.save.cursor){refuse(game,'Put down the held item before choosing a loadout');return;}
             if(game.state==='town'&&game.camp&&game.trade?.only==='stash'){
               const close=game.hud?.charClose;
@@ -72,8 +81,9 @@
       attached=true;problem='';observer.disconnect();publish();
     }
   }
-  async function perform(cls,action){problem='';const result=await controller.perform(cls,action);publish();return result;}
+  async function perform(cls,action){requireFeature(['new','adopt','switch'].includes(action.kind)||action.kind==='rename'&&action.target==='character'?'characters':'gearLoadouts');problem='';const result=await controller.perform(cls,action);publish();return result;}
   async function selectClass(cls){
+    requireFeature('characters');
     problem='';const game=instance,blocked=operationBlock();
     if(blocked)throw Error(blocked);
     if(!nativeSelect||!game?.camp||game.state!=='camp'||game.swapping)throw Error('Select your character at the campfire.');
@@ -113,10 +123,10 @@
     const slots=api.doll(cls).slots.map(s=>({slot:s.slot,label:s.label,col:s.col,row:s.row,w:s.w,h:s.h}));
     armoryCache={key,value:{slots,items,level}};return armoryCache.value;
   }
-  function show(options={}){globalThis.D2Mods?.close?.();view??=D2CharacterView.create({perform,selectClass,report,exportBackups,status,armory});view.show(options);publish();}
+  function show(options={}){requireFeature(options.section==='gear'?'gearLoadouts':'characters');globalThis.D2Mods?.close?.();view??=D2CharacterView.create({perform,selectClass,report,exportBackups,status,armory});view.show(options);publish();}
   const observer=new PerformanceObserver(()=>{connect().catch(report);});observer.observe({type:'resource',buffered:true});
   const ready=controller.ready.then(connect);ready.catch(report);
   const interval=setInterval(()=>{if(!closed)publish();},2000);
   async function dispose(){closed=true;observer.disconnect();clearInterval(interval);await controller.dispose();for(const unpatch of patches.reverse())unpatch();view?.dispose();}
-  globalThis.D2Characters=Object.freeze({ready,status,show,close:()=>view?.close(),perform,selectClass,dispose,ensureHooks:connect,currentGame:()=>closed?null:instance});
+  globalThis.D2Characters=Object.freeze({ready,status,show,close:()=>view?.close(),perform,selectClass,configureFeatures,dispose,ensureHooks:connect,currentGame:()=>closed?null:instance});
 })();

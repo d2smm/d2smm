@@ -3,7 +3,6 @@
 </p>
 
 <p align="center">
-  <strong>A better camp. A sharper eye for loot.</strong><br>
   Community enhancements for <a href="https://d2survivors.lol/play/">D2 Survivors</a>.
 </p>
 
@@ -32,7 +31,7 @@ Click the bookmark again after reloading the game. No account or game-file repla
 | **Characters** | Keeps up to three heroes of the same class using the game's archived-character system. Create a new hero after level 99; choose heroes at the campfire. | [Characters](mods/characters/) |
 | **Gear Loadouts** | Three outfits per class, real item previews, and hover stats. Reuse the same item across outfits and assign a default to each hero. | [Gear Loadouts](mods/gear-loadouts/) |
 
-**The gem keeps watch.** Purple means Loot Guard is enabled; blue means it is off. A bright white gem calls out important events. Uncollected matched loot stays in its hover log until resolved; other notices expire after a minute. During play, the gem sits over the bottom-center mini-panel button. Click it to open the manager.
+**The gem keeps watch.** Purple means at least one mod is enabled; blue means all mods are off. A bright white gem calls out important events. Uncollected matched loot stays in its hover log until resolved; other notices expire after a minute. During play, the gem sits over the bottom-center mini-panel button. Click it to open the manager.
 
 <p align="center">
   <img src="site/assets/gallery/manager.webp" alt="The Mod Manager's dark stone controls" width="29%">
@@ -46,7 +45,9 @@ Click the bookmark again after reloading the game. No account or game-file repla
 
 We include mods that respect the integrity of D2 Survivors. Better information, cleaner interfaces, and deliberate player actions belong here. Automated combat, farming, movement, item creation, and progression bypasses do not.
 
-Characters and loadouts are **opt-in**. They manage real heroes and items; they do not clone equipment or swap whole saves. Export a game backup before trying save-affecting features. [Read the storage boundaries →](mods/gear-loadouts/README.md)
+Creating extra heroes and reserving stash space are **opt-in**. These mods manage real heroes and items; they do not clone equipment or swap whole saves. Export a game backup before trying save-affecting features. [Read the storage boundaries →](mods/gear-loadouts/README.md)
+
+Each mod has its own on/off control. Disabling Characters or Gear Loadouts keeps saved heroes, loadouts, and reserved gear intact. Turn the mod back on to manage them; use the explicit release action to free a reserved stash.
 
 This is an independent community project, not an official D2 Survivors or Blizzard product.
 
