@@ -1,0 +1,11 @@
+{
+  "schema": "d2smm.capture.v1",
+  "durationMs": 8000,
+  "fps": 30,
+  "viewport": {"width": 2500, "height": 1400, "deviceScaleFactor": 1, "mobile": false},
+  "prepare": [{"method":"Runtime.evaluate","params":{"expression":"if(!globalThis.__D2GalleryLease?.contextId||!D2GatherProof.g.tainted)throw Error('Isolated fixture required');D2Mods.close();","returnByValue":true}},{"method":"Input.dispatchMouseEvent","params":{"type":"mouseMoved","x":1250,"y":700}}],
+  "actions": [
+    {"atMs":700,"command":{"method":"Runtime.evaluate","params":{"expression":"D2GatherProof.start();","returnByValue":true}}},
+    {"atMs":7500,"command":{"method":"Runtime.evaluate","params":{"expression":"D2GatherProof.result()","returnByValue":true}}}
+  ]
+}

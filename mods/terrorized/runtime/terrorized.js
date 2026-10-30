@@ -3,9 +3,9 @@
 (() => {
   'use strict';
   function create({getGame,onChange=()=>{},notify=()=>{},connectGame=()=>D2GameContract.connect(),prepare=D2TerrorizedNative.prepare}){
-    let enabled=true,closed=false,core=null,native=null,pending=null,problem='',shown=null;
+    let enabled=true,gatherEnabled=false,gather=null,closed=false,core=null,native=null,pending=null,problem='',shown=null;
     const scope=new WeakSet(),patches=[],frontends=new Map(),flags=D2TerrorizedKernel.flags;
-    const ready=Promise.resolve().then(()=>WebAssembly.instantiate(Uint8Array.from(atob(D2TerrorizedKernel.wasm),c=>c.charCodeAt(0)),{})).then(r=>{core=r.instance.exports;if(['offer','begin','invalidate','tier','act'].some(name=>typeof core['terrorized_'+name]!=='function'))throw Error('Terrorized core is unavailable');return connect();}).catch(error=>{problem=error.message;console.warn('[Terrorized] unavailable',error);onChange();});
+    const ready=Promise.resolve().then(()=>WebAssembly.instantiate(Uint8Array.from(atob(D2TerrorizedKernel.wasm),c=>c.charCodeAt(0)),{math:{sin:Math.sin,cos:Math.cos,atan2:Math.atan2}})).then(r=>{core=r.instance.exports;if(['offer','begin','invalidate','tier','act'].some(name=>typeof core['terrorized_'+name]!=='function'))throw Error('Terrorized core is unavailable');gather=D2Gather.create({core,getGame,onChange,connectGame});gather.configure(enabled&&gatherEnabled);return connect();}).catch(error=>{problem=error.message;console.warn('[Terrorized] unavailable',error);onChange();});
     function trackFrontend(frontend){
       if(!frontend)return null;if(frontends.has(frontend))return frontends.get(frontend);
       const original=frontend.hide,descriptor=Object.getOwnPropertyDescriptor(frontend,'hide');if(typeof original!=='function')throw Error('Native ending dismissal changed');
@@ -55,11 +55,11 @@
       await pending;
     }
     const observer=new PerformanceObserver(()=>void connect());observer.observe({type:'resource',buffered:true});
-    const timer=setInterval(()=>{void connect();try{refresh();}catch(error){if(problem!==error.message){problem=error.message;console.warn('[Terrorized] observation',error);onChange();}}},500);
+    const timer=setInterval(()=>{void connect();try{refresh();gather?.reconcile();}catch(error){if(problem!==error.message){problem=error.message;console.warn('[Terrorized] observation',error);onChange();}}},500);
     return Object.freeze({ready,
-      configure(value){if(typeof value!=='boolean')throw Error('Invalid Terrorized setting');enabled=value;core?.terrorized_invalidate();if(core&&!native&&enabled)problem='';void connect();if(shown)shown.enabled=!enabled;refresh();onChange();},
-      status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null}),
-      async dispose(){if(closed)return;closed=true;core?.terrorized_invalidate();observer.disconnect();clearInterval(timer);if(pending)await pending;patches.reverse().forEach(fn=>fn());const game=shown?.game;if(game&&game.state==='dead'&&game.frontend?.surface?.screen===shown.screen)native.original.showTierCleared.call(game);shown=null;}
+      configure(value,gatherValue=false){if(typeof value!=='boolean'||typeof gatherValue!=='boolean')throw Error('Invalid Terrorized setting');enabled=value;gatherEnabled=gatherValue;gather?.configure(enabled&&gatherEnabled);core?.terrorized_invalidate();if(core&&!native&&enabled)problem='';void connect();if(shown)shown.enabled=!enabled;refresh();onChange();},
+      status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,gather:gather?.status()??null}),
+      async dispose(){if(closed)return;closed=true;core?.terrorized_invalidate();observer.disconnect();clearInterval(timer);await gather?.dispose();if(pending)await pending;patches.reverse().forEach(fn=>fn());const game=shown?.game;if(game&&game.state==='dead'&&game.frontend?.surface?.screen===shown.screen)native.original.showTierCleared.call(game);shown=null;}
     });
   }
   globalThis.D2Terrorized=Object.freeze({create});

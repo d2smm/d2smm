@@ -12,7 +12,7 @@ The bookmark or optional extension starts a bundled browser runtime on `https://
 | [`src/game/game-ui.js`](../src/game/game-ui.js) | Session presentation, mini-panel anchor, canvas focus |
 | [`mods/loot-guard/runtime`](../mods/loot-guard/runtime/) | Item facts, rules, label/filter hooks, and alert requests |
 | [`mods/characters/runtime`](../mods/characters/runtime/) | Archived heroes, loadouts, item conservation, persistence and equipment UI |
-| [`mods/terrorized`](../mods/terrorized/) | Native Terror replay UI; browser C++ policy owns exact tier/act selection and one-use admission |
+| [`mods/terrorized`](../mods/terrorized/) | Native Terror replay UI and drop gathering; browser C++ owns admission, exact tier/act selection, ring geometry and animation |
 
 ## Native-game boundary
 
@@ -36,4 +36,4 @@ Executable mods are compiled into the reviewed manager source set. A new capabil
 
 Every installed hook, observer, timer, channel, dialog and attention source needs a matching teardown. Updates prepare and verify the candidate before disposing the current manager, and activate only at the title boundary. Cancellation preserves the old runtime. Late callbacks must not revive disposed UI or override another owner's method.
 
-The existing manager and integrations use browser JavaScript bindings, with native C++ build tooling and an optional macOS Objective-C++ CDP transport. Terrorized's new selection and admission policy runs as a small, self-contained C++ WebAssembly module in the page. Its JavaScript adapter delegates the actual replay and save operations to the loaded game. This does not replace the game's engine or migrate unrelated mod logic.
+The existing manager and integrations use browser JavaScript bindings, with native C++ build tooling and an optional macOS Objective-C++ CDP transport. Terrorized's selection, admission and gathering logic runs as a small C++ WebAssembly module in the page. Native modules use the `d2smm` namespace: `d2smm::terrorized` and `d2smm::terrorized::math`. JavaScript supplies browser math intrinsics, native object references and DOM controls; it delegates replay, save operations, ground placement and sprite/label updates to the loaded game. This does not replace the game's engine or migrate unrelated mod logic.

@@ -84,6 +84,10 @@ Some checks refer to the current official package version. Update their expectat
 
 ### Standard gallery seeds
 
+Gather Run Drops has a separate native-game fixture: [`gather-game-fixture.js`](../tests/browser/gather-game-fixture.js). Use the fresh, tainted replay produced by the isolated Terrorized completion fixture, enable Gather through its checkbox, and evaluate `seedGatherDrops` with [`gallery.json`](../tests/fixtures/gallery.json). It settles the native victory before applying a visual-only level-99 seed, avoiding unrelated skill-choice queues in the capture. No player save is imported.
+
+Fill the verified `browserContextId` and `targetId` into a copy of [`gather-capture.json`](../tests/fixtures/gather-capture.json), then use `d2smm-cdp --record <page-websocket> <recipe> <new-output-directory>`. Its final `D2GatherProof.result()` reports object conservation and native automatic pickup separately. Keep the raw frames and receipt with the recording; inspect the motion and perform a normal item pickup afterward. Never aim this fixture at a user's game context.
+
 [`tests/fixtures/gallery.json`](../tests/fixtures/gallery.json) is the shared source for two level-99 Amazons (Windrunner and Stormspear), an elite **Beast Loop** rare ring, and the native menu capture coordinates. These are synthetic examples, not a player's exported save. Beast Loop's rolls exercise `ring-caster`; they do not claim to reproduce a historical ring's exact rolls or value. Keep the common-item testing rule off.
 
 The build emits three development-only commands outside `dist/site/`:

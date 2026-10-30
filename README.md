@@ -30,7 +30,7 @@ Click the bookmark again after reloading the game. No account or game-file repla
 | **Loot Guard** | Marks exceptional magic and rare drops with `***`, protects matches from hiding / auto-sell, and offers sound alerts. Editable JSON rules for every class. | [Loot Guard](mods/loot-guard/) |
 | **Characters** | Keeps up to three heroes of the same class using the game's archived-character system. Create a new hero after level 99; choose heroes at the campfire. | [Characters](mods/characters/) |
 | **Gear Loadouts** | Three outfits per class, real item previews, and hover stats. Reuse the same item across outfits and assign a default to each hero. | [Gear Loadouts](mods/gear-loadouts/) |
-| **Terrorized** | Adds **RERUN** to completed Terror menus: replay the tier and act you just finished. | [Terrorized](mods/terrorized/) |
+| **Terrorized** | Replay the Terror tier and act you just finished, or gather run drops into a ring after the boss falls. | [Terrorized](mods/terrorized/) |
 
 **The gem keeps watch.** Purple means at least one mod is enabled; blue means all mods are off. A bright white gem calls out important events. Uncollected matched loot stays in its hover log until resolved; other notices expire after a minute. During play, the gem sits over the bottom-center mini-panel button. Click it to open the manager.
 

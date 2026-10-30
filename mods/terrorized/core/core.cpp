@@ -1,6 +1,6 @@
 #include "core.hpp"
 
-namespace terrorized {
+namespace d2smm::terrorized {
 static_assert(sizeof(unsigned)==4);
 static bool whole(double value,double low,double high) {
     return value>=low&&value<=high&&value==static_cast<unsigned>(value);

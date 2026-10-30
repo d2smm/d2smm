@@ -2,10 +2,11 @@
 #include <iostream>
 #include <limits>
 #include <string_view>
+int gatherChecks();
 
 int main(int argc,char**argv){
     if(argc==2&&std::string_view(argv[1])=="--version"){std::cout<<"d2smm-terrorized-checks 1.0.0\n";return 0;}
-    using namespace terrorized;
+    using namespace d2smm::terrorized;
     constexpr unsigned ready=enabled|victory|currentHero|keptHero|completion|numericFacts;
     Session session;Facts facts{25,25,1,5,25,ready};unsigned checks=0;
     auto check=[&](bool passed,const char* name){++checks;if(!passed){std::cerr<<name<<"\n";return false;}return true;};
@@ -26,5 +27,5 @@ int main(int argc,char**argv){
     bad=facts;bad.worldTier=26;if(!check(!session.offer(bad),"Finished and current tier must agree"))return 1;
     ticket=session.offer(facts);bad=facts;bad.act=2;
     if(!check(!session.begin(ticket,bad,true),"The selected act cannot change at activation"))return 1;
-    std::cout<<checks<<" Terrorized policy checks passed\n";return 0;
+    std::cout<<checks<<" Terrorized policy checks passed\n";return gatherChecks();
 }

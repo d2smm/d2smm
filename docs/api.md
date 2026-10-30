@@ -12,7 +12,7 @@ const status = D2Mods.status();
 const json = D2Mods.exportText(); // null when no loot package is installed
 ```
 
-For user-directed actions, `configure({enabled, sound, testFcr, protectMatches})` accepts a partial settings change; `configurePreferences({showGem})` changes gem visibility. Both return promises and persist through the manager's queue. `installFile(file)` validates a JSON file before installation. Do not invoke these actions silently on behalf of another mod.
+For user-directed actions, `configure({enabled, sound, testFcr, protectMatches})` accepts a partial settings change; `configurePreferences({showGem})` changes gem visibility and `configurePreferences({terrorizedGatherDrops})` changes the optional gathering feature. Both return promises and persist through the manager's queue. `installFile(file)` validates a JSON file before installation. Do not invoke these actions silently on behalf of another mod.
 
 `configureBuiltin(id, enabled)` accepts `characters`, `gear-loadouts`, and `terrorized`. `status().builtinMods` reports their IDs, enabled states, versions, and any concise availability problem. Disabling stops new feature actions; it does not cancel an admitted transaction, delete metadata, release reserved stash space, or move equipment. Characters still restores its assigned equipment when the manual Gear Loadouts interface is off. Terrorized invalidates pending menu choices when disabled. Built-ins update with Mod Manager.
 

@@ -1,6 +1,7 @@
 #include <nlohmann/json.hpp>
 #include <openssl/evp.h>
 #include "core.hpp"
+#include "gather.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -30,12 +31,15 @@ void write(const fs::path& path, const std::string& value) {
     if (!file) throw std::runtime_error("Cannot write " + path.string());
 }
 std::string sha256(const std::string& value);
-const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/wasm.cpp","core/CMakeLists.txt"};
+const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageTerrorCore(const fs::path& root,const fs::path& input) {
     const auto bytes=read(input);
     if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid Terrorized Wasm artifact");
     Json pin={{"schema","d2smm.native-core.v1"},{"bytes",bytes.size()},{"sha256",sha256(bytes)},{"sources",Json::object()},
-        {"flags",{{"enabled",terrorized::enabled},{"victory",terrorized::victory},{"currentHero",terrorized::currentHero},{"keptHero",terrorized::keptHero},{"debug",terrorized::debug},{"training",terrorized::training},{"cow",terrorized::cow},{"activeRun",terrorized::activeRun},{"completion",terrorized::completion},{"numericFacts",terrorized::numericFacts}}}};
+        {"flags",{{"enabled",d2smm::terrorized::enabled},{"victory",d2smm::terrorized::victory},{"currentHero",d2smm::terrorized::currentHero},{"keptHero",d2smm::terrorized::keptHero},{"debug",d2smm::terrorized::debug},{"training",d2smm::terrorized::training},{"cow",d2smm::terrorized::cow},{"activeRun",d2smm::terrorized::activeRun},{"completion",d2smm::terrorized::completion},{"numericFacts",d2smm::terrorized::numericFacts}}}};
+    pin["gatherFlags"]={{"gatherEnabled",d2smm::terrorized::gatherEnabled},{"terror",d2smm::terrorized::terror},{"playing",d2smm::terrorized::playing},{"portal",d2smm::terrorized::portal},{"bossWon",d2smm::terrorized::bossWon},{"gatherTraining",d2smm::terrorized::gatherTraining},{"timeUp",d2smm::terrorized::timeUp},{"gatherDebug",d2smm::terrorized::gatherDebug}};
+    pin["dropFlags"]={{"dead",d2smm::terrorized::dead},{"magnet",d2smm::terrorized::magnet},{"discarded",d2smm::terrorized::discarded},{"reaching",d2smm::terrorized::reaching},{"noSprite",d2smm::terrorized::noSprite}};
+    pin["dropKinds"]={{"item",unsigned(d2smm::terrorized::DropKind::item)},{"chest",unsigned(d2smm::terrorized::DropKind::chest)},{"potion",unsigned(d2smm::terrorized::DropKind::potion)},{"rejuvenation",unsigned(d2smm::terrorized::DropKind::rejuvenation)},{"scroll",unsigned(d2smm::terrorized::DropKind::scroll)},{"gold",unsigned(d2smm::terrorized::DropKind::gold)},{"xp",unsigned(d2smm::terrorized::DropKind::xp)}};
     for(const auto& source:terrorSources)pin["sources"][source]=sha256(read(root/"mods/terrorized"/source));
     write(root/"mods/terrorized/generated/core.wasm",bytes);
     write(root/"mods/terrorized/generated/core.json",pin.dump(2)+"\n");
@@ -185,7 +189,7 @@ void build(const fs::path& input, const fs::path& destination) {
     const auto coreBytes=read(root/"mods/terrorized/generated/core.wasm");
     require(corePin.at("schema")=="d2smm.native-core.v1"&&sha256(coreBytes)==corePin.at("sha256").get<std::string>()&&coreBytes.size()==corePin.at("bytes").get<std::size_t>(),"Terrorized core artifact identity changed");
     for(const auto& file:terrorSources)require(sha256(read(root/"mods/terrorized"/file))==corePin.at("sources").at(file).get<std::string>(),"Terrorized core source changed; regenerate the native artifact");
-    source += "globalThis.D2TerrorizedKernel="+Json({{"wasm",base64(coreBytes)},{"flags",corePin.at("flags")}}).dump()+";\n";
+    source += "globalThis.D2TerrorizedKernel="+Json({{"wasm",base64(coreBytes)},{"flags",corePin.at("flags")},{"gatherFlags",corePin.at("gatherFlags")},{"dropFlags",corePin.at("dropFlags")},{"dropKinds",corePin.at("dropKinds")}}).dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
         auto module = read(sourcePath(root,path.get<std::string>()));
         if (path == "src/manager/manager.js") {

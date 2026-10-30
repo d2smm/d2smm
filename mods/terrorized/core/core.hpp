@@ -1,6 +1,6 @@
 #pragma once
 
-namespace terrorized {
+namespace d2smm::terrorized {
 enum Flag : unsigned {
     enabled=1, victory=2, currentHero=4, keptHero=8,
     debug=16, training=32, cow=64, activeRun=128,

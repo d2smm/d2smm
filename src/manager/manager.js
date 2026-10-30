@@ -1,12 +1,12 @@
 (() => {
   'use strict';
-  const VERSION='2.10.0';
+  const VERSION='2.10.1';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
   const blank={enabled:false,protectMatches:true,sound:true,testFcr:false};
-  let preferences={revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true};
-  function applyBuiltins(){globalThis.D2Characters.configureFeatures({characters:preferences.charactersEnabled,gearLoadouts:preferences.gearLoadoutsEnabled});terrorized.configure(preferences.terrorizedEnabled);}
+  let preferences={revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:false};
+  function applyBuiltins(){globalThis.D2Characters.configureFeatures({characters:preferences.charactersEnabled,gearLoadouts:preferences.gearLoadoutsEnabled});terrorized.configure(preferences.terrorizedEnabled,preferences.terrorizedGatherDrops);}
   const attention=D2ModAttention.create({onChange:entries=>view?.paintAttention(entries)});
   globalThis.D2LootGuard.setAttention(attention.source('loot-guard','Loot Guard'));
   const gameMenu=D2ModGameMenu.create(()=>show());
@@ -50,7 +50,7 @@
   });}
   async function uninstall(){return task(async()=>{record=await db.write(null,record?.revision??0);assertOpen();apply();notice='Mod removed';channel.postMessage({changed:true});return summary();});}
   async function configurePreferences(changes){return task(async()=>{
-    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
+    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
     preferences=await db.writePreferences({...preferences,...changes},preferences.revision);assertOpen();applyBuiltins();notice='';channel.postMessage({changed:true});return summary();
   });}
   async function configureBuiltin(id,enabled){const keys={'characters':'charactersEnabled','gear-loadouts':'gearLoadoutsEnabled','terrorized':'terrorizedEnabled'};if(!Object.hasOwn(keys,id)||typeof enabled!=='boolean')throw Error('Invalid built-in mod setting');return configurePreferences({[keys[id]]:enabled});}
@@ -89,7 +89,7 @@
     }finally{installing=false;if(!closed)paint();}
   }
   function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,preferences:{showGem:preferences.showGem},
-    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,problem:terrorized.status().problem?'Rerun is unavailable in this game build.':''}],
+    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''}],
     mod:record?.pack?{id:record.pack.id,name:record.pack.name,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules,settings:{...record.settings},ruleCount:record.pack.builtinRules.length+record.pack.extraRules.length,revision:record.revision}:null,
     runtime:globalThis.D2LootGuard.snapshot(),attention:attention.snapshot(),gameMenu:gameMenu.status(),terrorized:terrorized.status(),session:gameUI.snapshot()};}
   function report(error){notice=error.message||String(error);console.error('[D2 Mods]',error);show();paint();}

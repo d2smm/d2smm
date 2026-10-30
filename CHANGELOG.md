@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.1
+
+- Add optional **Gather Run Drops** under Terrorized → Options. A defeated Terror boss's exit portal gathers available floor loot into a view-scaled ring over 1.5 seconds; pickup stays native.
+- Preserve drop identities, item stats, labels and normal gold/experience attraction. Pause and skill-choice screens hold the animation; disabling stops it without moving items back.
+- Namespace the native mod implementation under `d2smm::terrorized`, including its math bindings.
+
 ## 2.10.0
 
 - Add Terrorized, with RERUN first in the native Terror completion menu. It replays the completed tier and act, even after a higher tier unlocks, while retaining native modifier rolls and progression checks.

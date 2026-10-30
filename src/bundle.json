@@ -22,6 +22,8 @@
     "src/game/game-menu.js",
     "src/game/game-ui.js",
     "mods/terrorized/runtime/native.js",
+    "mods/terrorized/runtime/gather-native.js",
+    "mods/terrorized/runtime/gather.js",
     "mods/terrorized/runtime/terrorized.js",
     "src/manager/manager-style.js",
     "src/manager/attention-view.js",

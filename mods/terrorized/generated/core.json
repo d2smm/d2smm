@@ -1,5 +1,21 @@
 {
-  "bytes": 1060,
+  "bytes": 4580,
+  "dropFlags": {
+    "dead": 1,
+    "discarded": 4,
+    "magnet": 2,
+    "noSprite": 16,
+    "reaching": 8
+  },
+  "dropKinds": {
+    "chest": 2,
+    "gold": 6,
+    "item": 1,
+    "potion": 3,
+    "rejuvenation": 4,
+    "scroll": 5,
+    "xp": 7
+  },
   "flags": {
     "activeRun": 128,
     "completion": 256,
@@ -12,12 +28,25 @@
     "training": 32,
     "victory": 2
   },
+  "gatherFlags": {
+    "bossWon": 16,
+    "gatherDebug": 128,
+    "gatherEnabled": 1,
+    "gatherTraining": 32,
+    "playing": 4,
+    "portal": 8,
+    "terror": 2,
+    "timeUp": 64
+  },
   "schema": "d2smm.native-core.v1",
-  "sha256": "3a1acfdffb6c244620f20664b57eafe871bf42e2d1a073b8caeb0e0e681eb5bc",
+  "sha256": "ab2edffb1a89c96c037c834142d180ead0b32a46f053902298533b12342b96c0",
   "sources": {
-    "core/CMakeLists.txt": "9edacba130ffa148b8169e34b1a727eba79c55812ecb9cfd8cca573c8894bb3d",
-    "core/core.cpp": "9c8cb05ef57bed4e4767045dabbe8b297f1a7ff289aeed81dac242f9dd96aac9",
-    "core/core.hpp": "264322c7401237cf0711fe12afb657ca6b5ac08a6668f64797cd5caf16777c80",
-    "core/wasm.cpp": "368e6e165e2faac518232f1bec2264083967f09217251591397f00832a1b6618"
+    "core/CMakeLists.txt": "ff37a707bda9691206cdb21f1ba5c0d4d5c2250268ad8602e9441f6ee8834121",
+    "core/core.cpp": "4c4eedc3b31fc6db683b298c361cc6b346b479801129f889226afe4de998584d",
+    "core/core.hpp": "cd50f26c8f5198ceb6ff2711fd5f1bb4cbb4714d3cda994771b37ef454c3d915",
+    "core/gather.cpp": "695497cdde3204c2fb20b439db8d3915668a8be5335097ad9c86dc76d983f047",
+    "core/gather.hpp": "66ff620fc4ec7322e147706ddd95e3aad395cae542cf458184f5f62e3c09f3d2",
+    "core/math.cpp": "1c2989569f8dc88ec446832bed0ebaad529ea956e1ad06a8dc3213a9b631ee2f",
+    "core/wasm.cpp": "f0dcb61b6fe2549711d6182f3ecd790da7d02043da64761841716ad08c097649"
   }
 }
