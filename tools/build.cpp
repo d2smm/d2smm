@@ -199,6 +199,28 @@ void build(const fs::path& input, const fs::path& destination) {
     const Json feed = {{"schema","d2mods.updates.v1"},{"channel","stable"},{"manager",descriptor},{"mods",Json::array({mod})}};
     write(out/"site/updates/stable.json",feed.dump(2)+"\n");
     sitePreview(out/"site",out/"site-preview-command.json");
+    // Development commands stay outside the hosted site and runtime bundle.
+    const auto guard = "if(!globalThis.__D2GalleryLease?.contextId||location.origin!=='https://d2survivors.lol')throw Error('Verified isolated gallery context required');";
+    const auto load = "(async()=>{"+std::string(guard)+"const before=localStorage.getItem('d2-survivors/save/v1');globalThis.D2ModsBootstrap="+descriptor.dump()+";eval("+Json(source).dump()+");await D2ModsStartup;await D2Mods.ready;if(before!==localStorage.getItem('d2-survivors/save/v1'))throw Error('Candidate load changed native save');return{version:D2Mods.version,saveUnchanged:true};})()";
+    write(out/"gallery-load-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",load},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    Json fixtureSources=Json::array();
+    for(const auto& name:{"base-kinds.js","rule-catalog.js","rules.js","alerts.js","adapter.js"})fixtureSources.push_back(read(root/"mods/loot-guard/runtime"/name));
+    const auto fixtures=Json::parse(read(root/"tests/fixtures/gallery.json"));
+    const auto fixtureScript=read(root/"tests/browser/gallery-scenes.js")+"\ninstallGalleryScenes("+fixtures.dump()+","+fixtureSources.dump()+")";
+    write(out/"gallery-fixtures-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",fixtureScript},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    const auto& menu=fixtures.at("menu");
+    const Json menuCommands=Json::array({
+        {{"method","Runtime.evaluate"},{"params",{{"expression","(()=>{if(!globalThis.D2GalleryScenes||D2Characters.currentGame()?.state!=='camp'||!D2Mods.status().gameMenu.connected)throw Error('Start the isolated camp fixture first');D2GalleryScenes.clear();D2Mods.focusGame();return true;})()"},{"returnByValue",true}}}},
+        {{"method","Emulation.setDeviceMetricsOverride"},{"params",menu.at("viewport")}},
+        {{"method","Input.dispatchKeyEvent"},{"params",{{"type","keyDown"},{"key","Escape"},{"code","Escape"},{"windowsVirtualKeyCode",27}}}},
+        {{"method","Input.dispatchKeyEvent"},{"params",{{"type","keyUp"},{"key","Escape"},{"code","Escape"},{"windowsVirtualKeyCode",27}}}},
+        {{"method","Runtime.evaluate"},{"params",{{"expression","new Promise(r=>setTimeout(r,1200))"},{"awaitPromise",true}}}},
+        {{"method","Input.dispatchMouseEvent"},{"params",{{"type","mouseMoved"},{"x",menu.at("hover").at("x")},{"y",menu.at("hover").at("y")}}}},
+        {{"method","Runtime.evaluate"},{"params",{{"expression","new Promise(r=>setTimeout(()=>r({paused:D2Characters.currentGame()?.state==='paused',saveUnchanged:D2GalleryScenes.status().nativeSaveUnchanged}),350))"},{"awaitPromise",true},{"returnByValue",true}}}},
+        {{"method","Page.captureScreenshot"},{"params",{{"format","png"},{"clip",menu.at("crop")}}}},
+        {{"method","Emulation.clearDeviceMetricsOverride"}}
+    });
+    write(out/"gallery-menu-command.json",menuCommands.dump()+"\n");
     std::cout << "D2SMM " << version << ": " << source.size() << " bytes\nSHA-256 " << hash << "\nOutput " << out << '\n';
 }
 } // namespace

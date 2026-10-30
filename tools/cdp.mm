@@ -5,7 +5,7 @@
 // Bounded command transport for the explicitly authorized debug Chrome.
 // Reads one JSON CDP command or a sequential command array from stdin; never discovers or closes a browser.
 int main(int argc, char **argv) {
-    if (argc==2 && std::string(argv[1])=="--version") { std::cout<<"d2-debug-cdp r3\n"; return 0; }
+    if (argc==2 && std::string(argv[1])=="--version") { std::cout<<"d2-debug-cdp r4\n"; return 0; }
     @autoreleasepool {
         if (argc!=2) { std::cerr<<"Usage: d2-debug-cdp WEBSOCKET_URL < command.json\n"; return 1; }
         NSURL *url=[NSURL URLWithString:[NSString stringWithUTF8String:argv[1]]];
@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
             NSDictionary *response=[NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
             if ([response[@"id"] intValue]==commandId) {
                 std::cout<<std::string((const char *)data.bytes,data.length)<<"\n";
-                if (response[@"error"]) return 1;
+                // A failed guard must stop the sequence before later input or navigation.
+                if (response[@"error"] || response[@"result"][@"exceptionDetails"]) return 1;
                 completed=true;break;
             }
         }

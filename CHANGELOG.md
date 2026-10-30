@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.9.4
+
+- Added cropped gallery scenes for two level-99 Amazons, an unresolved Beast Loop loot alert, and the native menu with MODS selected. Kept the Guardian Angel hover capture.
+- Added reusable synthetic gallery seeds and native-build-generated capture commands. Fixtures use the shipped UI and loot adapter without writing native saves or inserting items into the real world.
+- Preserve every screenshot's full crop in the slideshow and simplify the integrity statement.
+- Native CDP command batches now stop on JavaScript exceptions, so a failed fixture guard cannot fall through to later input commands.
+
 ## 2.9.3
 
 - Applied the requested four-stop gold gradient to the installer site's D2S text.

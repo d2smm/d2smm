@@ -1,0 +1,4 @@
+[
+  {"method":"Runtime.evaluate","params":{"expression":"throw new Error('Expected gallery guard rejection')"}},
+  {"method":"Runtime.evaluate","params":{"expression":"globalThis.__D2GalleryGuardFellThrough = true"}}
+]

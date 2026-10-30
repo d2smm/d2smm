@@ -64,6 +64,24 @@ Some checks refer to the current official package version. Update their expectat
 
 ## Real interaction proof
 
+### Standard gallery seeds
+
+[`tests/fixtures/gallery.json`](../tests/fixtures/gallery.json) is the shared source for two level-99 Amazons (Windrunner and Stormspear), an elite **Beast Loop** rare ring, and the native menu capture coordinates. These are synthetic examples, not a player's exported save. Beast Loop's rolls exercise `ring-caster`; they do not claim to reproduce a historical ring's exact rolls or value. Keep the common-item testing rule off.
+
+The build emits three development-only commands outside `dist/site/`:
+
+- `gallery-load-command.json` loads the candidate manager and checks native save bytes are unchanged.
+- `gallery-fixtures-command.json` installs [`gallery-scenes.js`](../tests/browser/gallery-scenes.js).
+- `gallery-menu-command.json` opens the real pause menu from camp, highlights MODS, and captures its crop at 2500×1400. The screenshot is response ID 8. Inspect the image if upstream menu geometry changes.
+
+Create a **new** context with `Target.createBrowserContext`, then an `about:blank` target in that context. Verify it with `Target.getBrowserContexts` and `Target.getTargetInfo`: its context must be the newly returned non-default ID. Retain that receipt before navigating the exact target to the upstream game. Set `globalThis.__D2GalleryLease = {contextId, targetId}` in that verified page. The marker is a prerequisite, not a substitute for host-side context verification. Never use an existing player target or import a backup.
+
+Send the load command through `d2smm-cdp`, click Play normally, and enable the official Loot Guard package in this disposable manager. Then send the fixture command. Evaluate `D2GalleryScenes.characters()` for the real chooser renderer, or `await D2GalleryScenes.loot()` for the real matching/notification path. Hover the bottom gem normally to reveal its log. `D2GalleryScenes.checkLootLifecycle()` verifies pickup resolution and disabled-filter clearing; it leaves the unresolved example visible for capture.
+
+The character fixture records view actions without forwarding them to save operations. The loot fixture uses the shipped rules and adapter in a detached realm, publishing through its own attention source; it never inserts an item into the real world or inventory. These are UI and adapter proofs, **not** evidence of native hero creation or a natural loot drop. `D2GalleryScenes.status()` reports recorded actions, checks, and unchanged save state. Call `D2GalleryScenes.clear()` between scenes and `D2GalleryScenes.dispose()` at completion, then close only the test context created for this run.
+
+Keep the accepted Guardian Angel hover image, `site/assets/gallery/item-details.webp`, unchanged when refreshing these three examples. Crop through `Page.captureScreenshot` and encode with a native image tool such as `cwebp`; do not redraw the interface or add proof labels.
+
 For game-access changes, exercise the actual menu, close the manager, and verify that WASD moves the player. Check the bottom gem's placement, its upward log, hiding it, and the title screen. Start the manager while the native pause menu is already open and verify MODS appears above SAVE AND EXIT. An update test should preserve native confirmation and cancellation and activate only after reaching the title.
 
 Use normal game controls, process-native captures, and targeted state reads. Do not add TEST COPY or FPS overlays to product UI. Report controlled boundary checks separately from actual gameplay proof. A screenshot of an idle menu does not prove save or item conservation.
