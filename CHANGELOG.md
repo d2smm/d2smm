@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.7
+
+- Give both title lines the same gold gradient and shorten the integrity statement, keeping its first sentence on one line on desktop.
+- Give the title gem a black background and label the main button “DRAG THIS TO BOOKMARK BAR,” removing the separate instruction above it. The saved bookmark remains D2SMM.
+- Fade the bookmark guide in over 200 ms on hover or click, and replace the README banner with the supplied site artwork.
+
 ## 2.9.6
 
 - Add a solid black circular backing to the blue-gem favicon, retaining the original artwork and transparent corners.

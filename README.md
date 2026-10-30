@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/readme-banner.png" alt="D2S Mod Manager — a glowing amethyst set in dark stone and antique gold" width="100%">
+  <img src="docs/assets/readme-banner.png" alt="D2S Mod Manager — gold lettering and a blue gem over a dark cathedral" width="100%">
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## Enter the game
 
-1. Visit **[d2s.arken.gg](https://d2s.arken.gg/)** and drag **D2S Mod Manager** to your bookmarks bar.
+1. Visit **[d2s.arken.gg](https://d2s.arken.gg/)** and drag the large button to your bookmarks bar.
 2. Open **[D2 Survivors](https://d2survivors.lol/play/)** and click your **D2SMM** bookmark.
 3. Press **M** to open the manager. Enable the mods you want.
 
