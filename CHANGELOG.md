@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.0
+
+- Add Terrorized, with RERUN first in the native Terror completion menu. It replays the completed tier and act, even after a higher tier unlocks, while retaining native modifier rolls and progression checks.
+- Give Terrorized its own Enabled control. Debug, training, unfinished and unsupported Cow replays keep the native menu unchanged.
+- Compress the embedded heading font losslessly to preserve the existing loader size limit.
+
 ## 2.9.10
 
 - Use a subtle dark gray scrollbar thumb on a black track in Mod Manager.

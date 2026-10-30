@@ -30,6 +30,7 @@ Click the bookmark again after reloading the game. No account or game-file repla
 | **Loot Guard** | Marks exceptional magic and rare drops with `***`, protects matches from hiding / auto-sell, and offers sound alerts. Editable JSON rules for every class. | [Loot Guard](mods/loot-guard/) |
 | **Characters** | Keeps up to three heroes of the same class using the game's archived-character system. Create a new hero after level 99; choose heroes at the campfire. | [Characters](mods/characters/) |
 | **Gear Loadouts** | Three outfits per class, real item previews, and hover stats. Reuse the same item across outfits and assign a default to each hero. | [Gear Loadouts](mods/gear-loadouts/) |
+| **Terrorized** | Adds **RERUN** to completed Terror menus: replay the tier and act you just finished. | [Terrorized](mods/terrorized/) |
 
 **The gem keeps watch.** Purple means at least one mod is enabled; blue means all mods are off. A bright white gem calls out important events. Uncollected matched loot stays in its hover log until resolved; other notices expire after a minute. During play, the gem sits over the bottom-center mini-panel button. Click it to open the manager.
 
@@ -43,7 +44,7 @@ Click the bookmark again after reloading the game. No account or game-file repla
 
 ## Enhancements. No botting or automated play.
 
-We include mods that respect the integrity of D2 Survivors. Better information, cleaner interfaces, and deliberate player actions belong here. Automated combat, farming, movement, item creation, and progression bypasses do not.
+We include mods that respect the integrity of D2 Survivors. Better information, cleaner interfaces, and deliberate player actions belong here. Automated combat, farming, and progression bypasses do not.
 
 Creating extra heroes and reserving stash space are **opt-in**. These mods manage real heroes and items; they do not clone equipment or swap whole saves. Export a game backup before trying save-affecting features. [Read the storage boundaries →](mods/gear-loadouts/README.md)
 

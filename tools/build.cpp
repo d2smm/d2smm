@@ -1,5 +1,6 @@
 #include <nlohmann/json.hpp>
 #include <openssl/evp.h>
+#include "core.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -27,6 +28,18 @@ void write(const fs::path& path, const std::string& value) {
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
     file.write(value.data(), static_cast<std::streamsize>(value.size()));
     if (!file) throw std::runtime_error("Cannot write " + path.string());
+}
+std::string sha256(const std::string& value);
+const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/wasm.cpp","core/CMakeLists.txt"};
+void stageTerrorCore(const fs::path& root,const fs::path& input) {
+    const auto bytes=read(input);
+    if(bytes.size()<8||bytes.substr(0,8)!=std::string("\0asm\x01\0\0\0",8)||bytes.size()>65536)throw std::runtime_error("Invalid Terrorized Wasm artifact");
+    Json pin={{"schema","d2smm.native-core.v1"},{"bytes",bytes.size()},{"sha256",sha256(bytes)},{"sources",Json::object()},
+        {"flags",{{"enabled",terrorized::enabled},{"victory",terrorized::victory},{"currentHero",terrorized::currentHero},{"keptHero",terrorized::keptHero},{"debug",terrorized::debug},{"training",terrorized::training},{"cow",terrorized::cow},{"activeRun",terrorized::activeRun},{"completion",terrorized::completion},{"numericFacts",terrorized::numericFacts}}}};
+    for(const auto& source:terrorSources)pin["sources"][source]=sha256(read(root/"mods/terrorized"/source));
+    write(root/"mods/terrorized/generated/core.wasm",bytes);
+    write(root/"mods/terrorized/generated/core.json",pin.dump(2)+"\n");
+    std::cout<<"Staged Terrorized core: "<<bytes.size()<<" bytes\n";
 }
 std::string sha256(const std::string& value) {
     unsigned char bytes[EVP_MAX_MD_SIZE]; unsigned length = 0;
@@ -158,9 +171,21 @@ void build(const fs::path& input, const fs::path& destination) {
     source += "/* Acorn " + pin.at("version").get<std::string>() + "\n" + license + "*/\n";
     source += "(()=>{const module={exports:{}};const exports=module.exports;\n"+parser+"\nglobalThis.D2JavaScriptParser=module.exports;})();\n";
     Json skin = Json::object();
-    for (const auto& [name, entry] : manifest.at("skin").items())
-        skin[name] = "data:"+entry.at("mime").get<std::string>()+";base64,"+base64(read(sourcePath(root,entry.at("path").get<std::string>())));
+    for (const auto& [name, entry] : manifest.at("skin").items()) {
+        const auto bytes=read(sourcePath(root,entry.at("path").get<std::string>()));
+        if(entry.contains("pin")) {
+            const auto assetPin=Json::parse(read(sourcePath(root,entry.at("pin").get<std::string>())));
+            require(sha256(bytes)==assetPin.at("sha256").get<std::string>()&&bytes.size()==assetPin.at("bytes").get<std::size_t>(),"Generated skin asset identity changed");
+            require(sha256(read(sourcePath(root,assetPin.at("source").get<std::string>())))==assetPin.at("sourceSha256").get<std::string>(),"Generated skin asset source changed; regenerate it");
+        }
+        skin[name] = "data:"+entry.at("mime").get<std::string>()+";base64,"+base64(bytes);
+    }
     source += "globalThis.D2ModSkin="+skin.dump()+";\n";
+    const auto corePin=Json::parse(read(root/"mods/terrorized/generated/core.json"));
+    const auto coreBytes=read(root/"mods/terrorized/generated/core.wasm");
+    require(corePin.at("schema")=="d2smm.native-core.v1"&&sha256(coreBytes)==corePin.at("sha256").get<std::string>()&&coreBytes.size()==corePin.at("bytes").get<std::size_t>(),"Terrorized core artifact identity changed");
+    for(const auto& file:terrorSources)require(sha256(read(root/"mods/terrorized"/file))==corePin.at("sources").at(file).get<std::string>(),"Terrorized core source changed; regenerate the native artifact");
+    source += "globalThis.D2TerrorizedKernel="+Json({{"wasm",base64(coreBytes)},{"flags",corePin.at("flags")}}).dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
         auto module = read(sourcePath(root,path.get<std::string>()));
         if (path == "src/manager/manager.js") {
@@ -239,6 +264,7 @@ int main(int argc, char** argv) {
     try {
         if (argc==2 && std::string(argv[1])=="--self-check") { selfCheck(); return 0; }
         if (argc==3 && std::string(argv[1])=="--check-source") { checkSource(argv[2]); return 0; }
+        if (argc==4 && std::string(argv[1])=="--stage-terror-core") { stageTerrorCore(argv[2],argv[3]); return 0; }
         if (argc!=5 || std::string(argv[1])!="--source" || std::string(argv[3])!="--output") {
             std::cerr<<"Usage: d2smm-build --source REPOSITORY --output OUTPUT\n"; return 2;
         }

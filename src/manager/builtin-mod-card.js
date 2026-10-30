@@ -5,11 +5,12 @@
     const node=el('section',undefined,{class:'d2mods__card d2mods__builtin','data-builtin-mod':id});
     const heading=el('div',undefined,{class:'d2mods__card-heading'}),identity=el('div'),metadata=el('div','',{class:'d2mods__metadata'});
     identity.append(el('div',name,{class:'d2mods__name'}),metadata);
-    const launch=el('button','Open',{class:'d2mods__button','data-builtin-action':'open','aria-label':'Open '+name});
-    launch.addEventListener('click',()=>Promise.resolve().then(open).catch(report));heading.append(identity,launch);
+    const launch=open?el('button','Open',{class:'d2mods__button','data-builtin-action':'open','aria-label':'Open '+name}):null;
+    heading.append(identity);if(launch){launch.addEventListener('click',()=>Promise.resolve().then(open).catch(report));heading.append(launch);}
     const row=el('label',undefined,{class:'d2mods__row'}),enabled=el('input',undefined,{type:'checkbox','data-builtin-enabled':id,'aria-label':name+' enabled'});
-    enabled.addEventListener('change',()=>configure(id,enabled.checked).catch(report));row.append(el('span','Enabled',{class:'d2mods__row-label'}),enabled);node.append(heading,row);
-    return Object.freeze({id,node,paint(mod,{busy,checking,updates}){enabled.checked=mod.enabled;enabled.disabled=busy;launch.disabled=busy||!mod.enabled;metadata.textContent='Current '+mod.version+' · '+(updates?.latestManager?'Latest '+updates.latestManager.version:checking?'Checking latest…':'Latest not checked');}});
+    const problem=el('p','',{class:'d2mods__notice',role:'status'});problem.hidden=true;
+    enabled.addEventListener('change',()=>configure(id,enabled.checked).catch(report));row.append(el('span','Enabled',{class:'d2mods__row-label'}),enabled);node.append(heading,row,problem);
+    return Object.freeze({id,node,paint(mod,{busy,checking,updates}){enabled.checked=mod.enabled;enabled.disabled=busy;if(launch)launch.disabled=busy||!mod.enabled;problem.textContent=mod.problem||'';problem.hidden=!mod.problem;metadata.textContent='Current '+mod.version+' · '+(updates?.latestManager?'Latest '+updates.latestManager.version:checking?'Checking latest…':'Latest not checked');}});
   }
   globalThis.D2BuiltinModCard=Object.freeze({create});
 })();

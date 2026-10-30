@@ -12,6 +12,7 @@ The bookmark or optional extension starts a bundled browser runtime on `https://
 | [`src/game/game-ui.js`](../src/game/game-ui.js) | Session presentation, mini-panel anchor, canvas focus |
 | [`mods/loot-guard/runtime`](../mods/loot-guard/runtime/) | Item facts, rules, label/filter hooks, and alert requests |
 | [`mods/characters/runtime`](../mods/characters/runtime/) | Archived heroes, loadouts, item conservation, persistence and equipment UI |
+| [`mods/terrorized`](../mods/terrorized/) | Native Terror replay UI; browser C++ policy owns exact tier/act selection and one-use admission |
 
 ## Native-game boundary
 
@@ -35,4 +36,4 @@ Executable mods are compiled into the reviewed manager source set. A new capabil
 
 Every installed hook, observer, timer, channel, dialog and attention source needs a matching teardown. Updates prepare and verify the candidate before disposing the current manager, and activate only at the title boundary. Cancellation preserves the old runtime. Late callbacks must not revive disposed UI or override another owner's method.
 
-The code is currently browser JavaScript plus native C++ build tooling and an optional macOS Objective-C++ CDP transport. The public repository handoff relocates source without changing its runtime semantics. It does not claim a new engine or language migration.
+The existing manager and integrations use browser JavaScript bindings, with native C++ build tooling and an optional macOS Objective-C++ CDP transport. Terrorized's new selection and admission policy runs as a small, self-contained C++ WebAssembly module in the page. Its JavaScript adapter delegates the actual replay and save operations to the loaded game. This does not replace the game's engine or migrate unrelated mod logic.

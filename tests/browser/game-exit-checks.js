@@ -1,6 +1,6 @@
 // Controlled native-action receivers exercise cancellation without a user save.
 async function checkGameExit(source){
-  const frame=document.createElement('iframe');frame.hidden=true;document.body.append(frame);const w=frame.contentWindow;w.eval(source);
+  const frame=document.createElement('iframe');frame.hidden=true;document.body.append(frame);const w=frame.contentWindow;w.D2SourceBindings=D2SourceBindings;w.eval(source);
   const checks=[],check=(name,value)=>{checks.push({name,passed:!!value});if(!value)throw Error(name);},wait=ms=>new Promise(r=>setTimeout(r,ms));
   let bridge;
   try{

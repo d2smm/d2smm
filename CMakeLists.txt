@@ -30,6 +30,8 @@ if(APPLE)
 endif()
 
 enable_testing()
+add_subdirectory(mods/terrorized/core)
+target_link_libraries(d2smm-build PRIVATE d2smm-terrorized-core)
 add_test(NAME build-tool-self-check COMMAND d2smm-build --self-check)
 add_test(NAME source-links COMMAND d2smm-build --check-source "${CMAKE_CURRENT_SOURCE_DIR}")
 add_test(NAME build-tool-version COMMAND d2smm-build --version)

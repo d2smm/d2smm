@@ -7,6 +7,7 @@
     "mods/loot-guard/runtime/alerts.js",
     "src/manager/attention.js",
     "src/manager/packages.js",
+    "src/game/source-bindings.js",
     "src/game/game-contract.js",
     "mods/characters/runtime/characters-core.js",
     "mods/characters/runtime/characters-store.js",
@@ -20,6 +21,8 @@
     "mods/loot-guard/runtime/adapter.js",
     "src/game/game-menu.js",
     "src/game/game-ui.js",
+    "mods/terrorized/runtime/native.js",
+    "mods/terrorized/runtime/terrorized.js",
     "src/manager/manager-style.js",
     "src/manager/attention-view.js",
     "src/manager/builtin-mod-card.js",
@@ -28,7 +31,7 @@
   ],
   "skin": {
     "button": {"mime": "image/webp", "path": "assets/ui/button.webp"},
-    "font": {"mime": "font/ttf", "path": "assets/fonts/cinzel.ttf"},
+    "font": {"mime": "font/woff2", "path": "assets/fonts/generated/cinzel.woff2", "pin": "assets/fonts/generated/cinzel.json"},
     "gemOff": {"mime": "image/webp", "path": "assets/ui/gem-off.webp"},
     "gemOn": {"mime": "image/webp", "path": "assets/ui/gem-on.webp"},
     "panel": {"mime": "image/webp", "path": "assets/ui/panel.webp"}

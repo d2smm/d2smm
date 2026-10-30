@@ -1,0 +1,9 @@
+{
+  "schema": "d2smm.generated-font.v1",
+  "source": "assets/fonts/cinzel.ttf",
+  "sourceSha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34",
+  "sha256": "9368832db476d492f8218aefbca053dfabeb0877af208875bff0cd78b2c714ab",
+  "bytes": 47888,
+  "generator": "Google WOFF2 1.0.2 (native)",
+  "command": "woff2_compress cinzel.ttf; retain the complete glyph set"
+}

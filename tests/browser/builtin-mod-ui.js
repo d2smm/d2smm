@@ -17,12 +17,13 @@
   options.querySelector('summary').click();
   check('Options closes independently of Rules',!options.open&&!root.querySelector('details[data-section=rules]').open);
   const card=id=>root.querySelector(`[data-builtin-mod="${id}"]`);
-  check('Both built-ins appear as mod cards',!!card('characters')&&!!card('gear-loadouts'));
+  check('All built-ins appear as mod cards',['characters','gear-loadouts','terrorized'].every(id=>!!card(id)));
+  check('Terrorized has no unnecessary Open button',!card('terrorized').querySelector('button'));
   check('Duplicate shortcut strip is gone',!root.querySelector('.d2mods__character-actions'));
-  for(const id of ['characters','gear-loadouts']){
+  for(const id of ['characters','gear-loadouts','terrorized']){
     check(id+' initially enabled',feature(id).enabled);
     card(id).querySelector('input').click();await settle(()=>!feature(id).enabled);
-    check(id+' disables through its actual checkbox',!card(id).querySelector('input').checked&&card(id).querySelector('button').disabled);
+    check(id+' disables through its actual checkbox',!card(id).querySelector('input').checked&&(!card(id).querySelector('button')||card(id).querySelector('button').disabled));
   }
   if(D2Mods.status().mod)await D2Mods.configure({enabled:false});
   check('All mods off gives the gem its off state',root.querySelector('.d2mods__launcher').dataset.state==='off');
@@ -30,12 +31,12 @@
   check('Characters alone gives the gem its on state',root.querySelector('.d2mods__launcher').dataset.state==='on'&&!feature('gear-loadouts').enabled);
   card('characters').querySelector('input').click();await settle(()=>!feature('characters').enabled);
   await D2Mods.configurePreferences({showGem:false});await D2Mods.configurePreferences({showGem:true});
-  check('Changing gem visibility preserves both disabled mods',D2Mods.status().builtinMods.every(m=>!m.enabled));
+  check('Changing gem visibility preserves disabled mods',D2Mods.status().builtinMods.every(m=>!m.enabled));
   const db=D2ModStore.create();let persisted;try{persisted=await db.readPreferences();}finally{db.close();}
-  check('Settings survive reopening their store',persisted.charactersEnabled===false&&persisted.gearLoadoutsEnabled===false&&persisted.showGem===true);
+  check('Settings survive reopening their store',persisted.charactersEnabled===false&&persisted.gearLoadoutsEnabled===false&&persisted.terrorizedEnabled===false&&persisted.showGem===true);
   for(const [id,value] of [['missing',true],['characters','false']]){let rejected=false;try{await D2Mods.configureBuiltin(id,value);}catch(error){rejected=true;}check('Invalid built-in setting rejected: '+id,rejected);}
   check('Native save and character metadata are unchanged',raw()===before.save&&await metadata()===before.metadata);
   check('The game page was retained',performance.timeOrigin===before.origin);
   globalThis.__D2BuiltinProof={before,checks};
-  return{passed:true,checks,leaves:'Both built-ins disabled for a manager-restart persistence check'};
+  return{passed:true,checks,leaves:'Built-ins disabled for a manager-restart persistence check'};
 })()

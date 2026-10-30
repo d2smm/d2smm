@@ -1,0 +1,23 @@
+{
+  "bytes": 1060,
+  "flags": {
+    "activeRun": 128,
+    "completion": 256,
+    "cow": 64,
+    "currentHero": 4,
+    "debug": 16,
+    "enabled": 1,
+    "keptHero": 8,
+    "numericFacts": 512,
+    "training": 32,
+    "victory": 2
+  },
+  "schema": "d2smm.native-core.v1",
+  "sha256": "3a1acfdffb6c244620f20664b57eafe871bf42e2d1a073b8caeb0e0e681eb5bc",
+  "sources": {
+    "core/CMakeLists.txt": "9edacba130ffa148b8169e34b1a727eba79c55812ecb9cfd8cca573c8894bb3d",
+    "core/core.cpp": "9c8cb05ef57bed4e4767045dabbe8b297f1a7ff289aeed81dac242f9dd96aac9",
+    "core/core.hpp": "264322c7401237cf0711fe12afb657ca6b5ac08a6668f64797cd5caf16777c80",
+    "core/wasm.cpp": "368e6e165e2faac518232f1bec2264083967f09217251591397f00832a1b6618"
+  }
+}

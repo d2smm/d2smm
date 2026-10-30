@@ -33,6 +33,20 @@ The tool writes `dist/bootstrap.js`, its checksum descriptor, a hosted bookmarkl
 
 ## Test without risking a real save
 
+### Terrorized native policy
+
+The committed Wasm is verified against the C++ source hashes during assembly. Native policy checks run with `cmake --build build --target d2smm-terrorized-checks` followed by `ctest --test-dir build -R terrorized --output-on-failure`. CI runs those checks on macOS and Linux.
+
+To regenerate the artifact with native Clang/wasm-ld (no Emscripten driver):
+
+```sh
+cmake -S . -B build -DD2SMM_WASM_CXX=/opt/homebrew/opt/llvm/bin/clang++
+cmake --build build --target d2smm-build d2smm-terrorized-wasm
+build/d2smm-build --stage-terror-core . build/generated/terrorized.wasm
+```
+
+Select the actual absolute native Clang path on other hosts. The accepted generator is Clang 22.1.1. Commit both generated files after the focused checks and real browser proof. [`terrorized-checks.js`](../tests/browser/terrorized-checks.js) exercises native-style dismissal, stale callbacks, disabling and teardown with controlled receivers and the shipped C++ kernel.
+
 Use a separate browser profile or Incognito context with a disposable game. Do not import a player's only save. The live game must remain the actual upstream origin because the adapters intentionally enforce it.
 
 Fresh profiles may first reach `/play/setup.html`. Complete that normal file-source choice (the available Hosted Files option or your own game files), then continue past the native intro and click Play. Wait for the actual camp state; a loaded setup page or a fixed short delay is not game readiness.

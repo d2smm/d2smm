@@ -17,7 +17,7 @@ Make the player's experience better without playing the game for them.
 - Features that clean up their hooks, listeners, notices, and resources when disabled.
 - Small, reviewable changes with honest evidence.
 
-We do not accept automated combat, farming, movement, pickup loops, manufactured items, altered progression, or bypasses of native save / eligibility checks. No unsolicited network uploads, telemetry, or access to unrelated sites.
+We do not accept automated combat, farming, pickup loops, progression bypasses, or bypasses of native save / eligibility checks. No unsolicited network uploads, telemetry, or access to unrelated sites.
 
 ## Submitting your mod
 
