@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.5
+
+- Reuse the blue gem as the installer site's favicon.
+
 ## 2.9.4
 
 - Added cropped gallery scenes for two level-99 Amazons, an unresolved Beast Loop loot alert, and the native menu with MODS selected. Kept the Guardian Angel hover capture.
