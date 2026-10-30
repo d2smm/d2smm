@@ -24,6 +24,8 @@ The optional extension is produced as `dist/extension/`. To distribute a ZIP, ar
 
 ## Production ownership
 
+Build every manager release from this repository. Historical runtime copies and distribution archives are not alternate authoring sources.
+
 The current official site uses the maintainer's native Cloudflare publication workflow. Credentials, account state, and that private deployment environment are deliberately excluded from this repository. Pull-request CI builds and validates source only; it does not deploy.
 
 The manager's canonical update origin is intentionally fixed. Hosting a fork is not enough to make it an official update source. Review the updater trust boundary and loader behavior before changing it.

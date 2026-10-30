@@ -5,3 +5,5 @@
 `fonts/cinzel.ttf` is distributed with its [OFL license](fonts/font-license.txt). Website-only cathedral and gallery assets live in [`site/assets`](../site/assets/). No game sound file is included.
 
 The original independent README banner has separate [generation provenance](../docs/assets/README.md).
+
+The site's gem is staged directly from `ui/gem-on.webp` and `ui/gem-off.webp`, not a second editable image. It replaces the O in MOD and toggles color as a decorative control. The heading uses live text with a restrained antique-gold bevel matching the gem's metal rim.

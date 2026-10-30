@@ -1,4 +1,6 @@
 'use strict';
+const titleGem=document.querySelector('[data-title-gem]');
+titleGem.addEventListener('click',()=>{const on=titleGem.getAttribute('aria-pressed')!=='true';titleGem.setAttribute('aria-pressed',String(on));titleGem.querySelector('[data-gem-on]').hidden=!on;titleGem.querySelector('[data-gem-off]').hidden=on;});
 const bookmark=document.getElementById('bookmark'),feedback=document.querySelector('.setup__feedback');
 fetch('/updates/stable.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('Release unavailable');return r.json();}).then(feed=>{
   const d=feed.manager,url=new URL(d.url);if(url.origin!==location.origin||!/^\/manager\/\d+\.\d+\.\d+\/bootstrap\.js$/.test(url.pathname)||!/^[a-f0-9]{64}$/.test(d.sha256))throw Error('Invalid release descriptor');

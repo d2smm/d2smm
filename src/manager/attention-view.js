@@ -31,7 +31,7 @@
     }
     function display({visible,open,anchor}){
       host.hidden=!visible||!anchor;managerOpen=open;
-      if(anchor){const size=anchor.size;host.style.setProperty('--d2mods-gem-size',size+'px');host.style.setProperty('--d2mods-gem-scale',String(size/70));host.style.left=Math.max(0,Math.min(innerWidth-size,anchor.x-size/2))+'px';host.style.top=Math.max(0,Math.min(innerHeight-size,anchor.y-size/2))+'px';}
+      if(anchor){const size=anchor.size;host.style.setProperty('--d2mods-gem-size',size+'px');host.style.setProperty('--d2mods-gem-scale',String(size/70));host.style.left=Math.max(0,Math.min(innerWidth-size,anchor.x-size/2))+'px';host.style.top=Math.max(0,Math.min(innerHeight-size,anchor.y-size/2+size*.1375))+'px';}
       const mini=!host.hidden?document.getElementById('mini-toggle'):null;if(mini!==covered){uncover();if(mini){covered=mini;oldVisibility=mini.style.visibility;mini.style.visibility='hidden';}}visibility();
     }
     paint([]);return Object.freeze({host,paint,display,dispose:uncover});

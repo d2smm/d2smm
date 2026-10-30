@@ -77,6 +77,26 @@ void copyTree(const fs::path& from, const fs::path& to) {
             write(to / fs::relative(e.path(), from), read(e.path()));
     }
 }
+void replaceAll(std::string& text, const std::string& from, const std::string& to) {
+    for (size_t at=0; (at=text.find(from,at))!=std::string::npos; at+=to.size())
+        text.replace(at,from.size(),to);
+}
+void sitePreview(const fs::path& site, const fs::path& output) {
+    auto html=read(site/"index.html"), css=read(site/"style.css");
+    html=std::regex_replace(html,std::regex("<script[^>]*></script>"),"");
+    replaceAll(html,"<link rel=\"stylesheet\" href=\"/style.css\">","");
+    for (const auto& entry : fs::recursive_directory_iterator(site/"assets")) {
+        if (!entry.is_regular_file()) continue;
+        const auto ext=entry.path().extension().string();
+        const std::string mime=ext==".webp"?"image/webp":ext==".png"?"image/png":ext==".ttf"?"font/ttf":"";
+        if (mime.empty()) continue;
+        const auto url="/"+fs::relative(entry.path(),site).generic_string();
+        const auto data="data:"+mime+";base64,"+base64(read(entry.path()));
+        replaceAll(html,url,data); replaceAll(css,url,data);
+    }
+    const std::string expression="(async()=>{if(location.origin!=='https://d2s.arken.gg')throw Error('Wrong site preview origin');document.open();document.write("+Json(html).dump()+");document.close();const style=document.createElement('style');style.textContent="+Json(css).dump()+";document.head.append(style);eval("+Json(read(site/"app.js")).dump()+");eval("+Json(read(site/"gallery.js")).dump()+");await document.fonts.ready;await Promise.all([...document.images].filter(image=>image.getAttribute('src')).map(image=>image.decode()));return{preview:true,images:document.images.length,title:document.querySelector('h1').textContent};})()";
+    write(output,Json{{"method","Runtime.evaluate"},{"params",{{"expression",expression},{"awaitPromise",true},{"returnByValue",true}}}}.dump()+"\n");
+}
 void selfCheck() {
     require(sha256("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "SHA-256 vector");
     require(base64("") == "" && base64("f") == "Zg==" && base64("fo") == "Zm8=" && base64("foo") == "Zm9v", "Base64 vectors");
@@ -167,6 +187,8 @@ void build(const fs::path& input, const fs::path& destination) {
     copyTree(root/"site",out/"site");
     write(out/"site/assets/cinzel.ttf",read(root/"assets/fonts/cinzel.ttf"));
     write(out/"site/assets/font-license.txt",read(root/"assets/fonts/font-license.txt"));
+    write(out/"site/assets/gem-on.webp",read(root/"assets/ui/gem-on.webp"));
+    write(out/"site/assets/gem-off.webp",read(root/"assets/ui/gem-off.webp"));
     auto html = read(root/"site/index.html");
     html = std::regex_replace(html,std::regex("data-manager-version>[0-9]+\\.[0-9]+\\.[0-9]+"),"data-manager-version>"+version);
     write(out/"site/index.html",html);
@@ -176,6 +198,7 @@ void build(const fs::path& input, const fs::path& destination) {
     const Json mod = {{"id","loot-guard"},{"version",modVersion},{"url",origin+"/mods/loot-guard/"+modVersion+".d2mod.json"},{"bytes",packageText.size()},{"sha256",sha256(packageText)}};
     const Json feed = {{"schema","d2mods.updates.v1"},{"channel","stable"},{"manager",descriptor},{"mods",Json::array({mod})}};
     write(out/"site/updates/stable.json",feed.dump(2)+"\n");
+    sitePreview(out/"site",out/"site-preview-command.json");
     std::cout << "D2SMM " << version << ": " << source.size() << " bytes\nSHA-256 " << hash << "\nOutput " << out << '\n';
 }
 } // namespace

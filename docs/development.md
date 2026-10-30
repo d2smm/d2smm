@@ -46,6 +46,8 @@ cmake --build build --target d2smm-cdp
 
 It accepts one CDP command or up to 32 sequential commands from standard input and an exact loopback WebSocket target as its argument. It neither launches nor discovers a browser. Use only a browser/profile you own for testing, with remote debugging explicitly enabled. Verify the context and exact target before sending commands. Never point a mutation fixture at a player's session.
 
+For the installer website, the build also emits `dist/site-preview-command.json`. Send it through that transport to an owned test tab already on `https://d2s.arken.gg/`. It replaces that tab's document with the candidate site and embedded assets; it refuses other origins. This is a preview only. Final acceptance must use the published page.
+
 ## Existing browser checks
 
 [`tests/browser/`](../tests/browser/) contains browser-executed checks, not Node tests. Evaluate them in the isolated page after the candidate loads; retain the returned `passed` result and any failing checks.

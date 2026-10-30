@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.2
+
+- Lowered the bottom gem slightly, with the offset scaling alongside the HUD.
+- Stronger black drop shadow for both enabled and disabled gem artwork.
+- Reused the gem as the O in the installer site's antique-gold title. It starts blue; clicking only toggles blue and purple.
+
 ## 2.9.1
 
 - The gem fills the bottom bar's circular mount and scales with the native HUD instead of remaining a fixed screen size.

@@ -8,7 +8,7 @@ button{font:inherit;color:inherit;cursor:pointer}a{color:#e6c589;text-underline-
 button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid #e8c477;outline-offset:4px}
 button:disabled,input:disabled{opacity:.45;cursor:wait}
 .d2mods__launcher{position:absolute;left:0;top:0;z-index:2147483646;width:70px;height:70px;min-height:44px;padding:2px;border:0;border-image:none;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer;transform:scale(var(--d2mods-gem-scale,1));transform-origin:0 0}
-.d2mods__launcher img{display:block;position:absolute;left:2px;top:2px;width:66px;height:66px;filter:drop-shadow(0 2px 2px #0009);pointer-events:none}.d2mods__launcher[data-state=on] img{filter:drop-shadow(0 2px 3px #000c)}
+.d2mods__launcher img{display:block;position:absolute;left:2px;top:2px;width:66px;height:66px;filter:drop-shadow(0 3px 2px #000) drop-shadow(0 1px 5px #000e);pointer-events:none}
 .d2mods__launcher:focus-visible{outline:2px solid #e6ca8a;outline-offset:3px}.d2mods__launcher:hover:not(:disabled){background:transparent;filter:brightness(1.08)}
 .d2mods__beacon{position:fixed;left:0;top:0;width:var(--d2mods-gem-size,70px);height:var(--d2mods-gem-size,70px);z-index:2147483646}
 .d2mods__launcher .d2mods__attention-gem,.d2mods__launcher[data-state=on] .d2mods__attention-gem{clip-path:circle(8px at 33px 35px);filter:grayscale(1) brightness(3);z-index:2}

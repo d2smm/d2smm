@@ -75,6 +75,8 @@ This example is for macOS with CMake, a C++20 compiler, and OpenSSL 3 installed.
 
 ## Explore the repository
 
+This repository is the source of truth for the manager, built-in mods, and installer website. Edit source here; generated distributions and historical captures are outputs.
+
 | Directory | Purpose |
 | :--- | :--- |
 | [`src/manager/`](src/manager/) | Installation, updates, storage, manager UI, and shared attention log |
