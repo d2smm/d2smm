@@ -3,8 +3,9 @@
   function el(tag,text,attrs={}){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e;}
   function create(actions){
     const host=el('div',undefined,{id:'d2-characters'}),root=host.attachShadow({mode:'open'}),css=el('style',D2CharacterStyle),panel=el('dialog',undefined,{'aria-label':'Characters and gear'});
-    panel.addEventListener('close',()=>globalThis.D2Mods?.focusGame());
-    let selected=null,current=null,lastArchive='',section='characters',intent='',preview=null,creationRequested=false;
+    const infoView=D2BuildInfoView.create(root);
+    panel.addEventListener('close',()=>{++infoRequest;infoView.close();globalThis.D2Mods?.focusGame();});
+    let selected=null,current=null,lastArchive='',section='characters',intent='',preview=null,creationRequested=false,infoRequest=0,disposed=false;
     const run=fn=>()=>Promise.resolve().then(fn).catch(actions.report);
     const command=async a=>{const result=await actions.perform(selected,a);if(['switch','new'].includes(a.kind)){preview=null;if(section==='characters')panel.close();}paint(actions.status());return result;};
     const button=(text,key,fn)=>{const b=el('button',text,{'data-character-action':key});b.addEventListener('click',run(fn));return b;};
@@ -40,7 +41,8 @@
       if(!target.matches&&target.items.length&&!confirm('Replace '+target.name+' with your equipped items?'))return;
       return command({kind:'saveLoadout',loadout:preview,makeDefault:true});
     }),preferred=button('Make default','default',()=>command({kind:'default',loadout:preview}));equip.className='characters__primary';
-    gearActions.append(equip,save,preferred);const gearNote=el('p','',{class:'characters__subtle characters__gear-note'});
+    const info=button('ⓘ','info',async()=>{const request=++infoRequest,cls=selected,id=preview;info.disabled=true;try{const data=await actions.information(cls,id);if(!disposed&&request===infoRequest&&panel.open&&selected===cls&&preview===id)infoView.show(data,info);}finally{info.disabled=false;}});info.className='characters__info';info.setAttribute('aria-label','Build details');
+    gearActions.append(info,equip,save,preferred);const gearNote=el('p','',{class:'characters__subtle characters__gear-note'});
     pane.append(gearTitle,equipment.node,gearActions,gearNote);right.append(tabs,pane);
     const vault=el('details',undefined,{class:'characters__vault'}),vaultList=el('ul');vault.append(el('summary','Stored equipment'),vaultList);right.append(vault);let vaultKey='';
     const footer=el('footer'),details=el('details'),extras=el('div',undefined,{class:'characters__actions'});
@@ -55,7 +57,7 @@
       context.textContent=section==='gear'&&active?active.name+' · Level '+active.level:'';toolbar.hidden=!context.textContent;
       left.hidden=section==='gear';right.hidden=section==='characters';leftHeading.hidden=true;rightHeading.hidden=true;
       const nextVault=JSON.stringify(current.vault??[]);if(vaultKey!==nextVault){vaultList.replaceChildren(...(current.vault??[]).map(i=>el('li',i.name)));vaultKey=nextVault;}vault.hidden=!current.vault?.length;
-      notice.textContent=s.problem||((section==='characters'?!s.canSelect:!s.canChange)?'Return to camp and put down any held item.':'');notice.hidden=!notice.textContent;
+      notice.textContent=s.problem||(section==='characters'&&!s.canSelect?'Return to camp and put down any held item.':'');notice.hidden=!notice.textContent;
       setup.hidden=section==='characters'||current.enabled;layout.hidden=section==='gear'&&!current.enabled;footer.hidden=section==='characters'||!current.enabled;setupText.textContent=current.personalItems?'Move '+current.personalItems+' items from Personal stash to Shared first.':'Personal stash will store your unequipped loadouts. Shared stash stays available.';enable.disabled=!ready||current.personalItems>0;
       nativeCard.hidden=current.enabled;nativeName.textContent=className;nativeInfo.textContent='Level '+current.nativeLevel;nativePick.textContent=selected===s.currentClass?'Selected':'Select';nativePick.disabled=!canSelect||selected===s.currentClass;nativeCard.dataset.active=String(selected===s.currentClass);
       characterRows.forEach((row,i)=>{const c=current.characters[i];row.card.hidden=!c;if(!c)return;row.name.paint(c.name,ready);row.info.textContent='Level '+c.level+(c.active&&selected===s.currentClass?' · Selected':!c.active&&current.hasSavedRun?' · Unavailable during this run':'');row.card.dataset.active=String(c.active&&selected===s.currentClass);row.pick.disabled=c.active?!canSelect||selected===s.currentClass:!ready||current.hasSavedRun;row.pick.hidden=false;row.pick.textContent=c.active?(selected===s.currentClass?'Selected':'Select'):'Switch';});
@@ -66,7 +68,7 @@
       if(l){pane.setAttribute('aria-labelledby','d2-loadout-'+preview);gearName.paint(l.name,ready);gearState.textContent=l.id===current.selectedLoadout&&!l.matches?'Unsaved changes':'';if(section!=='characters')equipment.paint(actions.armory(selected,preview),l.items);equip.disabled=!ready||l.id===current.selectedLoadout&&l.matches;equip.textContent=l.id===current.selectedLoadout&&l.matches?'Equipped':'Equip';save.disabled=!ready;save.textContent=active?.defaultLoadout===l.id?'Save equipped':'Save for character';preferred.disabled=!ready;preferred.hidden=active?.defaultLoadout===l.id;gearNote.textContent=active?.defaultLoadout===l.id?'Default for '+active.name:'';gearNote.hidden=!gearNote.textContent;}
       release.disabled=!ready;returnUnused.disabled=!ready;backup.disabled=s.busy;
     }
-    return Object.freeze({paint,isOpen:()=>panel.open,section:()=>section,show:(options={})=>{const status=actions.status();section=options.section==='gear'?'gear':'characters';intent=section==='characters'&&options.intent==='create'?'create':'';selected=D2CharacterCore.classes.includes(options.classId)?options.classId:status.currentClass;preview=null;creationRequested=false;gearName.reset();characterRows.forEach(r=>r.name.reset());paint(status);if(!panel.open)panel.showModal();panel.scrollTop=0;},close:()=>panel.close(),dispose:()=>{equipment.dispose();host.remove();}});
+    return Object.freeze({paint,isOpen:()=>panel.open,section:()=>section,show:(options={})=>{infoView.close();const status=actions.status();section=options.section==='gear'?'gear':'characters';intent=section==='characters'&&options.intent==='create'?'create':'';selected=D2CharacterCore.classes.includes(options.classId)?options.classId:status.currentClass;preview=null;creationRequested=false;gearName.reset();characterRows.forEach(r=>r.name.reset());paint(status);if(!panel.open)panel.showModal();panel.scrollTop=0;},close:()=>panel.close(),dispose:()=>{disposed=true;++infoRequest;infoView.dispose();equipment.dispose();host.remove();}});
   }
   globalThis.D2CharacterView=Object.freeze({create});
 })();

@@ -1,9 +1,21 @@
 #include "badges.hpp"
 #include "qol.hpp"
+#include "perfection.hpp"
 namespace d2smm {
 namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned lengths[3];
 bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&badges::key(input[1],lengths[1],m.target)&&badges::key(input[2],lengths[2],m.context);}}
 extern "C" {
+static characters::perfection::Score perfection;
+static char perfectionNames[2][128];
+void d2smm_perfection_begin(unsigned available){perfection.begin(available!=0);}
+void d2smm_perfection_property(double low,double high,double parameter){perfection.property(low,high,parameter);}
+char* d2smm_perfection_input(unsigned index){return index<2?perfectionNames[index]:nullptr;}
+void d2smm_perfection_member(unsigned expectedLength,unsigned actualLength,unsigned function,double value,double parameter){perfection.member(perfectionNames[0],expectedLength,perfectionNames[1],actualLength,function,value,parameter);}
+void d2smm_perfection_end(){perfection.endProperty();}
+int d2smm_perfection_finish(){return perfection.finish();}
+unsigned d2smm_perfection_rolls(){return perfection.rolls();}
+void d2smm_perfection_observe(unsigned length){perfection.observe(perfectionNames[0],length);}
+void d2smm_perfection_armor(unsigned bounds,double low,double high,double value,unsigned ethereal){perfection.armor(bounds!=0,low,high,value,ethereal!=0);}
 char* d2smm_badge_input(unsigned index){return index<3?input[index]:nullptr;}
 void d2smm_badge_length(unsigned index,unsigned length){if(index<3)lengths[index]=length;}
 unsigned d2smm_badge_valid_key(unsigned index){badges::Key k;return index<3&&badges::key(input[index],lengths[index],k);}

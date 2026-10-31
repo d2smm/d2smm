@@ -19,7 +19,7 @@
 
 1. Visit **[d2s.arken.gg](https://d2s.arken.gg/)** and drag the large button to your bookmarks bar.
 2. Open **[D2 Survivors](https://d2survivors.lol/play/)** and click your **D2SMM** bookmark.
-3. Press **M** to open the manager. Enable the mods you want.
+3. Press **M** to open the manager. Enable the mods you want. **U** opens Gear Loadouts.
 
 Click the bookmark again after reloading the game. No account or game-file replacement is needed.
 

@@ -2,6 +2,10 @@
 
 Three outfits per class, independent of which hero is active.
 
+Press **U** to open Gear Loadouts. The **ⓘ** button beside Equip opens a compact build sheet with character stats, Terror progress, item details, charms, mercenary equipment, and chosen skills. Viewing details does not equip or save anything. Unequipped outfits show a preview alongside the current character's stats.
+
+Unique, set, and runeword items show **perfection**: the average position of each independent variable roll within its native min/max range, including variable base defense. Fixed properties do not affect it, shared rolls count once, and 100% requires every variable roll to be perfect. Magic and rare items keep their full stats. Items without supported raw roll data say so instead of guessing.
+
 **Equip** tries a saved outfit. **Make default** assigns it to the current hero. **Save for character** saves an outfit and makes it that hero's default. Save changed equipment before switching heroes.
 
 Each real item exists once. The same ring can be referenced by multiple outfits without being copied. Only the ten worn slots are managed; charms, mercenary gear, and ordinary inventory are outside the loadout.

@@ -10,7 +10,8 @@
     function dismiss(){const target=anchor;hide();if(target?.isConnected){restoringFocus=true;target.focus({preventScroll:true});restoringFocus=false;}}
     function position(){if(!anchor)return;const a=anchor.getBoundingClientRect(),b=tip.getBoundingClientRect(),margin=12;
       let x=a.right+14;if(x+b.width>innerWidth-margin)x=a.left-b.width-14;
-      tip.style.left=Math.max(margin,Math.min(x,innerWidth-b.width-margin))+'px';tip.style.top=Math.max(margin,Math.min(a.top,innerHeight-b.height-margin))+'px';
+      const zoom=Number(getComputedStyle(panel).zoom)||1;
+      tip.style.left=Math.max(margin,Math.min(x,innerWidth-b.width-margin))/zoom+'px';tip.style.top=Math.max(margin,Math.min(a.top,innerHeight-b.height-margin))/zoom+'px';
     }
     function show(button,item,location,pin=false){
       clearTimeout(timer);if(pin&&anchor===button&&pinned){hide();return;}

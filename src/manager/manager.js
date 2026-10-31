@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION='2.12.0';
+  const VERSION='2.13.0';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
@@ -112,9 +112,18 @@
   }
   function dragOver(event){if([...event.dataTransfer?.types||[]].includes('Files'))event.preventDefault();}
   function drop(event){const files=[...event.dataTransfer?.files||[]];const file=files.find(f=>f.name.toLowerCase().endsWith('.json')||f.name.endsWith('.d2installer.html'));if(!file)return;event.preventDefault();event.stopImmediatePropagation();show();installFile(file).catch(report);}
-  let managerKeyHeld=false;
+  let managerKeyHeld=false,loadoutKeyHeld=false;
   function consumeHotkey(event){event.preventDefault();event.stopImmediatePropagation();}
   function hotkey(event){
+    if(event.code==='KeyU'){
+      if(loadoutKeyHeld){consumeHotkey(event);return;}
+      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.isComposing)return;
+      const target=event.composedPath()[0];
+      if(target?.isContentEditable||target?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select'))return;
+      if(!preferences.gearLoadoutsEnabled||!gameUI.snapshot().inGame)return;
+      consumeHotkey(event);if(event.repeat)return;loadoutKeyHeld=true;
+      globalThis.D2Characters?.toggleGear();return;
+    }
     if(event.code!=='KeyM')return;
     if(managerKeyHeld){consumeHotkey(event);return;}
     if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.isComposing)return;
@@ -125,8 +134,8 @@
     managerKeyHeld=true;
     panel?.open?panel.close():show();
   }
-  function releaseHotkey(event){if(event.code==='KeyM'&&managerKeyHeld){managerKeyHeld=false;consumeHotkey(event);}}
-  function resetHotkey(){managerKeyHeld=false;}
+  function releaseHotkey(event){if(event.code==='KeyM'&&managerKeyHeld){managerKeyHeld=false;consumeHotkey(event);}if(event.code==='KeyU'&&loadoutKeyHeld){loadoutKeyHeld=false;consumeHotkey(event);}}
+  function resetHotkey(){managerKeyHeld=false;loadoutKeyHeld=false;}
   function message(event){
     if(event.source!==window||event.origin!==location.origin||event.data?.channel!=='d2mods-bridge-v1')return;
     const request=event.data;if(!['status','open'].includes(request.action)||typeof request.requestId!=='string')return;

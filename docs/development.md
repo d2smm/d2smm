@@ -124,6 +124,14 @@ Use normal game controls, process-native captures, and targeted state reads. Do 
 
 New tests should cover a concrete risk; do not duplicate the implementation or build a new framework for a small visual fix.
 
+### Build details
+
+The builder emits `dist/build-info-command.json` from `tests/browser/build-info-checks.js`. In a verified isolated game with the candidate loaded and its gallery lease set, this prepares synthetic gear, charms, skills, and a mercenary on a detached receiver. It uses the native information adapter and item descriptions, checks conservation of the actual save, and does not write the fixture into the game. Call `D2BuildInfoProof.show()` to inspect the populated sheet, `status()` for its checks, and `dispose()` when finished.
+
+Also exercise **U**, the actual info button beside Equip, Escape, editable fields, and disabled Gear Loadouts through normal input. Compare the native C-screen rows with the overview using the same current hero. The populated fixture proves presentation and native data adaptation, not real equipment changes or hypothetical outfit totals.
+
+`dist/loadout-access-command.json` runs the saved shortcut, focus, and read-only checks in an already-managed disposable camp. The perfection calculation lives in `mods/characters/core/`; run the `perfection` CTest group. It shares the manager Wasm artifact and source-hash receipt. Regenerate with `d2smm-manager-wasm` and stage with `--stage-manager-core` before assembly. The browser fixture checks perfect named items, a 33% War Traveler, and unchanged magic/rare details against the running game's own catalog.
+
 ## Promo production
 
 [`media/promo/edit.json`](../media/promo/edit.json) owns scene order, timing, crops and captions. [`shots.json`](../media/promo/shots.json) owns the timed browser actions; [`presentation.js`](../media/promo/presentation.js) supplies editorial pointers, simulated browser chrome and the explicitly simulated drop flash. None of these files is included in the shipped manager.

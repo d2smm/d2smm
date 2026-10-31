@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.13.0
+
+- Press **U** to open Gear Loadouts; text editing and the game's L shortcut are preserved.
+- Reduce the loadout dialog by 25%.
+- Add a read-only build-details button beside Equip, with character stats, Terror progress, full item descriptions, charms, mercenary details, and chosen skills in a compact plain layout.
+- Show native-roll perfection percentages for uniques, sets, and runewords; retain full magic and rare item stats. The browser C++ core averages independent variable rolls without weighting fixed or duplicated display properties.
+
 ## 2.12.0
 
 - Loot Guard 1.5.0 adds perfect War Traveler (50 MF, 190 enhanced defense, 10 thorns) and Exile, Infinity, Doom, Breath of the Dying, Grief, Last Wish, Death, Enigma, Phoenix, Dream, Pride and Faith at any roll to the defaults.

@@ -11,5 +11,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:20px;ma
 dialog[data-section=characters]{width:min(550px,calc(100vw - 28px))}dialog[data-section=gear]{width:min(650px,calc(100vw - 28px))}dialog[data-section=characters] .characters__layout,dialog[data-section=gear] .characters__layout{grid-template-columns:1fr}dialog[data-section=characters] .characters__roster{border:0;padding:0}
 @media(max-width:760px){.characters__layout{grid-template-columns:1fr}.characters__roster{border:0;border-bottom:1px solid #4f493d;padding:0 0 20px}dialog{padding:20px}h2{font-size:26px}.characters__tabs{gap:4px}.characters__tab{font-size:15px}.equipment{grid-template-rows:repeat(7,38px)}}
 @media(max-width:390px){dialog{padding:16px}.equipment{gap:3px;grid-template-rows:repeat(7,34px)}.characters__actions button{font-size:14px;padding:9px 10px}.characters__toolbar select{min-width:140px}.characters__subtle{font-size:13px}}
-`+D2GameSkin.css;
+`+D2GameSkin.css+`
+dialog[data-section=gear]{zoom:.75;width:min(650px,calc((100vw - 28px)/.75));max-height:calc((100svh - 40px)/.75);scrollbar-color:#333 #000}
+.characters__gear-actions .characters__info{border:1px solid #8f7951;border-image:none;background:#111;box-shadow:none;min-width:42px;width:42px;padding:0;font:24px/1 Georgia,serif;border-radius:3px}
+`;
 })();

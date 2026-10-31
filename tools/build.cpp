@@ -35,7 +35,7 @@ void write(const fs::path& path, const std::string& value) {
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
-const std::vector<std::string> managerSources={"src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/CMakeLists.txt"};
 const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageLootCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);
@@ -275,6 +275,8 @@ void build(const fs::path& input, const fs::path& destination) {
     const auto guard = "if(!globalThis.__D2GalleryLease?.contextId||location.origin!=='https://d2survivors.lol')throw Error('Verified isolated gallery context required');";
     const auto load = "(async()=>{"+std::string(guard)+"const before=localStorage.getItem('d2-survivors/save/v1');globalThis.D2ModsBootstrap="+descriptor.dump()+";eval("+Json(source).dump()+");await D2ModsStartup;await D2Mods.ready;if(before!==localStorage.getItem('d2-survivors/save/v1'))throw Error('Candidate load changed native save');return{version:D2Mods.version,saveUnchanged:true};})()";
     write(out/"gallery-load-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",load},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    write(out/"build-info-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/build-info-checks.js")+"\ninstallBuildInfoProof()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    write(out/"loadout-access-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/loadout-access-checks.js")+"\ncheckLoadoutAccess()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     Json fixtureSources=Json::array();
     fixtureSources.push_back("globalThis.D2LootKernel="+lootKernel.dump()+";");
     for(const auto& name:{"base-kinds.js","rule-catalog.js","rules.js","alerts.js","adapter.js"})fixtureSources.push_back(read(root/"mods/loot-guard/runtime"/name));

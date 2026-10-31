@@ -6,7 +6,7 @@
     "read": 3,
     "unread": 4
   },
-  "bytes": 4211,
+  "bytes": 6568,
   "capacity": 256,
   "keyLimit": 64,
   "qolFlags": {
@@ -20,14 +20,16 @@
     "sameWorld": 4
   },
   "schema": "d2smm.native-core.v1",
-  "sha256": "85d09ac96addd4f8462851a458402183bb116eb1d24740cfa717605cad09527d",
+  "sha256": "c6c48ff61a433cc96a0bbb7babe99221b1aff913c6e0e1f6d8a9858e8b39c32b",
   "sources": {
+    "mods/characters/core/perfection.cpp": "5bcb24defe18b7df289a04d91e72a09257f5053e3f48b4ea94bc32e378a03561",
+    "mods/characters/core/perfection.hpp": "36a93ce3483775a387a27847fbff1f0e47d6e2445f9a2815dc07c1b1d6de9119",
     "mods/qol/core/CMakeLists.txt": "f5331f95a7d0e17a51f7ae4de1820793c57c3f691d2f927bf7bd7145bc1df61d",
     "mods/qol/core/qol.cpp": "b941faccb9204ef965bb8b277a202a93b521235e4a0a7dfd7d62e661297a8576",
     "mods/qol/core/qol.hpp": "7997e3c9eacd15d3dd9c4e8796f64aebad2f85ae9cb2b51e2e9049548f0742af",
-    "src/manager/core/CMakeLists.txt": "4c23894ac4b0bb534ac3d7cfc23282da10ad5371799d7b19c8ce5ac0ec342269",
+    "src/manager/core/CMakeLists.txt": "4328f8bf7b6db1afbfdbbcd9d1dc1a0f656efe379a452848e05045e10834d20a",
     "src/manager/core/badges.cpp": "5a7268a799c8e87bd22382d09899bcf45e1d842b2211d5d0518c54fe62c609a6",
     "src/manager/core/badges.hpp": "58c0b10af3537a7ee9a09f7bc0e78e345d03d13bca735c20d2995173fe3a32fd",
-    "src/manager/core/wasm.cpp": "2e1219d4776ef330e5899e4380325b2599c3c4ab72d15e7474c295002c53a10f"
+    "src/manager/core/wasm.cpp": "2f32f2017fe8025fa159beb1474d9ac10bff73547ac7bacdcf049608bdb44c23"
   }
 }

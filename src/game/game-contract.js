@@ -78,9 +78,17 @@
       const describe=one(descriptions,'item description model');
       const name=await binding(one(calls(method('autoSell')).filter(n=>n.arguments.length===3&&['name','rarity','base'].every((p,i)=>member(n.arguments[i],p))),'localized item name'));
       if(typeof icon.value!=='function'||typeof name.value!=='function')throw Error('Item presentation is unavailable');
-      return{icon:icon.value,describe,name:name.value,evidence:{module:icon.url,icon:icon.name,description:Object.keys(icon.namespace).find(k=>icon.namespace[k]===describe)}};
+      const catalogs=Object.values(icon.namespace).filter(fn=>typeof fn==='function'&&fn.length===0&&['uniques','bases','setItems','runewords','runes'].every(p=>find(fnAst(fn),n=>member(n,p)).length>0));
+      const catalog=catalogs.length===1?catalogs[0]:null;
+      return{icon:icon.value,describe,name:name.value,catalog,evidence:{module:icon.url,icon:icon.name,description:Object.keys(icon.namespace).find(k=>icon.namespace[k]===describe)}};
     }
-    return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,imports,method,calls,binding};
+    async function informationBindings(){
+      method('heroNumbers');method('mercViewOf');
+      const enter=method('enterTier'),progress=await binding(one(calls(enter).filter(n=>n.arguments.length===2&&save(n.arguments[0])),'Terror progress'));
+      if(typeof progress.value!=='function')throw Error('Terror progress is unavailable for this game update.');
+      return{numbers:Game.prototype.heroNumbers,merc:Game.prototype.mercViewOf,progress:progress.value};
+    }
+    return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,informationBindings,imports,method,calls,binding};
   }
   async function isolate(bindings){
     const frame=document.createElement('iframe');frame.hidden=true;frame.dataset.d2Preparation='';
@@ -111,12 +119,13 @@
   function gameURL(){const urls=[...new Set(performance.getEntriesByType('resource').map(e=>e.name).filter(s=>{const u=new URL(s);return u.origin===globalThis.origin&&/\/Game(?:-[\w-]+)?\.m?js$/.test(u.pathname);}))];if(urls.length>1)throw Error('Multiple Game modules are loaded; the running module is ambiguous');return urls[0];}
   async function build(){
     const url=gameURL();if(!url)return null;
-    const base=await analyze(url);let characters=null,loot=null,presentation=null,characterError='',lootError='',presentationError='',preparation=null;
+    const base=await analyze(url);let characters=null,loot=null,presentation=null,information=null,characterError='',lootError='',presentationError='',informationError='',preparation=null;
     try{const bindings=await base.characterBindings();preparation=await isolate(bindings);characters=preparation.native;}catch(error){characterError=error.message;console.warn('[D2 contract] characters',error);}
     try{loot=await base.lootBindings();}catch(error){lootError=error.message;console.warn('[D2 contract] loot',error);}
     try{presentation=await base.presentationBindings();}catch(error){presentationError=error.message;console.warn('[D2 contract] item presentation',error);}
+    try{information=await base.informationBindings();}catch(error){informationError=error.message;console.warn('[D2 contract] build information',error);}
     if(closed){preparation?.dispose();return null;}
-    return{Game:base.Game,url,characters,loot,presentation,characterError,lootError,presentationError,evidence:preparation?.evidence,dispose:()=>preparation?.dispose()};
+    return{Game:base.Game,url,characters,loot,presentation,information,characterError,lootError,presentationError,informationError,evidence:preparation?.evidence,dispose:()=>preparation?.dispose()};
   }
   function connect(){if(closed)return Promise.resolve(null);if(record)return Promise.resolve(record);if(pending)return pending;pending=build().then(r=>{record=r;return r;}).finally(()=>{pending=null;});return pending;}
   async function dispose(){closed=true;if(pending)await pending.catch(error=>console.info('[D2 contract] connection ended',error.message));record?.dispose();record=null;}

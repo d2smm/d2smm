@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   let instance=null,api=null,presentation=null,nativeSelect=null,closed=false,problem='',view=null,attached=false,connection=null;
-  let armoryCache=null;
+  let armoryCache=null,informationBindings=null;
   let features={characters:false,gearLoadouts:false};
   function requireFeature(key){if(!features[key])throw Error((key==='characters'?'Characters':'Gear Loadouts')+' is off. Turn it on in Mod Manager.');}
   function configureFeatures(value){
@@ -31,6 +31,7 @@
       if(!['tick','gearActions','openAkara','restandHero','openStashTab','swapHero','dropHeld','discardHeld'].every(k=>typeof Game.prototype[k]==='function'))throw Error('Character interaction contract changed');
       api=contract.characters;
       presentation=contract.presentation;
+      informationBindings=contract.information;
       nativeSelect=Game.prototype.swapHero;
       patch(Game.prototype,'tick',original=>function(...args){instance=this;return original.apply(this,args);});
       patch(Game.prototype,'swapHero',original=>function(cls,...args){
@@ -99,17 +100,18 @@
       classes:D2CharacterCore.classes.map(cls=>{const m=meta().classes[cls],hero=save.heroes?.[cls];return{...D2CharacterCore.describe(save,cls,m),nativeLevel:(hero?.run??hero?.kept)?.run?.level??1,enabled:!!m,personalItems:save.stashTabs?.[cls]?.length??0,vault:(save.stashTabs?.[cls]??[]).map(i=>({name:i.name,half:i.at?.y>=5?'Bottom':'Top'})),hasSavedRun:!!hero?.run};})};
   }
   async function exportBackups(){const entries=await controller.backups();if(!entries.length)throw Error('No character backups have been created');const url=URL.createObjectURL(new Blob([JSON.stringify({format:'d2s.character-backups.v1',entries},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='D2S-character-backups.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-  function armory(cls,id){
+  function armory(cls,id,details=false){
     const save=instance?.save,m=meta().classes[cls],loadout=m?.loadouts.find(l=>l.id===id);
     if(!api||!save||!loadout)return null;
     const level=(save.heroes?.[cls]?.run??save.heroes?.[cls]?.kept)?.run?.level??1;
     const pool=[...Object.values(save.equippedByClass?.[cls]??{}),...(save.inventoryByClass?.[cls]??[]),...(save.stashTabs?.[cls]??[]),...['shared1','shared2','shared3'].flatMap(tab=>save.stashTabs?.[tab]??[])];
     const worn=Object.fromEntries(Object.entries(loadout.items).map(([slot,id])=>[slot,pool.find(i=>i?.id===id)]));
-    const key=JSON.stringify([cls,id,level,worn]);if(armoryCache?.key===key)return armoryCache.value;
+    const key=JSON.stringify([cls,id,level,worn,details]);if(armoryCache?.key===key)return armoryCache.value;
     const copies=structuredClone(worn),items={};
     for(const [slot,item]of Object.entries(copies)){
       if(!item){items[slot]={name:'Unavailable item',missing:true,lines:[]};continue;}
       const value={id:item.id,name:item.name,base:item.base,rarity:item.rarity,lines:[],icon:null};
+      if(details)value.perfection=D2ItemPerfection.rate(item,presentation?.catalog?.());
       try{
         if(!presentation)throw Error('Item details are unavailable for this game update.');
         const info=presentation.describe(item,cls,level,undefined,copies);
@@ -123,10 +125,11 @@
     const slots=api.doll(cls).slots.map(s=>({slot:s.slot,label:s.label,col:s.col,row:s.row,w:s.w,h:s.h}));
     armoryCache={key,value:{slots,items,level}};return armoryCache.value;
   }
-  function show(options={}){requireFeature(options.section==='gear'?'gearLoadouts':'characters');globalThis.D2Mods?.close?.();view??=D2CharacterView.create({perform,selectClass,report,exportBackups,status,armory});view.show(options);publish();}
+  const information=D2BuildInformation.create({getGame:()=>instance,getInformation:()=>informationBindings,getPresentation:()=>presentation,armory,status});
+  function show(options={}){requireFeature(options.section==='gear'?'gearLoadouts':'characters');globalThis.D2Mods?.close?.();instance?.input?.release?.();view??=D2CharacterView.create({perform,selectClass,report,exportBackups,status,armory,information:information.read});view.show(options);publish();}
   const observer=new PerformanceObserver(()=>{connect().catch(report);});observer.observe({type:'resource',buffered:true});
   const ready=controller.ready.then(connect);ready.catch(report);
   const interval=setInterval(()=>{if(!closed)publish();},2000);
   async function dispose(){closed=true;observer.disconnect();clearInterval(interval);await controller.dispose();for(const unpatch of patches.reverse())unpatch();view?.dispose();}
-  globalThis.D2Characters=Object.freeze({ready,status,show,close:()=>view?.close(),perform,selectClass,configureFeatures,dispose,ensureHooks:connect,currentGame:()=>closed?null:instance});
+  globalThis.D2Characters=Object.freeze({ready,status,show,toggleGear:()=>{requireFeature('gearLoadouts');if(view?.isOpen()&&view.section()==='gear')view.close();else show({section:'gear',classId:instance?.kit?.id});},close:()=>view?.close(),perform,selectClass,configureFeatures,dispose,ensureHooks:connect,currentGame:()=>closed?null:instance});
 })();
