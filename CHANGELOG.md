@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.5
+
+- Use uppercase trade shorthand, `5@` for all resistances, and value-first resistance labels such as `30% LR`.
+- Show actual variable rolls beneath smaller perfection percentages; widen the item-type column.
+
 ## 2.13.4
 
 - Show base item types in the equipment's left column without repeating them beneath item names.

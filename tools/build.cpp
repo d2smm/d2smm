@@ -238,7 +238,7 @@ void build(const fs::path& input, const fs::path& destination) {
         source += module + "\n";
     }
     source += "await globalThis.D2Mods.ready;return globalThis.D2Mods;})();\n";
-    require(source.size() <= 1048576, "Manager exceeds the installed updater's 1 MiB limit");
+    require(source.size() <= 1048576, "Manager exceeds the installed updater's 1 MiB limit: "+std::to_string(source.size())+" bytes");
     const auto hash = sha256(source);
     Json descriptor = {{"version",version},{"url",origin+"/manager/"+version+"/bootstrap.js"},{"bytes",source.size()},{"sha256",hash}};
     std::string digestBytes;

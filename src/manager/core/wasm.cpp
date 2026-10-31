@@ -14,6 +14,7 @@ void d2smm_perfection_member(unsigned expectedLength,unsigned actualLength,unsig
 void d2smm_perfection_end(){perfection.endProperty();}
 int d2smm_perfection_finish(){return perfection.finish();}
 unsigned d2smm_perfection_rolls(){return perfection.rolls();}
+double d2smm_perfection_value(unsigned index){return perfection.value(index);}
 void d2smm_perfection_observe(unsigned length){perfection.observe(perfectionNames[0],length);}
 void d2smm_perfection_armor(unsigned bounds,double low,double high,double value,unsigned ethereal){perfection.armor(bounds!=0,low,high,value,ethereal!=0);}
 char* d2smm_badge_input(unsigned index){return index<3?input[index]:nullptr;}

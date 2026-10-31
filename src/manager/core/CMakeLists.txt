@@ -25,7 +25,7 @@ if(D2SMM_WASM_CXX)
       -Wl,--export=d2smm_badge_reset -Wl,--export=d2smm_badge_apply -Wl,--export=d2smm_badge_count -Wl,--export=d2smm_badge_key
       -Wl,--export=d2smm_qol_candidate -Wl,--export=d2smm_qol_admit -Wl,--export=d2smm_qol_transferred
       -Wl,--export=d2smm_perfection_begin -Wl,--export=d2smm_perfection_property -Wl,--export=d2smm_perfection_input -Wl,--export=d2smm_perfection_member -Wl,--export=d2smm_perfection_end -Wl,--export=d2smm_perfection_finish -Wl,--export=d2smm_perfection_rolls
-      -Wl,--export=d2smm_perfection_observe -Wl,--export=d2smm_perfection_armor
+      -Wl,--export=d2smm_perfection_observe -Wl,--export=d2smm_perfection_armor -Wl,--export=d2smm_perfection_value
       -o "${manager_wasm}"
     DEPENDS badges.cpp badges.hpp wasm.cpp CMakeLists.txt ${qol_sources} "${qol_includes}/qol.hpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.cpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.hpp" VERBATIM)
   add_custom_target(d2smm-manager-wasm DEPENDS "${manager_wasm}")

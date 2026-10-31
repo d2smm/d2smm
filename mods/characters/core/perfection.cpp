@@ -14,7 +14,9 @@ void Score::armor(bool hasBounds,double minimum,double maximum,double value,bool
     if(enhancedDefense_){if(value!=scaled(maximum+1))valid_=false;return;}
     const double raw=etherealRuneword?static_cast<double>(static_cast<unsigned>((value*2+2)/3)):value;
     if(scaled(raw)!=value){valid_=false;return;}
+    const auto before=count_;
     property(minimum,maximum,0);hasRoll_=low_!=high_;roll_=raw;if(!hasRoll_&&raw!=low_)valid_=false;endProperty();
+    if(count_>before)values_[before]=value;
 }
 void Score::property(double minimum,double maximum,double parameter){
     if(open_||!finite(minimum)||!finite(maximum)){valid_=false;return;}
@@ -34,7 +36,7 @@ void Score::member(const char* expected,unsigned expectedLength,const char* actu
 void Score::add(double value,bool lower){
     if(!finite(value)||value<low_||value>high_||count_>=512){valid_=false;return;}
     const double score=lower?(high_-value)/(high_-low_):(value-low_)/(high_-low_);
-    total_+=score;++count_;allPerfect_=allPerfect_&&(lower?value==low_:value==high_);
+    values_[count_]=value;total_+=score;++count_;allPerfect_=allPerfect_&&(lower?value==low_:value==high_);
 }
 void Score::endProperty(){if(!open_){valid_=false;return;}if(hasRoll_)add(roll_,lower_);open_=false;}
 int Score::finish(){if(!valid_||open_)return -1;if(count_==0||allPerfect_)return 100;const int rounded=static_cast<int>(100*total_/count_+.5);return rounded>99?99:rounded;}

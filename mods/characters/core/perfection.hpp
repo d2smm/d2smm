@@ -11,9 +11,11 @@ public:
     void armor(bool hasBounds,double minimum,double maximum,double value,bool etherealRuneword);
     int finish();
     unsigned rolls()const{return count_;}
+    double value(unsigned index)const{return valid_&&!open_&&index<count_?values_[index]:__builtin_nan("");}
 private:
-    bool valid_=false,open_=false,hasRoll_=false,lower_=false,allPerfect_=true,enhancedDefense_=false;
+    bool valid_=false,open_=false,hasRoll_=false,lower_=false,allPerfect_=false,enhancedDefense_=false;
     double low_=0,high_=0,propertyParameter_=0,roll_=0,total_=0;
+    double values_[512];
     unsigned count_=0;
     void add(double value,bool lower);
 };

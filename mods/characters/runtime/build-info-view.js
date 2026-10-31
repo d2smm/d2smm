@@ -5,7 +5,7 @@
   const label=name=>names[name]??name;
   const terms={'Faster Cast Rate':'FCR','Faster Hit Recovery':'FHR','Faster Run/Walk':'FRW','Increased Attack Speed':'IAS','Bonus to Attack Rating':'AR','Attack Rating':'AR','Enhanced Defense':'EDef','Enhanced Damage':'ED','Maximum Damage':'Max dmg','Minimum Damage':'Min dmg','Strength':'Str','Dexterity':'Dex','Vitality':'Vit','Energy':'Ene','All Resistances':'All res','Fire Resist':'FR','Cold Resist':'CR','Lightning Resist':'LR','Poison Resist':'PR','Life Stolen Per Hit':'LL','Mana Stolen Per Hit':'ML','Better Chance of Getting Magic Items':'MF','Extra Gold from Monsters':'GF','Chance to cast level':'ctc L'};
   const compact=value=>String(value).replace(/\d+(?:,\d{3})*(?:\.\d+)?[kKmM]?/g,t=>{const u=t.slice(-1).toLowerCase(),n=parseFloat(t.replaceAll(',',''))*(u==='k'?1e3:u==='m'?1e6:1);return n<1e3?t:(n>=1e5?(n/1e6).toFixed(1)+'M':(n/1e3).toFixed(n<1e4?1:0)+'K').replace('.0','');});
-  function shortStat(text){for(const[a,b]of Object.entries(terms))text=text.replace(a,b);return compact(text.replace(/^\+/,'').replace(/\bto /g,''));}
+  function shortStat(text){for(const[a,b]of Object.entries(terms))text=text.replace(a,b);return compact(text.replace(/^\+/,'').replace(/\bto /g,'').replace(/All res \+?([\d.]+)%?/,'$1@').replace(/\b(FR|CR|LR|PR) \+?(-?[\d.]+)%?/g,'$2% $1')).toUpperCase();}
   function stat(row,name=row?.label,value=row?.value){
     const node=el('div',undefined,'stat');
     if(row){node.dataset.buildStat=row.label;node.dataset.statValue=row.value;}
@@ -26,7 +26,7 @@
     if(!charm||!rolled)text.append(el('h4',item.name,{'data-rarity':item.rarity??'normal'}));
     if(!item.perfection)text.append(statLines(item.lines??[]));
     if(item.error||item.missing)text.append(el('span',item.error??'Item unavailable','negative'));row.append(text);
-    if(item.perfection){const percent=item.perfection.percent;(charm?text:row).append(el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect'}));}
+    if(item.perfection){const {percent,values}=item.perfection,score=el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect'});if(values?.length)score.append(el('div',values.join('/'),'slot'));(charm?text:row).append(score);}
     return row;
   }
   function skillIcon(skill){

@@ -30,7 +30,8 @@
     const defense=catalog?.bases?.[item.base]?.defense;
     core.d2smm_perfection_armor(Array.isArray(defense),number(defense?.[0]),number(defense?.[1]),number(item.defense),item.rarity==='runeword'&&!!item.ethereal);
     const percent=core.d2smm_perfection_finish();
-    return {percent:percent<0?null:percent,rolls:core.d2smm_perfection_rolls()};
+    const rolls=core.d2smm_perfection_rolls();
+    return {percent:percent<0?null:percent,rolls,values:percent<0?[]:Array.from({length:rolls},(_,i)=>core.d2smm_perfection_value(i))};
   }
   globalThis.D2ItemPerfection=Object.freeze({ready,rate});
 })();

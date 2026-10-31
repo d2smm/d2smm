@@ -64,12 +64,17 @@ async function installBuildInfoProof(){
   const imperfect=structuredClone(worn.boots);for(const s of imperfect.stats){if(s.stat==='item_magicbonus')s.value=40;if(s.stat==='item_armor_percent')s.value=170;if(s.stat==='item_attackertakesdamage')s.value=5;}
   check('War Traveler excludes fixed added damage and averages three rolls',D2ItemPerfection.rate(imperfect,catalog).percent===33&&D2ItemPerfection.rate(imperfect,catalog).rolls===3);
   const near=structuredClone(worn.weapon),variable=near.stats.find(s=>s.stat==='fireresist');if(variable){for(const s of near.stats)if(['fireresist','coldresist','lightresist','poisonresist'].includes(s.stat))s.value=39;data.gear.items.weapon.perfection=D2ItemPerfection.rate(near,catalog);}
+  check('Shared all-res roll is exposed once as its actual value',JSON.stringify(data.gear.items.weapon.perfection.values)==='[39]');
+  check('Fixed item properties do not clutter the roll line',data.gear.items.ring2.perfection.values.length===0);
   const host=document.createElement('div');host.id='d2-build-info-proof';document.body.append(host);const root=host.attachShadow({mode:'open'}),view=D2BuildInfoView.create(root);
   const numbers=[['999','999'],['1,000','1K'],['2,470 / 2,470','2.5K / 2.5K'],['51113–56152','51K–56K'],['100000','0.1M'],['100k','0.1M'],['-1200','-1.2K'],['11,684,918','11.7M'],['1250%','1.3K%']];
   view.show({...data,stats:numbers.map(([value],i)=>({label:'number-'+i,value}))});
   check('Compact stats preserve raw values and abbreviate from 1000',numbers.every(([value,display],i)=>{const row=root.querySelector('[data-build-stat="number-'+i+'"]');return row?.dataset.statValue===value&&row.querySelector('dd').textContent===display;}));
   check('Mercenary follows Skills in the right column',root.querySelector('[data-build-section="mercenary"]').parentElement===root.querySelector('[data-build-section="skills"]'));
   check('Magic charm type labels are omitted while names remain accessible',root.querySelectorAll('[data-build-section="charms"] article h4').length===0&&[...root.querySelectorAll('[data-build-section="charms"] article')].every(n=>n.getAttribute('aria-label')));
+  const ring=root.querySelector('article[aria-label="Beast Loop"]'),hoto=root.querySelector('article[aria-label="Heart of the Oak"]');
+  check('Trade text is uppercase with value-first resistance and all-res shorthand',ring.textContent.includes('40 LIFE · 90 MANA · 30% LR')&&root.querySelector('[data-build-section="charms"]').textContent.includes('5@'));
+  check('Perfection displays its actual roll beneath a smaller percentage',hoto.querySelector('.build__perfection').firstChild.textContent==='90%'&&hoto.querySelector('.build__perfection div').textContent==='39'&&getComputedStyle(hoto.querySelector('.build__perfection')).fontSize==='14px'&&getComputedStyle(hoto.querySelector('.build__perfection div')).color===getComputedStyle(hoto.querySelector('.build__slot')).color);
   view.close();
   function unchanged(){check('Native save bytes unchanged',localStorage.getItem('d2-survivors/save/v1')===raw);check('Native in-memory save unchanged',JSON.stringify(original.save)===before);check('Page retained',performance.timeOrigin===timeOrigin);}
   globalThis.D2BuildInfoProof=Object.freeze({show:()=>{view.show(data);unchanged();return {bounds:root.querySelector('dialog').getBoundingClientRect().toJSON(),checks};},status:()=>{unchanged();return {passed:true,checks,data};},dispose:()=>{view.dispose();host.remove();unchanged();delete globalThis.D2BuildInfoProof;}});
