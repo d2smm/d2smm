@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.8
+
+- Apply shared Retina scaling to every mod dialog, including Characters and Gear Loadouts, their tooltips, and the important-events log.
+- Keep game-menu additions, badges, and the gem aligned with the game's native UI scale.
+
 ## 2.13.7
 
 - Reduce Mod Manager and build details by 50% on Retina-density displays, preserving the existing scale on standard-density monitors.

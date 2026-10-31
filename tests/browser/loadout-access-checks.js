@@ -12,7 +12,7 @@ async function checkLoadoutAccess(){
     D2Mods.close();D2Characters.close();await D2Mods.configureBuiltin('gear-loadouts',true);
     check('U opens loadouts',key(window,'KeyU'));
     const root=document.getElementById('d2-characters').shadowRoot,panel=root.querySelector('dialog[data-section=gear]'),info=root.querySelector('[data-character-action=info]');
-    check('Gear view is visible at 75 percent',panel.open&&getComputedStyle(panel).zoom==='0.75');
+    check('Gear view follows the shared display scale',panel.open&&Math.abs(Number(getComputedStyle(panel).zoom)-.75*(matchMedia('(min-resolution:2dppx)').matches?.5:1))<.001);
     check('Info is immediately before Equip',info.nextElementSibling?.dataset.characterAction==='equip');
     const data=globalThis.D2BuildInfoProof?.status().data;
     if(data){
@@ -33,6 +33,8 @@ async function checkLoadoutAccess(){
     check('Modified U remains a browser shortcut',!key(window,'KeyU',{ctrlKey:true})&&panel.open);
     check('Native L is not intercepted',!key(window,'KeyL')&&panel.open);
     key(window,'KeyU');const canvas=g.frontend?.surface?.open?g.frontend.surface.canvas:g.app.canvas;await until(()=>!panel.open&&document.activeElement===canvas);check('U closes loadouts and returns canvas focus',!panel.open&&document.activeElement===canvas);
+    D2Characters.show({section:'characters',classId:cls});check('Character chooser follows shared density',Number(getComputedStyle(panel).zoom)===(matchMedia('(min-resolution:2dppx)').matches?.5:1));D2Characters.close();
+    D2Mods.show();const manager=document.getElementById('d2-mod-system').shadowRoot.querySelector('dialog');check('Manager and loadouts share their compact base scale',Math.abs(Number(getComputedStyle(manager).zoom)-.75*(matchMedia('(min-resolution:2dppx)').matches?.5:1))<.001);D2Mods.close();
     await D2Mods.configureBuiltin('gear-loadouts',false);check('Disabled loadouts leave U untouched',!key(window,'KeyU')&&!panel.open);
     check('Native save bytes and memory unchanged',localStorage.getItem('d2-survivors/save/v1')===raw&&JSON.stringify(g.save)===save);
     check('Game page retained',performance.timeOrigin===origin);
