@@ -21,17 +21,12 @@ async function installBuildInfoProof(){
     gloves:make('gloves','Magefist','Light Gauntlets','gloves','unique',[['fcr',20],['fireSkills',1],['enhancedDefense',30]]),
     belt:make('belt','Arachnid Mesh','Spiderweb Sash','belt','unique',[['allSkills',1],['fcr',20],['slowTarget',10]]),
     boots:make('boots','War Traveler','Battle Boots','boots','unique',[['enhancedDefense',190],['magicFind',50],['thorns',10],['strength',10],['vitality',10]]),
-    ring1:make('ring1','Beast Loop','Ring','ring','rare',[['fcr',10],['strength',20],['life',40],['mana',90],['lightningResist',30]]),
+    ring1:make('ring1','Beast Loop','Ring','ring','rare',[['fcr',10],['attackRatingPoints',120],['strength',20],['life',40],['mana',90],['lightningResist',30]]),
     ring2:make('ring2','The Stone of Jordan','Ring','ring','unique',[['allSkills',1],['mana',20],['lightningMinDamage',1],['lightningMaxDamage',12]])
   };
   game.save.equippedByClass[cls]=worn;
   game.save.terror??={};game.save.terror[cls]={open:26,cleared:25,best:30,offers:[]};
-  game.save.charmsByClass??={};game.save.charmsByClass[cls]=[
-    make('charm1','Shimmering Small Charm of Vita','Small Charm','charm','magic',[['allResist',5],['life',20]]),
-    make('charm2','Fine Small Charm of Vita','Small Charm','charm','magic',[['maxDamage',3],['attackRatingPoints',20],['life',20]]),
-    make('charm3',"Gheed's Fortune",'Grand Charm','charm','unique',[['goldFind',160],['magicFind',40]]),
-    make('charm4','Shimmering Grand Charm of Vita','Grand Charm','charm','magic',[['allResist',15],['life',45]])
-  ];
+  game.save.charmsByClass??={};game.save.charmsByClass[cls]=Array.from({length:20},(_,i)=>make('charm-'+i,i%2?'Fine Small Charm of Vita':'Shimmering Small Charm of Vita','Small Charm','charm','magic',i%2?[['maxDamage',3],['attackRatingPoints',20],['life',20]]:[['allResist',5],['life',20]]));
   game.save.mercs??={};game.save.mercs[cls]={active:'desert',hired:{desert:{name:0,dead:false,worn:{weapon:make('merc-weapon','Infinity','Thresher','weapon','runeword',[['enhancedDamage',325],['crushingBlow',40]]),body:worn.body,head:worn.head}}}};
   game.save.mercs[cls].hired.desert.worn.head=make('merc-head',"Tal Rasha's Horadric Crest",'Death Mask','helm','set',[['life',60],['mana',30]]);
   const catalog=contract.presentation.catalog();
@@ -58,17 +53,22 @@ async function installBuildInfoProof(){
   const data=await reader.read(cls,1);
   check('Native character rows are present',data.stats.length>=15);
   check('Every gear slot has a full native item description',Object.keys(data.gear.items).length===10&&Object.values(data.gear.items).every(i=>i.lines.length>0));
-  check('Equipped charms are described',data.charms.length===4&&data.charms.every(i=>i.lines.length>0));
+  check('All 20 equipped small charms are described with distinct identities',data.charms.length===20&&new Set(data.charms.map(i=>i.id)).size===20&&data.charms.every(i=>i.lines.length>0));
   check('Mercenary model and equipment are present',!!data.merc&&data.merc.items.length===3);
   check('Chosen skill modifier uses its native label',!!option&&data.skills.some(s=>s.choice?.name===option.name));
   check('Terror progress uses current clear rather than historical best',data.terror?.cleared===25&&data.terror.open===26&&!data.terror.current);
   check('Named equipment has calculated perfection',Object.values(data.gear.items).filter(i=>i.rarity!=='rare').every(i=>i.perfection?.percent===100));
-  check('Rare and magic retain their native descriptions',!data.gear.items.ring1.perfection&&!data.charms[0].perfection&&data.gear.items.ring1.lines.length>0);
+  check('Rare and magic retain their native descriptions',!data.gear.items.ring1.perfection&&!data.charms[1].perfection&&data.gear.items.ring1.lines.length>0);
   check('Set mercenary equipment is scored',data.merc.items.some(r=>r.item.rarity==='set'&&r.item.perfection?.percent===100));
   const imperfect=structuredClone(worn.boots);for(const s of imperfect.stats){if(s.stat==='item_magicbonus')s.value=40;if(s.stat==='item_armor_percent')s.value=170;if(s.stat==='item_attackertakesdamage')s.value=5;}
   check('War Traveler excludes fixed added damage and averages three rolls',D2ItemPerfection.rate(imperfect,catalog).percent===33&&D2ItemPerfection.rate(imperfect,catalog).rolls===3);
   const near=structuredClone(worn.weapon),variable=near.stats.find(s=>s.stat==='fireresist');if(variable){for(const s of near.stats)if(['fireresist','coldresist','lightresist','poisonresist'].includes(s.stat))s.value=39;data.gear.items.weapon.perfection=D2ItemPerfection.rate(near,catalog);}
   const host=document.createElement('div');host.id='d2-build-info-proof';document.body.append(host);const root=host.attachShadow({mode:'open'}),view=D2BuildInfoView.create(root);
+  const numbers=[['999','999'],['1,000','1K'],['2,470 / 2,470','2.5K / 2.5K'],['51113–56152','51K–56K'],['100000','0.1M'],['100k','0.1M'],['-1200','-1.2K'],['11,684,918','11.7M'],['1250%','1.3K%']];
+  view.show({...data,stats:numbers.map(([value],i)=>({label:'number-'+i,value}))});
+  check('Compact stats preserve raw values and abbreviate from 1000',numbers.every(([value,display],i)=>{const row=root.querySelector('[data-build-stat="number-'+i+'"]');return row?.dataset.statValue===value&&row.querySelector('dd').textContent===display;}));
+  check('Mercenary follows Skills in the right column',root.querySelector('[data-build-section="mercenary"]').parentElement===root.querySelector('[data-build-section="skills"]'));
+  view.close();
   function unchanged(){check('Native save bytes unchanged',localStorage.getItem('d2-survivors/save/v1')===raw);check('Native in-memory save unchanged',JSON.stringify(original.save)===before);check('Page retained',performance.timeOrigin===timeOrigin);}
   globalThis.D2BuildInfoProof=Object.freeze({show:()=>{view.show(data);unchanged();return {bounds:root.querySelector('dialog').getBoundingClientRect().toJSON(),checks};},status:()=>{unchanged();return {passed:true,checks,data};},dispose:()=>{view.dispose();host.remove();unchanged();delete globalThis.D2BuildInfoProof;}});
   unchanged();return {passed:true,checks};

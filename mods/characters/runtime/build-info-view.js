@@ -1,71 +1,86 @@
 (() => {
   'use strict';
-  const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
-  function itemCard(item,label){
-    const card=el('article',undefined,{class:'build-info__item'});
-    if(label)card.append(el('div',label,{class:'build-info__slot'}));
-    if(!item){card.append(el('span','Empty',{class:'build-info__muted'}));return card;}
-    const heading=el('div',undefined,{class:'build-info__item-heading'});
-    if(item.icon){const img=el('img',undefined,{src:item.icon.url,alt:'',draggable:'false'});img.addEventListener('error',()=>img.remove(),{once:true});heading.append(img);}
-    const names=el('div');names.append(el('h4',item.name,{'data-rarity':item.rarity??'normal'}));if(item.base&&item.base!==item.name)names.append(el('div',item.base,{class:'build-info__base'}));heading.append(names);card.append(heading);
-    if(item.perfection){const percent=item.perfection.percent;card.append(el('div',percent===null?'Roll data unavailable':percent+'%',{class:'build-info__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect',title:'Average of independent variable rolls within their native min/max ranges'}));}
-    else for(const line of item.lines??[])card.append(el('div',line.text,{class:'build-info__item-line','data-tone':line.unusable?'unusable':line.inert?'inert':line.tone??(line.implicit?'implicit':'mod')}));
-    if(item.error||item.missing)card.append(el('p',item.error??'Item unavailable',{class:'build-info__error'}));
-    return card;
+  const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(typeof attrs==='string')attrs={class:'build__'+attrs};for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
+  const names={'Strength':'Str','Dexterity':'Dex','Vitality':'Vit','Energy':'Ene','Attack Damage':'Attack dmg','Damage':'Enhanced dmg','Enhanced Defense':'Enhanced def','Increased Attack Speed':'IAS','Faster Cast Rate':'FCR','Faster Run/Walk':'FRW','Life Stolen per Hit':'Life leech','Mana Stolen per Hit':'Mana leech','Replenish Life':'Life regen','Fire Damage':'Fire dmg','Cold Damage':'Cold dmg','Lightning Damage':'Lightning dmg'};
+  const label=name=>names[name]??name;
+  const terms={'Faster Cast Rate':'FCR','Faster Hit Recovery':'FHR','Faster Run/Walk':'FRW','Increased Attack Speed':'IAS','Bonus to Attack Rating':'AR','Attack Rating':'AR','Enhanced Defense':'EDef','Enhanced Damage':'ED','Maximum Damage':'Max dmg','Minimum Damage':'Min dmg','Strength':'Str','Dexterity':'Dex','Vitality':'Vit','Energy':'Ene','All Resistances':'All res','Fire Resist':'FR','Cold Resist':'CR','Lightning Resist':'LR','Poison Resist':'PR','Life Stolen Per Hit':'LL','Mana Stolen Per Hit':'ML','Better Chance of Getting Magic Items':'MF','Extra Gold from Monsters':'GF','Chance to cast level':'ctc L'};
+  const compact=value=>String(value).replace(/\d+(?:,\d{3})*(?:\.\d+)?[kKmM]?/g,t=>{const u=t.slice(-1).toLowerCase(),n=parseFloat(t.replaceAll(',',''))*(u==='k'?1e3:u==='m'?1e6:1);return n<1e3?t:(n>=1e5?(n/1e6).toFixed(1)+'M':(n/1e3).toFixed(n<1e4?1:0)+'K').replace('.0','');});
+  function shortStat(text){for(const[a,b]of Object.entries(terms))text=text.replace(a,b);return compact(text.replace(/^\+/,'').replace(/\bto /g,''));}
+  function stat(row,name=row?.label,value=row?.value){
+    const node=el('div',undefined,'stat');
+    if(row){node.dataset.buildStat=row.label;node.dataset.statValue=row.value;}
+    node.append(el('dt',name??''),el('dd',compact(value??'—'),row?.low?'negative':{}));return node;
   }
-  function section(title,key){const node=el('section',undefined,{'data-build-section':key});node.append(el('h3',title));return node;}
-  function pairs(rows){const dl=el('dl',undefined,{class:'build-info__stats'});for(const r of rows){const pair=el('div');pair.append(el('dt',r.label),el('dd',r.value,r.low?{class:'build-info__error'}:{}));dl.append(pair);}return dl;}
+  function heading(text){return el('h3',text);}
+  function icon(item){
+    const node=el('span',undefined,'item-icon');
+    if(item?.icon){const img=el('img',undefined,{src:item.icon.url,alt:'',draggable:'false'});img.addEventListener('error',()=>img.remove(),{once:true});node.append(img);}return node;
+  }
+  function itemRow(item,slot='',charm=false){
+    const row=el('article',undefined,{class:'build__item'+(charm?' build__item--charm':'')});
+    if(slot)row.append(el('div',slot,'slot'));
+    row.append(icon(item));const text=el('div',undefined,'item-text');
+    if(!item){text.append(el('span','Empty','muted'));row.append(text);return row;}
+    const rolled=['magic','rare'].includes(item.rarity),base=({'Small Charm':'SC','Large Charm':'LC','Grand Charm':'GC'})[item.base]??item.base;
+    text.append(el('h4',charm&&rolled?base:item.name,{'data-rarity':item.rarity??'normal','aria-label':item.name}));
+    if(rolled&&!charm&&item.base&&item.base!==item.name)text.append(el('div',item.base,'base'));
+    if(!item.perfection){const stats=el('div',undefined,'item-line');for(const line of item.lines??[]){if(!line.unusable&&(line.implicit||line.tone==='implicit'))continue;if(stats.childNodes.length)stats.append(' · ');stats.append(el('span',shortStat(line.text),{'data-tone':line.unusable?'unusable':line.tone??'mod'}));}text.append(stats);}
+    if(item.error||item.missing)text.append(el('span',item.error??'Item unavailable','negative'));row.append(text);
+    if(item.perfection){const percent=item.perfection.percent;(charm?text:row).append(el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect',title:percent===null?'Roll data unavailable':'Perfection'}));}
+    return row;
+  }
+  function skillIcon(skill){
+    const box=el('span',undefined,{class:'build__skill-icon','aria-hidden':'true'}),data=skill.icon;
+    if(data?.image&&data.size>0){const sprite=el('span');Object.assign(sprite.style,{backgroundImage:data.image,backgroundPosition:data.position,width:data.size+'px',height:data.size+'px',transform:'scale('+30/data.size+')'});box.append(sprite);}
+    return box;
+  }
   function create(root){
-    const panel=el('dialog',undefined,{class:'build-info','data-build-info':'','data-modal-surface':'black','aria-label':'Build details'}),style=el('style',D2BuildInfoStyle);
-    let origin=null;const scope=new AbortController();
-    root.append(style,panel);
+    const panel=el('dialog',undefined,{class:'build','data-build-info':'','data-modal-surface':'black','aria-label':'Build details'}),style=el('style',D2BuildInfoStyle);
+    let origin=null;const scope=new AbortController();root.append(style,panel);
     for(const event of ['keydown','keyup','click','pointerdown','pointerup'])panel.addEventListener(event,e=>e.stopPropagation(),{signal:scope.signal});
     panel.addEventListener('close',()=>{if(origin?.isConnected)origin.focus({preventScroll:true});else globalThis.D2Mods?.focusGame();origin=null;},{signal:scope.signal});
     function show(data,anchor){
-      origin=anchor;
-      const header=el('header'),title=el('div'),close=el('button','×',{'data-build-action':'close','aria-label':'Close build details',class:'characters__close'});
-      close.addEventListener('click',()=>panel.close());title.append(el('h2',data.hero===data.className?data.className:data.hero+' · '+data.className),el('p','Level '+data.level+' · '+data.loadout,{class:'build-info__context'}));header.append(title,close);
-      const layout=el('div',undefined,{class:'build-info__layout'}),left=el('div',undefined,{class:'build-info__left'}),right=el('div',undefined,{class:'build-info__right'});
-      const character=section('Character','character');
-      if(data.preview)character.append(el('p','Current equipped stats',{class:'build-info__context'}));
-      character.append(pairs(data.stats));
-      const terror=section('Terror','terror');
-      if(data.terror){
-        const run=data.terror.current;if(run)terror.append(el('p',(run.training?'Training · ':'')+'Terror '+run.tier+' · Act '+run.act,{class:'build-info__current-run'}));
-        terror.append(pairs([{label:'Cleared',value:data.terror.cleared},{label:'Unlocked',value:data.terror.open}]));
-      }else terror.append(el('p','Not unlocked',{class:'build-info__muted'}));
-      const merc=section('Mercenary','mercenary'),m=data.merc;
-      if(!m)merc.append(el('p','No mercenary',{class:'build-info__muted'}));
-      else{
-        const mercLayout=el('div',undefined,{class:'build-info__merc-layout'}),summary=el('div');
-        summary.append(el('h4',m.name+' · '+m.type),el('p','Level '+m.level+(m.dead?' · Fallen':''),{class:'build-info__context'}));
-        const s=m.stats;summary.append(pairs([{label:'Strength',value:s.strength},{label:'Dexterity',value:s.dexterity},{label:'Life',value:s.life+' / '+s.lifeMax},{label:'Damage',value:Array.isArray(s.damage)?s.damage.join('–'):s.damage},{label:'Defense',value:s.defense},...Object.entries(s.resist??{}).map(([k,v])=>({label:k[0].toUpperCase()+k.slice(1)+' resist',value:v+'%'}))]));
-        const mercSkills=el('div',undefined,{class:'build-info__merc-skills'}),mercGear=el('div',undefined,{class:'build-info__merc-gear'});
-        for(const pick of m.picks??[]){const row=el('div',undefined,{class:'build-info__merc-skill'});for(const [index,line]of pick.lines.entries())row.append(el('div',line.text,{class:index===0?'build-info__choice':'build-info__choice-description'}));mercSkills.append(row);}
-        for(const row of m.items)mercGear.append(itemCard(row.item,row.slot));mercLayout.append(summary,mercSkills,mercGear);merc.append(mercLayout);
+      origin=anchor;const used=new Set(),get=name=>{const row=data.stats.find(r=>r.label===name&&!used.has(r));if(row)used.add(row);return row;};
+      const header=el('header'),identity=el('div',undefined,'identity'),terror=el('div',undefined,{'data-build-section':'terror',class:'build__terror'}),close=el('button','×',{'data-build-action':'close','aria-label':'Close build details',class:'characters__close'});
+      identity.append(el('h2',data.hero===data.className?data.className:data.hero+' · '+data.className),el('span','Level '+data.level+' · '+data.loadout+(data.preview?' · Gear preview':''),'context'));
+      const t=data.terror;terror.append(el('span',compact(t?.current?'Terror '+t.current.tier+' · Act '+t.current.act+(t.current.training?' · Training':''):t?'Terror: '+t.open+' unlocked':'Terror: Locked')));if(t)terror.append(el('small',compact(t.cleared)+' cleared'));
+      close.addEventListener('click',()=>panel.close());header.append(identity,terror,close);
+      const overview=el('div',undefined,'overview'),summary=el('dl',undefined,'summary'),resists=el('dl',undefined,'resists');
+      for(const [key,name]of [['Life','Life'],['Mana','Mana'],['Damage','Damage'],['Faster Cast Rate','FCR'],['Damage Reduced','Phys DR'],['Magic Find','MF']]){
+        const row=get(key),value=key==='Faster Cast Rate'?row?.value.replace(/^\+/,'').replace(/ · (.+)% shorter cooldowns/,' · CD −$1%').replace('−0%','0%'):row?.value;summary.append(stat(row,name,value));
       }
-      left.append(character,terror);
-      const gear=section(data.preview?'Equipment · Preview':'Equipment','equipment'),gearGrid=el('div',undefined,{class:'build-info__gear'});
-      for(const slot of data.gear.slots)gearGrid.append(itemCard(data.gear.items[slot.slot],slot.label));gear.append(gearGrid);
-      const skills=section('Skills','skills'),trees=el('div',undefined,{class:'build-info__trees'}),groups=[...data.trees,{id:null,name:'Passives'}];
-      for(const group of groups){
+      for(const element of ['Fire','Cold','Lightning','Poison'])resists.append(stat(get(element+' Resistance'),element[0]+'R'));overview.append(summary,resists);
+      const layout=el('div',undefined,'layout'),character=el('section',undefined,{'data-build-section':'character'}),attributes=el('dl',undefined,'attributes'),numbers=el('dl',undefined,'stats');
+      character.append(heading('Character Stats'));if(data.preview)character.append(el('p','Current equipped stats','muted'));
+      for(const key of ['Strength','Dexterity','Vitality','Energy'])attributes.append(stat(get(key),label(key)));
+      const goldFind=get('Gold Find'),gold=get('Gold');
+      for(const row of data.stats.filter(r=>!used.has(r)))numbers.append(stat(row,label(row.label)));
+      character.append(attributes,numbers);const wealth=el('dl',undefined,'wealth');if(goldFind)wealth.append(stat(goldFind));if(gold)wealth.append(stat(gold));character.append(wealth);
+      const gear=el('section',undefined,{'data-build-section':'equipment'}),gearHeader=el('div',undefined,'section-heading');gearHeader.append(heading('Equipment'),el('span','%',{title:'Perfection'}));gear.append(gearHeader);
+      for(const slot of data.gear.slots)gear.append(itemRow(data.gear.items[slot.slot],slot.slot==='ring1'?'Ring 1':slot.slot==='ring2'?'Ring 2':slot.label));
+      const skills=el('section',undefined,{'data-build-section':'skills'}),skillHeader=el('div',undefined,'section-heading');skillHeader.append(heading('Skills'),el('span','Learned + bonus','muted'));skills.append(skillHeader);
+      for(const group of [...data.trees,{id:null,name:'Passive Ranks'}]){
         const rows=data.skills.filter(s=>s.tree===group.id&&s.level>0);if(!rows.length)continue;
-        const tree=el('section',undefined,{class:'build-info__tree'});tree.append(el('h4',group.name));
+        const tree=el('section',undefined,'tree');tree.append(el('h4',group.name));
         for(const s of rows){
-          const row=el('div',undefined,{class:'build-info__skill','data-skill-id':s.id,'data-selected':String(s.level>0||s.bonus>0||!!s.choice)});
-          const label=el('div',undefined,{class:'build-info__skill-label'});label.append(el('span',s.name),el('span',s.level>0||s.bonus>0?'Rank '+s.level+(s.bonus?' + '+s.bonus:''):'—'));row.append(label);
-          if(s.level>0&&(s.evolved||s.rested))row.append(el('div',[s.evolved?'Evolved':'',s.rested?'Rested':''].filter(Boolean).join(' · '),{class:'build-info__context'}));
-          if(s.choice){row.append(el('div','✓ '+s.choice.name,{class:'build-info__choice'}));if(s.choice.description)row.append(el('div',s.choice.description,{class:'build-info__choice-description'}));}
-          tree.append(row);
+          const row=el('div',undefined,{class:'build__skill','data-skill-id':s.id,'data-selected':'true'}),name=el('div',undefined,'skill-name');name.append(el('span',label(s.name)));
+          if(s.evolved)name.append(el('span','Evolved','evolved'));if(s.rested)name.append(el('span','Rested','muted'));if(s.choice)name.append(el('small',s.choice.name,'choice'));
+          row.append(skillIcon(s),name,el('span',compact(s.level+(s.bonus?' + '+s.bonus:'')),'rank'));tree.append(row);
         }
-        trees.append(tree);
+        skills.append(tree);
       }
-      if(!trees.childElementCount)trees.append(el('p','No skills chosen',{class:'build-info__muted'}));
-      skills.append(trees);right.append(gear,merc);layout.append(left,right,skills);
-      const charms=section('Charms','charms'),charmGrid=el('div',undefined,{class:'build-info__charms'});
-      if(!data.charms.length)charmGrid.append(el('p','No charms equipped',{class:'build-info__muted'}));
-      for(const item of data.charms)charmGrid.append(itemCard(item));charms.append(charmGrid);
-      panel.replaceChildren(header,layout,charms);panel.dataset.classId=data.classId;
+      if(!data.skills.some(s=>s.level>0))skills.append(el('p','No skills chosen','muted'));layout.append(character,gear,skills);
+      const merc=el('section',undefined,{'data-build-section':'mercenary',class:'build__merc'}),mercHeader=el('div',undefined,'merc-heading'),m=data.merc;mercHeader.append(heading('Mercenary'));
+      if(!m)mercHeader.append(el('span','None','muted'));
+      else{
+        mercHeader.append(el('strong',m.name+' · '+m.type),el('span','Level '+m.level+(m.dead?' · Fallen':''),'context'));
+        const s=m.stats,values=[['Life',s.life+' / '+s.lifeMax],['Dmg',Array.isArray(s.damage)?s.damage.join('–'):s.damage]];
+        const details=el('div',undefined,'merc-details');for(const pick of m.picks??[])details.append(el('span',(pick.lines[0]?.text??pick.id)+' '+compact(pick.level),'merc-pick'));for(const[k,v]of values)details.append(el('span',k+' '+compact(v)));mercHeader.append(details);
+      }
+      merc.append(mercHeader);if(m){const equipment=el('div',undefined,'merc-gear');for(const row of m.items)equipment.append(itemRow(row.item));merc.append(equipment);}skills.append(merc);
+      const charms=el('section',undefined,{'data-build-section':'charms',class:'build__charm-section'}),charmGrid=el('div',undefined,'charms');charms.append(heading('Charms'));
+      if(!data.charms.length)charmGrid.append(el('span','None','muted'));for(const item of data.charms)charmGrid.append(itemRow(item,'',true));charms.append(charmGrid);
+      panel.replaceChildren(header,overview,layout,charms);panel.dataset.classId=data.classId;
       if(!panel.open)panel.showModal();panel.scrollTop=0;close.focus({preventScroll:true});
     }
     return Object.freeze({show,close:()=>panel.close(),isOpen:()=>panel.open,dispose:()=>{scope.abort();panel.remove();style.remove();}});

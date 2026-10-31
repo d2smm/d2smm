@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.13.2
+
+- Condense build details into a single stats/resists bar, equipment rows, native skill icons, and mercenary details beneath Skills.
+- Shorten numeric stats from 1,000 upward: 1K, 2.5K, 51K, and 0.1M at 100,000.
+- Remove skill descriptions and unique/set/runeword base types; retain chosen options and use standard D2 shorthand for inline magic/rare stats.
+- Tighten and center charm rows, separate the four attributes, and place mercenary skill choices before Life/Dmg. The standard build fixture covers all 20 small charms.
+
 ## 2.13.1
 
 - Build details reuses the shared RPG modal frame, heading font, and close control with a pure black interior.

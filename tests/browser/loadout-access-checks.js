@@ -6,6 +6,7 @@ async function checkLoadoutAccess(){
   const raw=localStorage.getItem('d2-survivors/save/v1'),save=JSON.stringify(g.save),origin=performance.timeOrigin;
   const enabled=D2Mods.status().builtinMods.find(m=>m.id==='gear-loadouts').enabled,checks=[];let previewView=null,original=null;
   const check=(name,value)=>{checks.push({name,passed:!!value});if(!value)throw Error(name);};
+  const until=async test=>{for(let n=0;n<50;n++){if(test())return;await new Promise(resolve=>setTimeout(resolve,20));}throw Error('Focus did not settle');};
   const key=(target,code,extra={})=>{const event=new KeyboardEvent('keydown',{code,key:code.slice(3).toLowerCase(),bubbles:true,composed:true,cancelable:true,...extra});target.dispatchEvent(event);target.dispatchEvent(new KeyboardEvent('keyup',{code,bubbles:true,composed:true,cancelable:true,...extra}));return event.defaultPrevented;};
   try{
     D2Mods.close();D2Characters.close();await D2Mods.configureBuiltin('gear-loadouts',true);
@@ -16,22 +17,22 @@ async function checkLoadoutAccess(){
     const data=globalThis.D2BuildInfoProof?.status().data;
     if(data){
       original=panel.querySelector('.equipment');original.hidden=true;previewView=D2EquipmentView.create(panel);original.after(previewView.node);previewView.paint(data.gear,data.locations);
-      const item=previewView.node.querySelector('[data-equipment-slot=body]');item.focus();const tip=[...panel.querySelectorAll('.item-tooltip')].find(n=>!n.hidden),a=item.getBoundingClientRect(),b=tip.getBoundingClientRect();
+      const item=previewView.node.querySelector('[data-equipment-slot=body]');item.focus({preventScroll:true});item.dispatchEvent(new PointerEvent('pointerenter',{pointerType:'mouse'}));const tip=[...panel.querySelectorAll('.item-tooltip')].find(n=>!n.hidden),a=item.getBoundingClientRect(),b=tip.getBoundingClientRect();
       check('Scaled item tooltip remains beside its slot',Math.abs(b.left-a.right-14)<2&&Math.abs(b.top-a.top)<2);
       previewView.dispose();previewView=null;original.hidden=false;original=null;
     }
     info.click();await new Promise(resolve=>setTimeout(resolve,0));
     const details=root.querySelector('[data-build-info]');check('Info opens the build sheet',details.open);
     check('All requested sections exist',['character','equipment','mercenary','skills','charms','terror'].every(id=>details.querySelector('[data-build-section='+id+']')));
-    const native=g.characterView(true,cls,false).stats.map(r=>[r.label,r.value]),shown=[...details.querySelectorAll('[data-build-section=character] dl>div')].map(n=>[n.querySelector('dt').textContent,n.querySelector('dd').textContent]);
+    const native=g.characterView(true,cls,false).stats.map(r=>[r.label,r.value]).sort(),shown=[...details.querySelectorAll('[data-build-stat]')].map(n=>[n.dataset.buildStat,n.dataset.statValue]).sort();
     check('Character rows match native C view',JSON.stringify(native)===JSON.stringify(shown));
     check('Experience and next level are omitted',!shown.some(([label])=>['Experience','Next level','Next Level'].includes(label)));
-    details.close();await new Promise(resolve=>setTimeout(resolve,0));check('Closing details restores the info button',root.activeElement===info);
+    details.close();await until(()=>root.activeElement===info);check('Closing details restores the info button',root.activeElement===info);
     const input=document.createElement('input');panel.append(input);input.focus();
     check('U remains available while editing',!key(input,'KeyU')&&panel.open);input.remove();
     check('Modified U remains a browser shortcut',!key(window,'KeyU',{ctrlKey:true})&&panel.open);
     check('Native L is not intercepted',!key(window,'KeyL')&&panel.open);
-    key(window,'KeyU');await new Promise(resolve=>setTimeout(resolve,0));check('U closes loadouts and returns canvas focus',!panel.open&&document.activeElement===g.app.canvas);
+    key(window,'KeyU');const canvas=g.frontend?.surface?.open?g.frontend.surface.canvas:g.app.canvas;await until(()=>!panel.open&&document.activeElement===canvas);check('U closes loadouts and returns canvas focus',!panel.open&&document.activeElement===canvas);
     await D2Mods.configureBuiltin('gear-loadouts',false);check('Disabled loadouts leave U untouched',!key(window,'KeyU')&&!panel.open);
     check('Native save bytes and memory unchanged',localStorage.getItem('d2-survivors/save/v1')===raw&&JSON.stringify(g.save)===save);
     check('Game page retained',performance.timeOrigin===origin);

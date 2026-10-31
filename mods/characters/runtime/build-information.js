@@ -7,7 +7,7 @@
       const p=getPresentation(),copy=structuredClone(item),info=p.describe(copy,cls,level,wearer,worn);
       if(typeof info?.name!=='string'||!Array.isArray(info.lines)||info.lines.some(l=>typeof l.text!=='string'))throw Error('Item details are unavailable for this game update.');
       const icon=p.icon(getGame().art.items,copy);
-      return {id:item.id,name:p.name(info.name,item.rarity,item.base),base:info.base?p.name(info.base):'',rarity:item.rarity,perfection:D2ItemPerfection.rate(item,p.catalog?.()),
+      return {id:item.id,name:p.name(info.name,item.rarity,item.base),base:p.name(info.base??item.base),rarity:item.rarity,perfection:D2ItemPerfection.rate(item,p.catalog?.()),
         lines:info.lines.map(l=>({text:l.text,tone:l.unusable?'unusable':l.inert?'inert':l.tone??(l.implicit?'implicit':'mod')})),
         icon:icon&&typeof icon.url==='string'&&['https:','blob:','data:'].includes(new URL(icon.url,location.href).protocol)?{url:icon.url,width:icon.width,height:icon.height}:null};
     }
@@ -32,15 +32,16 @@
       const skillRows=(definitions,kind)=>Object.entries(definitions??{}).map(([key,def])=>{
         const rank=learned.find(s=>s.id===key&&s.kind===kind),selected=chosen[key],choice=selected?options?.options?.(key)?.find(o=>o.id===selected):null;
         return {id:key,name:def.name,tree:treeDisplay.treeSlots?.get(key)?.page??def.tree??null,kind,level:rank?.level??0,bonus:rank?.bonus??0,rested:!!rank?.rested,evolved:!!def.evolved,
-          choice:choice?{name:choice.name,description:choice.describe}:selected?{name:'Option details unavailable',description:''}:null};
+          choice:choice?{name:choice.name}:selected?{name:'Option details unavailable'}:null};
       });
       const skills=[...skillRows(g.kit.skills,'skill'),...skillRows(g.kit.passives,'passive')];
       for(const rank of learned){
         if(skills.some(s=>s.id===rank.id&&s.kind===rank.kind))continue;
         const lines=hud.slotLines(rank),selected=chosen[rank.id],choice=selected?options?.options?.(rank.id)?.find(o=>o.id===selected):null;
         if(typeof lines?.[0]?.text!=='string')throw Error('Skill details are unavailable for this game update.');
-        skills.push({id:rank.id,name:lines[0].text,tree:treeDisplay.treeSlots?.get(rank.id)?.page??null,kind:rank.kind,level:rank.level,bonus:rank.bonus,rested:!!rank.rested,choice:choice?{name:choice.name,description:choice.describe}:null});
+        skills.push({id:rank.id,name:lines[0].text,tree:treeDisplay.treeSlots?.get(rank.id)?.page??null,kind:rank.kind,level:rank.level,bonus:rank.bonus,rested:!!rank.rested,choice:choice?{name:choice.name}:null});
       }
+      for(const skill of skills){if(skill.level>0){const icon=hud.icon(skill.id,false,cls);skill.icon={image:icon.style.backgroundImage,position:icon.style.backgroundPosition,size:hud.ui.manifest.skillIcons.size};}}
       const progress=native.progress(receiver.save,cls);
       return {classId:cls,className:g.kit.name,hero:hero?.name??g.kit.name,level,loadout:loadout.name,
         terror:progress?{cleared:progress.cleared,open:progress.open,current:g.inRun&&g.world.terror?{tier:g.world.terror.tier,act:g.world.act+1,training:!!g.training}:null}:null,
@@ -48,7 +49,7 @@
         gear,locations:loadout.items,charms,
         skills,
         trees:numbers.stats.filter(r=>r.tree).map(r=>({id:r.tree,name:r.label})),
-        merc:merc?{name:merc.name,type:merc.typeName,level:merc.level,dead:merc.dead,stats:merc.stats,picks:merc.picks.map(pick=>({id:pick.id,lines:hud.mercPickLines(merc,pick,null)})),
+        merc:merc?{name:merc.name,type:merc.typeName,level:merc.level,dead:merc.dead,stats:merc.stats,picks:merc.picks.map(pick=>({id:pick.id,level:pick.level,lines:hud.mercPickLines(merc,pick,null)})),
           items:Object.entries(merc.worn??{}).map(([slot,i])=>({slot,item:itemView(i,cls,merc.level,merc.worn,{level:merc.level,strength:merc.stats.strength,dexterity:merc.stats.dexterity})}))}:null};
     }
     return Object.freeze({read});
