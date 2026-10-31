@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.3
+
+- Show the game's combined charm bonuses beside Charms; remove redundant SC/LC/GC labels while keeping item names accessible.
+
 ## 2.13.2
 
 - Condense build details into a single stats/resists bar, equipment rows, native skill icons, and mercenary details beneath Skills.

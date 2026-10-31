@@ -16,17 +16,18 @@
     const node=el('span',undefined,'item-icon');
     if(item?.icon){const img=el('img',undefined,{src:item.icon.url,alt:'',draggable:'false'});img.addEventListener('error',()=>img.remove(),{once:true});node.append(img);}return node;
   }
+  function statLines(lines){const node=el('div',undefined,'item-line');for(const line of lines){if(!line.unusable&&(line.implicit||line.tone==='implicit'))continue;if(node.childNodes.length)node.append(' · ');node.append(el('span',shortStat(line.text),{'data-tone':line.unusable?'unusable':line.inert?'inert':line.tone??'mod'}));}return node;}
   function itemRow(item,slot='',charm=false){
     const row=el('article',undefined,{class:'build__item'+(charm?' build__item--charm':'')});
     if(slot)row.append(el('div',slot,'slot'));
     row.append(icon(item));const text=el('div',undefined,'item-text');
     if(!item){text.append(el('span','Empty','muted'));row.append(text);return row;}
-    const rolled=['magic','rare'].includes(item.rarity),base=({'Small Charm':'SC','Large Charm':'LC','Grand Charm':'GC'})[item.base]??item.base;
-    text.append(el('h4',charm&&rolled?base:item.name,{'data-rarity':item.rarity??'normal','aria-label':item.name}));
+    const rolled=['magic','rare'].includes(item.rarity);row.setAttribute('aria-label',item.name);
+    if(!charm||!rolled)text.append(el('h4',item.name,{'data-rarity':item.rarity??'normal'}));
     if(rolled&&!charm&&item.base&&item.base!==item.name)text.append(el('div',item.base,'base'));
-    if(!item.perfection){const stats=el('div',undefined,'item-line');for(const line of item.lines??[]){if(!line.unusable&&(line.implicit||line.tone==='implicit'))continue;if(stats.childNodes.length)stats.append(' · ');stats.append(el('span',shortStat(line.text),{'data-tone':line.unusable?'unusable':line.tone??'mod'}));}text.append(stats);}
+    if(!item.perfection)text.append(statLines(item.lines??[]));
     if(item.error||item.missing)text.append(el('span',item.error??'Item unavailable','negative'));row.append(text);
-    if(item.perfection){const percent=item.perfection.percent;(charm?text:row).append(el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect',title:percent===null?'Roll data unavailable':'Perfection'}));}
+    if(item.perfection){const percent=item.perfection.percent;(charm?text:row).append(el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect'}));}
     return row;
   }
   function skillIcon(skill){
@@ -78,7 +79,7 @@
         const details=el('div',undefined,'merc-details');for(const pick of m.picks??[])details.append(el('span',(pick.lines[0]?.text??pick.id)+' '+compact(pick.level),'merc-pick'));for(const[k,v]of values)details.append(el('span',k+' '+compact(v)));mercHeader.append(details);
       }
       merc.append(mercHeader);if(m){const equipment=el('div',undefined,'merc-gear');for(const row of m.items)equipment.append(itemRow(row.item));merc.append(equipment);}skills.append(merc);
-      const charms=el('section',undefined,{'data-build-section':'charms',class:'build__charm-section'}),charmGrid=el('div',undefined,'charms');charms.append(heading('Charms'));
+      const charms=el('section',undefined,{'data-build-section':'charms',class:'build__charm-section'}),charmGrid=el('div',undefined,'charms'),charmHeader=el('div',undefined,'section-heading');charmHeader.append(heading('Charms'),statLines(data.charmLines));charms.append(charmHeader);
       if(!data.charms.length)charmGrid.append(el('span','None','muted'));for(const item of data.charms)charmGrid.append(itemRow(item,'',true));charms.append(charmGrid);
       panel.replaceChildren(header,overview,layout,charms);panel.dataset.classId=data.classId;
       if(!panel.open)panel.showModal();panel.scrollTop=0;close.focus({preventScroll:true});

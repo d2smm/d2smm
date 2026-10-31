@@ -83,10 +83,10 @@
       return{icon:icon.value,describe,name:name.value,catalog,evidence:{module:icon.url,icon:icon.name,description:Object.keys(icon.namespace).find(k=>icon.namespace[k]===describe)}};
     }
     async function informationBindings(){
-      method('heroNumbers');method('mercViewOf');
+      method('characterView');method('mercViewOf');
       const enter=method('enterTier'),progress=await binding(one(calls(enter).filter(n=>n.arguments.length===2&&save(n.arguments[0])),'Terror progress'));
       if(typeof progress.value!=='function')throw Error('Terror progress is unavailable for this game update.');
-      return{numbers:Game.prototype.heroNumbers,merc:Game.prototype.mercViewOf,progress:progress.value};
+      return{numbers:Game.prototype.characterView,merc:Game.prototype.mercViewOf,progress:progress.value};
     }
     return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,informationBindings,imports,method,calls,binding};
   }

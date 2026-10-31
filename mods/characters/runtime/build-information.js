@@ -21,7 +21,7 @@
       // Keep native player/world identity for the game's private read-side state,
       // but isolate any lazy save-container initialization from the real save.
       const receiver=Object.create(g);receiver.save=structuredClone(g.save);
-      const numbers=native.numbers.call(receiver,g.world.player,g.build,receiver.save.equippedByClass?.[cls]??{},true),merc=native.merc.call(receiver,cls);
+      const numbers=native.numbers.call(receiver,true,cls,false),merc=native.merc.call(receiver,cls);
       if(!Array.isArray(numbers?.stats)||numbers.stats.some(r=>typeof r.label!=='string'||typeof r.value!=='string'))throw Error('Character statistics are unavailable for this game update.');
       const gear=armory(cls,id,true),hero=c.characters.find(c=>c.active),level=g.world.player.level;
       if(!gear)throw Error('Loadout items are unavailable.');
@@ -46,7 +46,7 @@
       return {classId:cls,className:g.kit.name,hero:hero?.name??g.kit.name,level,loadout:loadout.name,
         terror:progress?{cleared:progress.cleared,open:progress.open,current:g.inRun&&g.world.terror?{tier:g.world.terror.tier,act:g.world.act+1,training:!!g.training}:null}:null,
         preview:!(id===c.selectedLoadout&&loadout.matches),stats:numbers.stats.map(r=>({label:r.label,value:r.value,low:!!r.low,tree:r.tree})),
-        gear,locations:loadout.items,charms,
+        gear,locations:loadout.items,charms,charmLines:numbers.charmLines,
         skills,
         trees:numbers.stats.filter(r=>r.tree).map(r=>({id:r.tree,name:r.label})),
         merc:merc?{name:merc.name,type:merc.typeName,level:merc.level,dead:merc.dead,stats:merc.stats,picks:merc.picks.map(pick=>({id:pick.id,level:pick.level,lines:hud.mercPickLines(merc,pick,null)})),

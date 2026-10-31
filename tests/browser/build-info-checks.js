@@ -54,6 +54,7 @@ async function installBuildInfoProof(){
   check('Native character rows are present',data.stats.length>=15);
   check('Every gear slot has a full native item description',Object.keys(data.gear.items).length===10&&Object.values(data.gear.items).every(i=>i.lines.length>0));
   check('All 20 equipped small charms are described with distinct identities',data.charms.length===20&&new Set(data.charms.map(i=>i.id)).size===20&&data.charms.every(i=>i.lines.length>0));
+  check('Native charm totals include all 20 items',JSON.stringify(data.charmLines.map(l=>l.text))===JSON.stringify(['+30 to Maximum Damage','+200 to Attack Rating','+400 to Life','All Resistances +50']));
   check('Mercenary model and equipment are present',!!data.merc&&data.merc.items.length===3);
   check('Chosen skill modifier uses its native label',!!option&&data.skills.some(s=>s.choice?.name===option.name));
   check('Terror progress uses current clear rather than historical best',data.terror?.cleared===25&&data.terror.open===26&&!data.terror.current);
@@ -68,6 +69,7 @@ async function installBuildInfoProof(){
   view.show({...data,stats:numbers.map(([value],i)=>({label:'number-'+i,value}))});
   check('Compact stats preserve raw values and abbreviate from 1000',numbers.every(([value,display],i)=>{const row=root.querySelector('[data-build-stat="number-'+i+'"]');return row?.dataset.statValue===value&&row.querySelector('dd').textContent===display;}));
   check('Mercenary follows Skills in the right column',root.querySelector('[data-build-section="mercenary"]').parentElement===root.querySelector('[data-build-section="skills"]'));
+  check('Magic charm type labels are omitted while names remain accessible',root.querySelectorAll('[data-build-section="charms"] article h4').length===0&&[...root.querySelectorAll('[data-build-section="charms"] article')].every(n=>n.getAttribute('aria-label')));
   view.close();
   function unchanged(){check('Native save bytes unchanged',localStorage.getItem('d2-survivors/save/v1')===raw);check('Native in-memory save unchanged',JSON.stringify(original.save)===before);check('Page retained',performance.timeOrigin===timeOrigin);}
   globalThis.D2BuildInfoProof=Object.freeze({show:()=>{view.show(data);unchanged();return {bounds:root.querySelector('dialog').getBoundingClientRect().toJSON(),checks};},status:()=>{unchanged();return {passed:true,checks,data};},dispose:()=>{view.dispose();host.remove();unchanged();delete globalThis.D2BuildInfoProof;}});
