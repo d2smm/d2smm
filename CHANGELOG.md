@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.7
+
+- Reduce Mod Manager and build details by 50% on Retina-density displays, preserving the existing scale on standard-density monitors.
+
 ## 2.13.6
 
 - Audit build attributes against trade notation: MAX/MIN, AR, LL/ML, FBR/ICB, CB/DS/OW, DR/MDR, PLR, and kill bonuses.
