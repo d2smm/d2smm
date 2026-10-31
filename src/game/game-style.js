@@ -6,6 +6,7 @@
 :host{--d2-panel:url("${skin.panel}");--d2-button:url("${skin.button}");color:#efe2c4;font-size:18px}
 dialog,.d2mods__panel{isolation:isolate;border:26px solid transparent;border-image:var(--d2-panel) 10% / 26px / 0 stretch;background:#080706;border-radius:0;box-shadow:0 20px 90px #000d;padding:22px 24px;color:#efe2c4}
 dialog::before,.item-tooltip::before{content:'';position:absolute;inset:0;border:0 solid transparent;border-image:var(--d2-panel) 10% fill / 0 / 0 stretch;filter:contrast(1.2) brightness(.7);z-index:-1;pointer-events:none}
+dialog[data-modal-surface=black]{background:#000}dialog[data-modal-surface=black]::before{display:none}
 h2,h3,.d2mods__title,.characters__rename{font-family:D2ModHeading,Georgia,serif;color:#e9cb84;font-weight:600;text-shadow:0 2px 2px #000}
 h2,.d2mods__title{font-size:29px;line-height:1.25}h3{font-size:21px}
 button,.d2mods__button{border:10px solid transparent;border-image:var(--d2-button) 20% 14% 24% 14% fill / 10px / 0 stretch;background:none;border-radius:0;box-shadow:none;min-height:48px;padding:5px 13px;color:#ebd6a4;font-size:17px;text-shadow:0 2px 2px #000}

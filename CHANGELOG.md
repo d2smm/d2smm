@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.1
+
+- Build details reuses the shared RPG modal frame, heading font, and close control with a pure black interior.
+- Improve spacing, text contrast, and narrow-screen readability; preserve the existing build information and controls.
+
 ## 2.13.0
 
 - Press **U** to open Gear Loadouts; text editing and the game's L shortcut are preserved.

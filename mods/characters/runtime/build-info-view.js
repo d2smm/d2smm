@@ -16,14 +16,14 @@
   function section(title,key){const node=el('section',undefined,{'data-build-section':key});node.append(el('h3',title));return node;}
   function pairs(rows){const dl=el('dl',undefined,{class:'build-info__stats'});for(const r of rows){const pair=el('div');pair.append(el('dt',r.label),el('dd',r.value,r.low?{class:'build-info__error'}:{}));dl.append(pair);}return dl;}
   function create(root){
-    const panel=el('dialog',undefined,{class:'build-info','data-build-info':'','aria-label':'Build details'}),style=el('style',D2BuildInfoStyle);
+    const panel=el('dialog',undefined,{class:'build-info','data-build-info':'','data-modal-surface':'black','aria-label':'Build details'}),style=el('style',D2BuildInfoStyle);
     let origin=null;const scope=new AbortController();
     root.append(style,panel);
     for(const event of ['keydown','keyup','click','pointerdown','pointerup'])panel.addEventListener(event,e=>e.stopPropagation(),{signal:scope.signal});
     panel.addEventListener('close',()=>{if(origin?.isConnected)origin.focus({preventScroll:true});else globalThis.D2Mods?.focusGame();origin=null;},{signal:scope.signal});
     function show(data,anchor){
       origin=anchor;
-      const header=el('header'),title=el('div'),close=el('button','×',{'data-build-action':'close','aria-label':'Close build details',class:'build-info__close'});
+      const header=el('header'),title=el('div'),close=el('button','×',{'data-build-action':'close','aria-label':'Close build details',class:'characters__close'});
       close.addEventListener('click',()=>panel.close());title.append(el('h2',data.hero===data.className?data.className:data.hero+' · '+data.className),el('p','Level '+data.level+' · '+data.loadout,{class:'build-info__context'}));header.append(title,close);
       const layout=el('div',undefined,{class:'build-info__layout'}),left=el('div',undefined,{class:'build-info__left'}),right=el('div',undefined,{class:'build-info__right'});
       const character=section('Character','character');
