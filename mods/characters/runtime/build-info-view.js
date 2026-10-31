@@ -1,15 +1,11 @@
 (() => {
   'use strict';
   const el=(tag,text,attrs={})=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(typeof attrs==='string')attrs={class:'build__'+attrs};for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
-  const names={'Strength':'Str','Dexterity':'Dex','Vitality':'Vit','Energy':'Ene','Attack Damage':'Attack dmg','Damage':'Enhanced dmg','Enhanced Defense':'Enhanced def','Increased Attack Speed':'IAS','Faster Cast Rate':'FCR','Faster Run/Walk':'FRW','Life Stolen per Hit':'Life leech','Mana Stolen per Hit':'Mana leech','Replenish Life':'Life regen','Fire Damage':'Fire dmg','Cold Damage':'Cold dmg','Lightning Damage':'Lightning dmg'};
-  const label=name=>names[name]??name;
-  const terms={'Faster Cast Rate':'FCR','Faster Hit Recovery':'FHR','Faster Run/Walk':'FRW','Increased Attack Speed':'IAS','Bonus to Attack Rating':'AR','Attack Rating':'AR','Enhanced Defense':'EDef','Enhanced Damage':'ED','Maximum Damage':'Max dmg','Minimum Damage':'Min dmg','Strength':'Str','Dexterity':'Dex','Vitality':'Vit','Energy':'Ene','All Resistances':'All res','Fire Resist':'FR','Cold Resist':'CR','Lightning Resist':'LR','Poison Resist':'PR','Life Stolen Per Hit':'LL','Mana Stolen Per Hit':'ML','Better Chance of Getting Magic Items':'MF','Extra Gold from Monsters':'GF','Chance to cast level':'ctc L'};
-  const compact=value=>String(value).replace(/\d+(?:,\d{3})*(?:\.\d+)?[kKmM]?/g,t=>{const u=t.slice(-1).toLowerCase(),n=parseFloat(t.replaceAll(',',''))*(u==='k'?1e3:u==='m'?1e6:1);return n<1e3?t:(n>=1e5?(n/1e6).toFixed(1)+'M':(n/1e3).toFixed(n<1e4?1:0)+'K').replace('.0','');});
-  function shortStat(text){for(const[a,b]of Object.entries(terms))text=text.replace(a,b);return compact(text.replace(/^\+/,'').replace(/\bto /g,'').replace(/All res \+?([\d.]+)%?/,'$1@').replace(/\b(FR|CR|LR|PR) \+?(-?[\d.]+)%?/g,'$2% $1')).toUpperCase();}
+  const {number:compact,label,stat:shortStat,item:shortName}=D2BuildNotation;
   function stat(row,name=row?.label,value=row?.value){
     const node=el('div',undefined,'stat');
     if(row){node.dataset.buildStat=row.label;node.dataset.statValue=row.value;}
-    node.append(el('dt',name??''),el('dd',compact(value??'—'),row?.low?'negative':{}));return node;
+    node.append(el('dt',label(name??'')),el('dd',compact(value??'—'),row?.low?'negative':{}));return node;
   }
   function heading(text){return el('h3',text);}
   function icon(item){
@@ -23,7 +19,7 @@
     row.append(icon(item));const text=el('div',undefined,'item-text');
     if(!item){text.append(el('span','Empty','muted'));row.append(text);return row;}
     const rolled=['magic','rare'].includes(item.rarity);row.setAttribute('aria-label',item.name);
-    if(!charm||!rolled)text.append(el('h4',item.name,{'data-rarity':item.rarity??'normal'}));
+    if(!charm||!rolled)text.append(el('h4',shortName(item.name),{'data-rarity':item.rarity??'normal',title:item.name}));
     if(!item.perfection)text.append(statLines(item.lines??[]));
     if(item.error||item.missing)text.append(el('span',item.error??'Item unavailable','negative'));row.append(text);
     if(item.perfection){const {percent,values}=item.perfection,score=el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect'});if(values?.length)score.append(el('div',values.join('/'),'slot'));(charm?text:row).append(score);}
@@ -46,7 +42,7 @@
       const t=data.terror;terror.append(el('span',compact(t?.current?'Terror '+t.current.tier+' · Act '+t.current.act+(t.current.training?' · Training':''):t?'Terror: '+t.open+' unlocked':'Terror: Locked')));if(t)terror.append(el('small',compact(t.cleared)+' cleared'));
       close.addEventListener('click',()=>panel.close());header.append(identity,terror,close);
       const overview=el('div',undefined,'overview'),summary=el('dl',undefined,'summary'),resists=el('dl',undefined,'resists');
-      for(const [key,name]of [['Life','Life'],['Mana','Mana'],['Damage','Damage'],['Faster Cast Rate','FCR'],['Damage Reduced','Phys DR'],['Magic Find','MF']]){
+      for(const [key,name]of [['Life','Life'],['Mana','Mana'],['Damage','DMG'],['Faster Cast Rate','FCR'],['Damage Reduced','DR'],['Magic Find','MF']]){
         const row=get(key),value=key==='Faster Cast Rate'?row?.value.replace(/^\+/,'').replace(/ · (.+)% shorter cooldowns/,' · CD −$1%').replace('−0%','0%'):row?.value;summary.append(stat(row,name,value));
       }
       for(const element of ['Fire','Cold','Lightning','Poison'])resists.append(stat(get(element+' Resistance'),element[0]+'R'));overview.append(summary,resists);
@@ -56,7 +52,7 @@
       const goldFind=get('Gold Find'),gold=get('Gold');
       for(const row of data.stats.filter(r=>!used.has(r)))numbers.append(stat(row,label(row.label)));
       character.append(attributes,numbers);const wealth=el('dl',undefined,'wealth');if(goldFind)wealth.append(stat(goldFind));if(gold)wealth.append(stat(gold));character.append(wealth);
-      const gear=el('section',undefined,{'data-build-section':'equipment'}),gearHeader=el('div',undefined,'section-heading');gearHeader.append(heading('Equipment'),el('span','%',{title:'Perfection'}));gear.append(gearHeader);
+      const gear=el('section',undefined,{'data-build-section':'equipment'}),gearHeader=el('div',undefined,'section-heading');gearHeader.append(heading('Equipment'),el('span','%'));gear.append(gearHeader);
       for(const slot of data.gear.slots)gear.append(itemRow(data.gear.items[slot.slot],slot.slot==='ring1'?'Ring 1':slot.slot==='ring2'?'Ring 2':slot.label));
       const skills=el('section',undefined,{'data-build-section':'skills'}),skillHeader=el('div',undefined,'section-heading');skillHeader.append(heading('Skills'),el('span','Learned + bonus','muted'));skills.append(skillHeader);
       for(const group of [...data.trees,{id:null,name:'Passive Ranks'}]){
@@ -74,7 +70,7 @@
       if(!m)mercHeader.append(el('span','None','muted'));
       else{
         mercHeader.append(el('strong',m.name+' · '+m.type),el('span','Level '+m.level+(m.dead?' · Fallen':''),'context'));
-        const s=m.stats,values=[['Life',s.life+' / '+s.lifeMax],['Dmg',Array.isArray(s.damage)?s.damage.join('–'):s.damage]];
+        const s=m.stats,values=[['LIFE',s.life+' / '+s.lifeMax],['DMG',Array.isArray(s.damage)?s.damage.join('–'):s.damage]];
         const details=el('div',undefined,'merc-details');for(const pick of m.picks??[])details.append(el('span',(pick.lines[0]?.text??pick.id)+' '+compact(pick.level),'merc-pick'));for(const[k,v]of values)details.append(el('span',k+' '+compact(v)));mercHeader.append(details);
       }
       merc.append(mercHeader);if(m){const equipment=el('div',undefined,'merc-gear');for(const row of m.items)equipment.append(itemRow(row.item));merc.append(equipment);}skills.append(merc);

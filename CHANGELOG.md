@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.6
+
+- Audit build attributes against trade notation: MAX/MIN, AR, LL/ML, FBR/ICB, CB/DS/OW, DR/MDR, PLR, and kill bonuses.
+- Use familiar item abbreviations including JMOD, HOTO, CTA, SOJ, SHAKO, and ARACH; retain full names on hover and for accessibility.
+
 ## 2.13.5
 
 - Use uppercase trade shorthand, `5@` for all resistances, and value-first resistance labels such as `30% LR`.
