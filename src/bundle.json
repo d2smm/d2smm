@@ -20,6 +20,7 @@
     "mods/characters/runtime/character-name-editor.js",
     "mods/characters/runtime/equipment-view.js",
     "mods/characters/runtime/item-perfection.js",
+    "mods/characters/runtime/item-view.js",
     "mods/characters/runtime/build-information.js",
     "mods/characters/runtime/build-info-style.js",
     "mods/characters/runtime/build-notation.js",

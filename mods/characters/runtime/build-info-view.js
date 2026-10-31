@@ -53,19 +53,20 @@
     for(const row of data.stats.filter(r=>!used.has(r)))numbers.append(stat(row,label(row.label)));
     character.append(attributes,numbers);const wealth=el('dl',undefined,'wealth');if(goldFind)wealth.append(stat(goldFind));if(gold)wealth.append(stat(gold));character.append(wealth);
     const gear=el('section',undefined,{'data-build-section':'equipment'}),gearHeader=el('div',undefined,'section-heading');gearHeader.append(heading('Equipment'),el('span','%'));gear.append(gearHeader);
-    for(const slot of data.gear.slots)gear.append(itemRow(data.gear.items[slot.slot],slot.slot==='ring1'?'Ring 1':slot.slot==='ring2'?'Ring 2':slot.label));
+    for(const slot of data.gear.slots){const item=data.gear.items[slot.slot];if(item&&!item.missing)gear.append(itemRow(item,slot.label));}
+    const ranks=el('section',undefined,{'data-build-section':'ranks',class:'build__merc'}),rankList=el('dl',undefined,'attributes');ranks.append(heading('Ranks'),rankList);for(const r of data.ranks)rankList.append(stat(null,r.name,compact(r.level)));gear.append(ranks);
     const skills=el('section',undefined,{'data-build-section':'skills'}),skillHeader=el('div',undefined,'section-heading');skillHeader.append(heading('Skills'),el('span','Learned + bonus','muted'));skills.append(skillHeader);
     for(const group of [...data.trees,{id:null,name:'Passive Ranks'}]){
       const rows=data.skills.filter(s=>s.tree===group.id&&s.level>0);if(!rows.length)continue;
       const tree=el('section',undefined,'tree');tree.append(el('h4',group.name));
       for(const s of rows){
         const row=el('div',undefined,{class:'build__skill','data-skill-id':s.id,'data-selected':'true'}),name=el('div',undefined,'skill-name');name.append(el('span',label(s.name)));
-        if(s.evolved)name.append(el('span','Evolved','evolved'));if(s.rested)name.append(el('span','Rested','muted'));if(s.choice)name.append(el('small',s.choice.name,'choice'));
+        if(s.rested)name.append(el('span','Rested','muted'));if(s.choice)name.append(el('small',s.choice.name,'choice'));
         row.append(skillIcon(s),name,el('span',compact(s.level+(s.bonus?' + '+s.bonus:'')),'rank'));tree.append(row);
       }
       skills.append(tree);
     }
-    if(!data.skills.some(s=>s.level>0))skills.append(el('p','No skills chosen','muted'));layout.append(character,gear,skills);
+    layout.append(character,gear,skills);
     const merc=el('section',undefined,{'data-build-section':'mercenary',class:'build__merc'}),mercHeader=el('div',undefined,'merc-heading'),m=data.merc;mercHeader.append(heading('Mercenary'));
     if(!m)mercHeader.append(el('span','None','muted'));
     else{
@@ -73,7 +74,7 @@
       const s=m.stats,values=[['LIFE',s.life+' / '+s.lifeMax],['DMG',Array.isArray(s.damage)?s.damage.join('–'):s.damage]];
       const details=el('div',undefined,'merc-details');for(const pick of m.picks??[])details.append(el('span',(pick.lines[0]?.text??pick.id)+' '+compact(pick.level),'merc-pick'));for(const[k,v]of values)details.append(el('span',k+' '+compact(v)));mercHeader.append(details);
     }
-    merc.append(mercHeader);if(m){const equipment=el('div',undefined,'merc-gear');for(const row of m.items)equipment.append(itemRow(row.item));merc.append(equipment);}skills.append(merc);
+    merc.append(mercHeader);if(m){const equipment=el('div',undefined,'merc-gear');for(const row of m.items)equipment.append(itemRow(row.item));merc.append(equipment);}gear.append(merc);
     const charms=el('section',undefined,{'data-build-section':'charms',class:'build__charm-section'}),charmGrid=el('div',undefined,'charms'),charmHeader=el('div',undefined,'section-heading');charmHeader.append(heading('Charms'),statLines(data.charmLines));charms.append(charmHeader);
     if(!data.charms.length)charmGrid.append(el('span','None','muted'));for(const item of data.charms)charmGrid.append(itemRow(item,'',true));charms.append(charmGrid);
     panel.replaceChildren(header,overview,layout,charms);panel.dataset.classId=data.classId;

@@ -104,26 +104,20 @@
     const save=instance?.save,m=meta().classes[cls],loadout=m?.loadouts.find(l=>l.id===id);
     if(!api||!save||!loadout)return null;
     const level=(save.heroes?.[cls]?.run??save.heroes?.[cls]?.kept)?.run?.level??1;
-    const pool=[...Object.values(save.equippedByClass?.[cls]??{}),...(save.inventoryByClass?.[cls]??[]),...(save.stashTabs?.[cls]??[]),...['shared1','shared2','shared3'].flatMap(tab=>save.stashTabs?.[tab]??[])];
-    const worn=Object.fromEntries(Object.entries(loadout.items).map(([slot,id])=>[slot,pool.find(i=>i?.id===id)]));
-    const key=JSON.stringify([cls,id,level,worn,details]);if(armoryCache?.key===key)return armoryCache.value;
+    const worn=D2ItemView.worn(save,cls,loadout,m.selectedLoadout);
+    const key=JSON.stringify([cls,id===m.selectedLoadout,level,worn,details]);if(armoryCache?.key===key)return armoryCache.value;
     const copies=structuredClone(worn),items={};
     for(const [slot,item]of Object.entries(copies)){
-      if(!item){items[slot]={name:'Unavailable item',missing:true,lines:[]};continue;}
+      if(!item)continue;
       const value={id:item.id,name:item.name,base:item.base,rarity:item.rarity,lines:[],icon:null};
-      if(details)value.perfection=D2ItemPerfection.rate(item,presentation?.catalog?.());
       try{
         if(!presentation)throw Error('Item details are unavailable for this game update.');
-        const info=presentation.describe(item,cls,level,undefined,copies);
-        if(typeof info?.name!=='string'||!Array.isArray(info.lines)||info.lines.some(l=>typeof l.text!=='string'))throw Error('Item details are unavailable for this game update.');
-        value.name=presentation.name(info.name,item.rarity,item.base);value.base=presentation.name(info.base??item.base);value.lines=info.lines.map(l=>({text:l.text,implicit:!!l.implicit,inert:!!l.inert,unusable:!!l.unusable,tone:l.tone}));
-        const icon=presentation.icon(instance.art.items,item);
-        if(icon&&typeof icon.url==='string'&&['https:','blob:','data:'].includes(new URL(icon.url,location.href).protocol))value.icon={url:icon.url,width:icon.width,height:icon.height};
+        Object.assign(value,D2ItemView.read(presentation,instance.art.items,item,cls,level,copies,undefined,details));
       }catch(error){console.warn('[D2 Characters] item preview',error);value.error='Item details unavailable';}
       items[slot]=value;
     }
     const slots=api.doll(cls).slots.map(s=>({slot:s.slot,label:s.label,col:s.col,row:s.row,w:s.w,h:s.h}));
-    armoryCache={key,value:{slots,items,level}};return armoryCache.value;
+    armoryCache={key,value:{slots,items,level,live:id===m.selectedLoadout}};return armoryCache.value;
   }
   const information=D2BuildInformation.create({getGame:()=>instance,getInformation:()=>informationBindings,getPresentation:()=>presentation,armory,status});
   function show(options={}){requireFeature(options.section==='gear'?'gearLoadouts':'characters');globalThis.D2Mods?.close?.();instance?.input?.release?.();view??=D2CharacterView.create({perform,selectClass,report,exportBackups,status,armory,information:information.read});view.show(options);publish();}

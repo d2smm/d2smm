@@ -84,9 +84,11 @@
     }
     async function informationBindings(){
       method('characterView');method('mercViewOf');
+      const refs=find(method('showTown'),n=>n.type==='MemberExpression'&&n.computed&&n.object.type==='Identifier'&&imports.has(n.object.name));
+      const ranks=await select(refs.map(n=>({callee:n.object})),d=>d.value&&typeof d.value==='object'&&!Array.isArray(d.value)&&Object.values(d.value).length&&Object.values(d.value).every(r=>typeof r.name==='string'&&typeof r.maxRank==='number'&&typeof r.ware==='string'),'Charsi ranks');
       const enter=method('enterTier'),progress=await binding(one(calls(enter).filter(n=>n.arguments.length===2&&save(n.arguments[0])),'Terror progress'));
       if(typeof progress.value!=='function')throw Error('Terror progress is unavailable for this game update.');
-      return{numbers:Game.prototype.characterView,merc:Game.prototype.mercViewOf,progress:progress.value};
+      return{numbers:Game.prototype.characterView,merc:Game.prototype.mercViewOf,progress:progress.value,ranks:ranks.value};
     }
     return{Game,url:url.href,characterBindings,lootBindings,presentationBindings,informationBindings,imports,method,calls,binding};
   }

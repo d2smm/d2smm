@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.13.9
+
+- Show purchased Charsi ranks below Equipment, followed by the mercenary.
+- Remove the Evolved label and omit empty or unavailable equipment rows from build details.
+- Show currently equipped items in the active loadout; other loadouts continue to preview their saved equipment.
+
 ## 2.13.8
 
 - Apply shared Retina scaling to every mod dialog, including Characters and Gear Loadouts, their tooltips, and the important-events log.

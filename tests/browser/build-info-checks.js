@@ -28,6 +28,10 @@ async function installBuildInfoProof(){
     ring2:make('ring2','The Stone of Jordan','Ring','ring','unique',[['allSkills',1],['mana',20],['lightningMinDamage',1],['lightningMaxDamage',12]])
   };
   game.save.equippedByClass[cls]=worn;
+  game.save.ranks={fcr:5,frw:3,replenish:4,mercLife:2,goldFind:7,magicFind:8};
+  const oldRight={id:'previous-ring',name:'Old ring'},saved={id:1,items:{ring2:oldRight.id,shield:null}},snapshot={equippedByClass:{[cls]:{ring2:worn.ring2}},inventoryByClass:{[cls]:[null,oldRight]}};
+  const activeWorn=D2ItemView.worn(snapshot,cls,saved,1),savedWorn=D2ItemView.worn(snapshot,cls,saved,2);
+  check('Active equipment shows the current right ring while other loadouts retain saved gear',activeWorn.ring2===worn.ring2&&savedWorn.ring2===oldRight&&!('shield' in savedWorn));
   game.save.terror??={};game.save.terror[cls]={open:26,cleared:25,best:30,offers:[]};
   game.save.charmsByClass??={};game.save.charmsByClass[cls]=Array.from({length:20},(_,i)=>make('charm-'+i,i%2?'Fine Small Charm of Vita':'Shimmering Small Charm of Vita','Small Charm','charm','magic',i%2?[['maxDamage',3],['attackRatingPoints',20],['life',20]]:[['allResist',5],['life',20]]));
   game.save.mercs??={};game.save.mercs[cls]={active:'desert',hired:{desert:{name:0,dead:false,worn:{weapon:make('merc-weapon','Infinity','Thresher','weapon','runeword',[['enhancedDamage',325],['crushingBlow',40]]),body:worn.body,head:worn.head}}}};
@@ -49,12 +53,13 @@ async function installBuildInfoProof(){
   const status=()=>({classes:[{classId:cls,characters:[{name:'Stormweaver',active:true}],loadouts:[loadout],selectedLoadout:1}]});
   const p=contract.presentation;
   function armory(){
-    const items={};for(const[slot,item]of Object.entries(worn)){const info=p.describe(structuredClone(item),cls,99,undefined,structuredClone(worn)),icon=p.icon(game.art.items,item);items[slot]={id:item.id,name:p.name(info.name,item.rarity,item.base),base:p.name(info.base??item.base),rarity:item.rarity,lines:info.lines,icon,perfection:D2ItemPerfection.rate(item,catalog)};}
+    const items={};for(const[slot,item]of Object.entries(worn))items[slot]=D2ItemView.read(p,game.art.items,item,cls,99,structuredClone(worn));
     return {slots:contract.characters.doll(cls).slots,items,level:99};
   }
   const reader=D2BuildInformation.create({getGame:()=>game,getInformation:()=>contract.information,getPresentation:()=>p,armory,status});
   const data=await reader.read(cls,1);
   check('Native character rows are present',data.stats.length>=15);
+  check('Purchased Charsi ranks use native names and saved amounts',data.ranks.length===6&&data.ranks.some(r=>r.id==='fcr'&&r.level===5&&r.name==='Faster Cast Rate')&&data.ranks.some(r=>r.id==='mercLife'&&r.level===2));
   check('Every gear slot has a full native item description',Object.keys(data.gear.items).length===10&&Object.values(data.gear.items).every(i=>i.lines.length>0));
   check('All 20 equipped small charms are described with distinct identities',data.charms.length===20&&new Set(data.charms.map(i=>i.id)).size===20&&data.charms.every(i=>i.lines.length>0));
   check('Native charm totals include all 20 items',JSON.stringify(data.charmLines.map(l=>l.text))===JSON.stringify(['+30 to Maximum Damage','+200 to Attack Rating','+400 to Life','All Resistances +50']));
@@ -73,14 +78,17 @@ async function installBuildInfoProof(){
   const numbers=[['999','999'],['1,000','1K'],['2,470 / 2,470','2.5K / 2.5K'],['51113–56152','51K–56K'],['100000','0.1M'],['100k','0.1M'],['-1200','-1.2K'],['11,684,918','11.7M'],['1250%','1.3K%']];
   view.show({...data,stats:numbers.map(([value],i)=>({label:'number-'+i,value}))});
   check('Compact stats preserve raw values and abbreviate from 1000',numbers.every(([value,display],i)=>{const row=root.querySelector('[data-build-stat="number-'+i+'"]');return row?.dataset.statValue===value&&row.querySelector('dd').textContent===display;}));
-  check('Mercenary follows Skills in the right column',root.querySelector('[data-build-section="mercenary"]').parentElement===root.querySelector('[data-build-section="skills"]'));
+  check('Ranks and Mercenary follow Equipment in the center column',root.querySelector('[data-build-section="ranks"]').parentElement===root.querySelector('[data-build-section="equipment"]')&&root.querySelector('[data-build-section="mercenary"]').previousElementSibling===root.querySelector('[data-build-section="ranks"]'));
   check('Magic charm type labels are omitted while names remain accessible',root.querySelectorAll('[data-build-section="charms"] article h4').length===0&&[...root.querySelectorAll('[data-build-section="charms"] article')].every(n=>n.getAttribute('aria-label')));
   const ring=root.querySelector('article[aria-label="Beast Loop"]'),hoto=root.querySelector('article[aria-label="Heart of the Oak"]');
   check('Trade text is uppercase with value-first resistance and all-res shorthand',ring.textContent.includes('40 LIFE · 90 MANA · 30% LR')&&root.querySelector('[data-build-section="charms"]').textContent.includes('5@'));
   check('Perfection displays its actual roll beneath a smaller percentage',hoto.querySelector('.build__perfection').firstChild.textContent==='90%'&&hoto.querySelector('.build__perfection div').textContent==='39'&&getComputedStyle(hoto.querySelector('.build__perfection')).fontSize==='14px'&&getComputedStyle(hoto.querySelector('.build__perfection div')).color===getComputedStyle(hoto.querySelector('.build__slot')).color);
+  const sparse={...data,skills:data.skills.map(s=>({...s,evolved:true})),gear:{...data.gear,items:{...data.gear.items,shield:{name:'Unavailable item',missing:true,lines:[]}}}};view.show(sparse);
+  check('Missing shield is omitted and evolved labels are absent',root.querySelectorAll('[data-build-section="equipment"]>article').length===9&&!root.querySelector('.build__evolved')&&!root.querySelector('[data-build-section="equipment"]').textContent.includes('Unavailable item'));
+  const right=root.querySelector('article[aria-label="The Stone of Jordan"] img');await right.decode();check('Right ring icon loads in build details',right.naturalWidth>0);
   view.close();
   const jmod={...data.gear.items.shield,id:'build-proof-jmod',name:"Jeweler's Monarch of Deflecting",rarity:'magic',perfection:null,lines:[{text:'30% Faster Block Rate'},{text:'20% Increased Chance of Blocking'}]};
   function unchanged(){check('Native save bytes unchanged',localStorage.getItem('d2-survivors/save/v1')===raw);check('Native in-memory save unchanged',JSON.stringify(original.save)===before);check('Page retained',performance.timeOrigin===timeOrigin);}
-  globalThis.D2BuildInfoProof=Object.freeze({show:variant=>{view.show(variant==='jmod'?{...data,gear:{...data.gear,items:{...data.gear.items,shield:jmod}}}:data);unchanged();return {bounds:root.querySelector('dialog').getBoundingClientRect().toJSON(),checks};},status:()=>{unchanged();return {passed:true,checks,data};},dispose:()=>{view.dispose();host.remove();unchanged();delete globalThis.D2BuildInfoProof;}});
+  globalThis.D2BuildInfoProof=Object.freeze({show:variant=>{view.show(variant==='sparse'?sparse:variant==='jmod'?{...data,gear:{...data.gear,items:{...data.gear.items,shield:jmod}}}:data);unchanged();return {bounds:root.querySelector('dialog').getBoundingClientRect().toJSON(),checks};},status:()=>{unchanged();return {passed:true,checks,data};},dispose:()=>{view.dispose();host.remove();unchanged();delete globalThis.D2BuildInfoProof;}});
   unchanged();return {passed:true,checks};
 }

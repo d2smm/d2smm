@@ -36,7 +36,7 @@
         b.style.gridArea=`${s.row} / ${s.col} / span ${s.h} / span ${s.w}`;
         if(item?.icon){const img=el('img',undefined,{src:item.icon.url,alt:'',draggable:'false'});img.style.width=item.icon.width*1.45+'px';img.addEventListener('error',()=>b.replaceChildren(el('span',item.name,{class:'equipment__fallback'})),{once:true});b.append(img);}
         else b.append(el('span',item?.name??s.label,{class:item?'equipment__fallback':'equipment__empty'}));
-        if(item){const location=locations.find(i=>i.slot===s.slot)?.location??'';
+        if(item){const location=data.live?'Equipped':locations.find(i=>i.slot===s.slot)?.location??'';
           b.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')show(b,item,location);});b.addEventListener('pointerleave',later);
           b.addEventListener('focus',()=>{if(!restoringFocus)show(b,item,location);});b.addEventListener('blur',()=>{if(!pinned)hide();});b.addEventListener('click',()=>show(b,item,location,true));
         }

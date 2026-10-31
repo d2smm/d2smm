@@ -17,6 +17,7 @@ async function checkLoadoutAccess(){
     const data=globalThis.D2BuildInfoProof?.status().data;
     if(data){
       original=panel.querySelector('.equipment');original.hidden=true;previewView=D2EquipmentView.create(panel);original.after(previewView.node);previewView.paint(data.gear,data.locations);
+      const right=previewView.node.querySelector('[data-equipment-slot=ring2] img');await right.decode();check('Right ring icon loads in Gear Loadouts',right.naturalWidth>0);
       const item=previewView.node.querySelector('[data-equipment-slot=body]');item.focus({preventScroll:true});item.dispatchEvent(new PointerEvent('pointerenter',{pointerType:'mouse'}));const tip=[...panel.querySelectorAll('.item-tooltip')].find(n=>!n.hidden),a=item.getBoundingClientRect(),b=tip.getBoundingClientRect();
       check('Scaled item tooltip remains beside its slot',Math.abs(b.left-a.right-14)<2&&Math.abs(b.top-a.top)<2);
       previewView.dispose();previewView=null;original.hidden=false;original=null;

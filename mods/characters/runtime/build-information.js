@@ -1,15 +1,10 @@
 (() => {
   'use strict';
-  // A display adapter only: native game functions own all statistics and item text.
+  // Native game functions own stats and item text.
   function create({getGame,getInformation,getPresentation,armory,status}){
     function itemView(item,cls,level,worn,wearer){
       if(!item)return null;
-      const p=getPresentation(),copy=structuredClone(item),info=p.describe(copy,cls,level,wearer,worn);
-      if(typeof info?.name!=='string'||!Array.isArray(info.lines)||info.lines.some(l=>typeof l.text!=='string'))throw Error('Item details are unavailable for this game update.');
-      const icon=p.icon(getGame().art.items,copy);
-      return {id:item.id,name:p.name(info.name,item.rarity,item.base),base:p.name(info.base??item.base),rarity:item.rarity,perfection:D2ItemPerfection.rate(item,p.catalog?.()),
-        lines:info.lines.map(l=>({text:l.text,tone:l.unusable?'unusable':l.inert?'inert':l.tone??(l.implicit?'implicit':'mod')})),
-        icon:icon&&typeof icon.url==='string'&&['https:','blob:','data:'].includes(new URL(icon.url,location.href).protocol)?{url:icon.url,width:icon.width,height:icon.height}:null};
+      return D2ItemView.read(getPresentation(),getGame().art.items,item,cls,level,worn,wearer);
     }
     async function read(cls,id){
       await D2ItemPerfection.ready;
@@ -31,7 +26,7 @@
       hud.useTreeKit.call(treeDisplay,g.kit);
       const skillRows=(definitions,kind)=>Object.entries(definitions??{}).map(([key,def])=>{
         const rank=learned.find(s=>s.id===key&&s.kind===kind),selected=chosen[key],choice=selected?options?.options?.(key)?.find(o=>o.id===selected):null;
-        return {id:key,name:def.name,tree:treeDisplay.treeSlots?.get(key)?.page??def.tree??null,kind,level:rank?.level??0,bonus:rank?.bonus??0,rested:!!rank?.rested,evolved:!!def.evolved,
+        return {id:key,name:def.name,tree:treeDisplay.treeSlots?.get(key)?.page??def.tree??null,kind,level:rank?.level??0,bonus:rank?.bonus??0,rested:!!rank?.rested,
           choice:choice?{name:choice.name}:selected?{name:'Option details unavailable'}:null};
       });
       const skills=[...skillRows(g.kit.skills,'skill'),...skillRows(g.kit.passives,'passive')];
@@ -45,9 +40,9 @@
       const progress=native.progress(receiver.save,cls);
       return {classId:cls,className:g.kit.name,hero:hero?.name??g.kit.name,level,loadout:loadout.name,
         terror:progress?{cleared:progress.cleared,open:progress.open,current:g.inRun&&g.world.terror?{tier:g.world.terror.tier,act:g.world.act+1,training:!!g.training}:null}:null,
-        preview:!(id===c.selectedLoadout&&loadout.matches),stats:numbers.stats.map(r=>({label:r.label,value:r.value,low:!!r.low,tree:r.tree})),
+        preview:id!==c.selectedLoadout,stats:numbers.stats.map(r=>({label:r.label,value:r.value,low:!!r.low,tree:r.tree})),
         gear,locations:loadout.items,charms,charmLines:numbers.charmLines,
-        skills,
+        skills,ranks:Object.entries(native.ranks).filter(([id])=>g.save.ranks?.[id]>0).map(([id,r])=>({id,name:r.name,level:g.save.ranks[id]})),
         trees:numbers.stats.filter(r=>r.tree).map(r=>({id:r.tree,name:r.label})),
         merc:merc?{name:merc.name,type:merc.typeName,level:merc.level,dead:merc.dead,stats:merc.stats,picks:merc.picks.map(pick=>({id:pick.id,level:pick.level,lines:hud.mercPickLines(merc,pick,null)})),
           items:Object.entries(merc.worn??{}).map(([slot,i])=>({slot,item:itemView(i,cls,merc.level,merc.worn,{level:merc.level,strength:merc.stats.strength,dexterity:merc.stats.dexterity})}))}:null};
