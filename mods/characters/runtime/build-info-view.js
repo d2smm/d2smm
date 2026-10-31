@@ -19,12 +19,11 @@
   function statLines(lines){const node=el('div',undefined,'item-line');for(const line of lines){if(!line.unusable&&(line.implicit||line.tone==='implicit'))continue;if(node.childNodes.length)node.append(' · ');node.append(el('span',shortStat(line.text),{'data-tone':line.unusable?'unusable':line.inert?'inert':line.tone??'mod'}));}return node;}
   function itemRow(item,slot='',charm=false){
     const row=el('article',undefined,{class:'build__item'+(charm?' build__item--charm':'')});
-    if(slot)row.append(el('div',slot,'slot'));
+    if(slot)row.append(el('div',item?.base||slot,'slot'));
     row.append(icon(item));const text=el('div',undefined,'item-text');
     if(!item){text.append(el('span','Empty','muted'));row.append(text);return row;}
     const rolled=['magic','rare'].includes(item.rarity);row.setAttribute('aria-label',item.name);
     if(!charm||!rolled)text.append(el('h4',item.name,{'data-rarity':item.rarity??'normal'}));
-    if(rolled&&!charm&&item.base&&item.base!==item.name)text.append(el('div',item.base,'base'));
     if(!item.perfection)text.append(statLines(item.lines??[]));
     if(item.error||item.missing)text.append(el('span',item.error??'Item unavailable','negative'));row.append(text);
     if(item.perfection){const percent=item.perfection.percent;(charm?text:row).append(el('span',percent===null?'—':percent+'%',{class:'build__perfection','aria-label':percent===null?'Roll data unavailable':percent+' percent perfect'}));}

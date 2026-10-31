@@ -116,7 +116,7 @@
         if(!presentation)throw Error('Item details are unavailable for this game update.');
         const info=presentation.describe(item,cls,level,undefined,copies);
         if(typeof info?.name!=='string'||!Array.isArray(info.lines)||info.lines.some(l=>typeof l.text!=='string'))throw Error('Item details are unavailable for this game update.');
-        value.name=presentation.name(info.name,item.rarity,item.base);value.base=info.base?presentation.name(info.base):'';value.lines=info.lines.map(l=>({text:l.text,implicit:!!l.implicit,inert:!!l.inert,unusable:!!l.unusable,tone:l.tone}));
+        value.name=presentation.name(info.name,item.rarity,item.base);value.base=presentation.name(info.base??item.base);value.lines=info.lines.map(l=>({text:l.text,implicit:!!l.implicit,inert:!!l.inert,unusable:!!l.unusable,tone:l.tone}));
         const icon=presentation.icon(instance.art.items,item);
         if(icon&&typeof icon.url==='string'&&['https:','blob:','data:'].includes(new URL(icon.url,location.href).protocol))value.icon={url:icon.url,width:icon.width,height:icon.height};
       }catch(error){console.warn('[D2 Characters] item preview',error);value.error='Item details unavailable';}

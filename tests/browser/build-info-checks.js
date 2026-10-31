@@ -46,7 +46,7 @@ async function installBuildInfoProof(){
   const status=()=>({classes:[{classId:cls,characters:[{name:'Stormweaver',active:true}],loadouts:[loadout],selectedLoadout:1}]});
   const p=contract.presentation;
   function armory(){
-    const items={};for(const[slot,item]of Object.entries(worn)){const info=p.describe(structuredClone(item),cls,99,undefined,structuredClone(worn)),icon=p.icon(game.art.items,item);items[slot]={id:item.id,name:p.name(info.name,item.rarity,item.base),base:info.base?p.name(info.base):'',rarity:item.rarity,lines:info.lines,icon,perfection:D2ItemPerfection.rate(item,catalog)};}
+    const items={};for(const[slot,item]of Object.entries(worn)){const info=p.describe(structuredClone(item),cls,99,undefined,structuredClone(worn)),icon=p.icon(game.art.items,item);items[slot]={id:item.id,name:p.name(info.name,item.rarity,item.base),base:p.name(info.base??item.base),rarity:item.rarity,lines:info.lines,icon,perfection:D2ItemPerfection.rate(item,catalog)};}
     return {slots:contract.characters.doll(cls).slots,items,level:99};
   }
   const reader=D2BuildInformation.create({getGame:()=>game,getInformation:()=>contract.information,getPresentation:()=>p,armory,status});
