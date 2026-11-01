@@ -241,7 +241,7 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
     const auto lootPin=Json::parse(read(root/"mods/loot-guard/generated/core.json"));
     const auto lootBytes=read(root/"mods/loot-guard/generated/core.wasm");
     if(release){require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
-    for(const auto& file:lootSources)require(sha256(read(root/file))==lootPin.at("sources").at(file).get<std::string>(),"Loot core source changed; regenerate the native artifact");}
+    for(const auto& file:lootSources)require(sha256(read(root/"mods/loot-guard"/file))==lootPin.at("sources").at(file).get<std::string>(),"Loot core source changed; regenerate the native artifact");}
     Json lootKernel=lootPin;lootKernel.erase("sources");lootKernel["wasm"]=base64(lootBytes);
     source+="globalThis.D2LootKernel="+lootKernel.dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
