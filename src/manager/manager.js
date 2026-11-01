@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION='2.13.10';
+  const VERSION='2.13.11';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
@@ -93,7 +93,7 @@
     }finally{installing=false;if(!closed)paint();}
   }
   function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,preferences:{showGem:preferences.showGem},
-    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops,gatherChests:preferences.terrorizedGatherChests},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''},{id:'qol',version:VERSION,enabled:preferences.qolEnabled,problem:qol.status().problem||badges.status().problem||badgeControls.status().problem?'Automatic charm placement is unavailable.':''}],
+    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops,gatherChests:preferences.terrorizedGatherChests},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''},{id:'qol',version:VERSION,enabled:preferences.qolEnabled,problem:qol.status().combat.problem?'Combat adjustments are unavailable in this game build.':qol.status().problem||badges.status().problem||badgeControls.status().problem?'Automatic charm placement is unavailable.':''}],
     mod:record?.pack?{id:record.pack.id,name:record.pack.name,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules,settings:{...record.settings},ruleCount:record.pack.builtinRules.length+record.pack.extraRules.length,revision:record.revision}:null,
     runtime:globalThis.D2LootGuard.snapshot(),attention:attention.snapshot(),gameMenu:gameMenu.status(),terrorized:terrorized.status(),qol:qol.status(),badges:badges.status(),badgeControls:badgeControls.status(),session:gameUI.snapshot()};}
   function report(error){notice=error.message||String(error);console.error('[D2 Mods]',error);show();paint();}

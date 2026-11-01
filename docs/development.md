@@ -2,7 +2,7 @@
 
 ## Build
 
-Requirements: CMake 3.24+, a C++20 compiler, and OpenSSL 3 development files. The JSON dependency is vendored and pinned. No Node, npm, Python, or network download is needed during the build.
+Requirements: CMake 3.24+, a C++20 compiler, OpenSSL 3 and zlib development files. The JSON dependency is vendored and pinned. No Node, npm, Python, or network download is needed during the build.
 
 macOS:
 
@@ -15,7 +15,7 @@ cmake --build build --target d2smm-build
 Linux (Debian/Ubuntu packages):
 
 ```sh
-sudo apt-get install cmake g++ libssl-dev
+sudo apt-get install cmake g++ libssl-dev zlib1g-dev
 cmake -S . -B build
 cmake --build build --target d2smm-build
 ```
@@ -24,10 +24,12 @@ Then:
 
 ```sh
 ctest --test-dir build -R build-tool --output-on-failure
-./build/d2smm-build --source . --output dist
+./build/d2smm-build --source . --output dist/dev
 ```
 
-The tool writes `dist/bootstrap.js`, its checksum descriptor, a hosted bookmarklet, an unpacked extension, and `dist/site/`. It refuses unknown populated output directories and any in-repository destination outside `dist/`. Rebuilding an owned output preserves earlier versioned release paths; use a new empty output for clean-distribution checks.
+The default development mode writes a compressed runtime and browser commands under `dist/dev/`, with `development.json` explicitly marking release verification as unrun. It skips release input hashing, checksum descriptors, extension/site packaging and update feeds. Identical outputs retain their bytes and modification times. Use that directory's `gallery-load-command.json` in the verified isolated browser.
+
+At an actual release boundary, run `./build/d2smm-build --release --source . --output dist`. Release mode verifies pinned inputs and writes the checksum descriptor, hosted bookmarklet, unpacked extension and `dist/site/`. The lossless bootstrap uses the browser's `DecompressionStream` API and retains the existing 1 MiB updater limit. Configure with `-DD2SMM_RELEASE_VERIFY=ON` when release-verifying the native toolchain's vendored JSON input. The tool refuses unknown populated output directories and any in-repository destination outside `dist/`; prior versioned release paths are retained.
 
 `VERSION` controls the generated manager and extension versions. The builder substitutes the manager's version declaration; update that source declaration and the changelog alongside a release for readable source history. The loot package's version is independent.
 
@@ -51,7 +53,7 @@ Use a separate browser profile or Incognito context with a disposable game. Do n
 
 Fresh profiles may first reach `/play/setup.html`. Complete that normal file-source choice (the available Hosted Files option or your own game files), then continue past the native intro and click Play. Wait for the actual camp state; a loaded setup page or a fixed short delay is not game readiness.
 
-For a local candidate, build the optional unpacked extension and load `dist/extension/` using Chrome's **Load unpacked** control in your test profile. This is a development loader, not a Chrome Web Store listing. A previously selected newer runtime can supersede an older local candidate; start with clean isolated mod storage when testing that boundary.
+For local iteration, use `dist/dev/gallery-load-command.json` through the native CDP tool in the verified isolated game below. The optional unpacked extension is produced only by explicit release assembly; use it when testing that loader boundary. A previously selected newer runtime can supersede an older candidate, so use isolated mod storage for update tests.
 
 On macOS, an optional native CDP transport is available:
 
@@ -62,7 +64,7 @@ cmake --build build --target d2smm-cdp
 
 It accepts one CDP command or up to 32 sequential commands from standard input and an exact loopback WebSocket target as its argument. It neither launches nor discovers a browser. Use only a browser/profile you own for testing, with remote debugging explicitly enabled. Verify the context and exact target before sending commands. Never point a mutation fixture at a player's session.
 
-For the installer website, the build also emits `dist/site-preview-command.json`. Send it through that transport to an owned test tab already on `https://d2s.arken.gg/`. It replaces that tab's document with the candidate site and embedded assets; it refuses other origins. This is a preview only. Final acceptance must use the published page.
+For the installer website, release assembly also emits `dist/site-preview-command.json`. Send it through that transport to an owned test tab already on `https://d2s.arken.gg/`. It replaces that tab's document with the candidate site and embedded assets; it refuses other origins. This is a preview only. Final acceptance must use the published page.
 
 ## Existing browser checks
 
@@ -131,6 +133,12 @@ The builder emits `dist/build-info-command.json` from `tests/browser/build-info-
 Also exercise **U**, the actual info button beside Equip, Escape, editable fields, and disabled Gear Loadouts through normal input. Compare the native C-screen rows with the overview using the same current hero. The populated fixture proves presentation and native data adaptation, not real equipment changes or hypothetical outfit totals.
 
 `dist/loadout-access-command.json` runs the saved shortcut, focus, and read-only checks in an already-managed disposable camp. The perfection calculation lives in `mods/characters/core/`; run the `perfection` CTest group. It shares the manager Wasm artifact and source-hash receipt. Regenerate with `d2smm-manager-wasm` and stage with `--stage-manager-core` before assembly. The browser fixture checks perfect named items, a 33% War Traveler, and unchanged magic/rare details against the running game's own catalog.
+
+### Combat QoL
+
+Use the selected output directory (`dist/dev` for development) for generated browser commands. After loading the candidate in a verified isolated Druid game, evaluate [`qol-combat-fixture.js`](../tests/browser/qol-combat-fixture.js) and call `installCombatFixture()`, then `D2CombatProof.verify()`. Setup starts a new disposable, tainted run and creates durable native monster/summon objects only in that test world. Never run it on a player's target.
+
+The fixture compares native summon pushing with QoL enabled/disabled, preserves ordinary monster separation and Molten Boulder knockback, and checks native hit/chill tint timing through real game updates. `animate(enabled, durationMs)` provides a bounded capture sequence; `stop()` ends it, and `dispose()` restores the prior QoL toggle. The native nonvisual checks are in the `qol-combat` CTest group. Keep the admitted page visible during native loading; a timed-out CDP wait may leave its original loading promise active, so reconcile it before repeating setup.
 
 ## Promo production
 

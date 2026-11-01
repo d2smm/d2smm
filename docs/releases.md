@@ -6,11 +6,11 @@ The official installer and release feed live at [d2s.arken.gg](https://d2s.arken
 
 1. Update `VERSION`, the readable manager version declaration, and `CHANGELOG.md`.
 2. Change the loot package version only when that package changes.
-3. Build from committed source. Review the generated descriptor, size, and SHA-256.
+3. Build from committed source with `build/d2smm-build --release --source . --output dist`. Review the generated descriptor, size, and SHA-256.
 4. Exercise the affected browser behavior and retain proof outside the public source tree.
 5. Commit and tag the accepted release. Publishing is a separate maintainer action.
 
-The runtime currently has a **1 MiB** ceiling enforced by installed updaters and the build. Version 2.13.9 is close to that limit. Do not add another copy of a parser or texture; a future limit change requires a deliberate loader migration.
+The runtime has a **1 MiB** ceiling enforced by installed updaters and the build. The losslessly compressed bootstrap stays within that existing limit; decompression preserves the source and artwork. Do not raise the limit without a deliberate installed-loader migration.
 
 ## Static hosting
 

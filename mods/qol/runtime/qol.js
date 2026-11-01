@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   function create({getGame,coreReady,badges,controls,onChange=()=>{},connectGame=()=>D2GameContract.connect(),prepare=D2QolNative.prepare}){
+    const combat=D2QolCombat.create({getGame,coreReady,onChange,connectGame});
     let enabled=true,closed=false,core=null,native=null,pending=null,source=null,restore=null,problem='';
     const flags=D2ManagerKernel.qolFlags;
     const ready=Promise.all([coreReady,badges.ready]).then(([value])=>{core=value;if(badges.isReady())source=badges.source('qol');else throw Error('Unread notifications are unavailable');return connect();}).catch(fail);
@@ -18,6 +19,7 @@
       controls.refresh();void source.markUnread('charms',cls).catch(fail);
     }
     async function connect(){
+      void combat.connect();
       if(closed||!enabled||!core||!source||native||pending||problem)return;
       pending=(async()=>{const contract=await connectGame();if(!contract||closed)return;const candidate=await prepare(contract);if(closed)return;
         const p=candidate.Game.prototype,original=candidate.original.carry;if(p.carry!==original||!Object.getOwnPropertyDescriptor(p,'carry')?.writable)throw Error('Native pickup ownership changed');
@@ -27,7 +29,7 @@
     }
     const observer=new PerformanceObserver(()=>void connect());observer.observe({type:'resource',buffered:true});
     const timer=setInterval(()=>void connect(),500);
-    return Object.freeze({ready,configure(value){if(typeof value!=='boolean')throw Error('Invalid QoL setting');enabled=value;void connect();onChange();},status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null}),async dispose(){if(closed)return;closed=true;observer.disconnect();clearInterval(timer);await ready;if(pending)await pending;restore?.();source?.dispose();}});
+    return Object.freeze({ready:Promise.all([ready,combat.ready]),configure(value){if(typeof value!=='boolean')throw Error('Invalid QoL setting');enabled=value;combat.configure(value);void connect();onChange();},status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,combat:combat.status()}),async dispose(){if(closed)return;closed=true;observer.disconnect();clearInterval(timer);await combat.dispose();await ready;if(pending)await pending;restore?.();source?.dispose();}});
   }
   globalThis.D2Qol=Object.freeze({create});
 })();

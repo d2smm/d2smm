@@ -1,10 +1,18 @@
 #include "badges.hpp"
 #include "qol.hpp"
+#include "combat.hpp"
 #include "perfection.hpp"
 namespace d2smm {
 namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned lengths[3];
 bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&badges::key(input[1],lengths[1],m.target)&&badges::key(input[2],lengths[2],m.context);}}
 extern "C" {
+static qol::Combat combat;
+void d2smm_qol_combat_configure(unsigned enabled){combat.configure(enabled==1);}
+unsigned d2smm_qol_query_allowed(unsigned kind){return combat.allows(static_cast<qol::QueryKind>(kind));}
+void d2smm_qol_tint_reset(){combat.reset();}
+unsigned d2smm_qol_tint_open(double color,double now){return combat.open(color,now);}
+int d2smm_qol_tint(unsigned handle,double color,double now){return combat.tint(handle,color,now);}
+void d2smm_qol_tint_release(unsigned handle){combat.release(handle);}
 static characters::perfection::Score perfection;
 static char perfectionNames[2][128];
 void d2smm_perfection_begin(unsigned available){perfection.begin(available!=0);}

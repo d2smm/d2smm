@@ -65,16 +65,16 @@ Dropped packages currently support **declarative loot rules**. Executable mods a
 
 ## Build from source
 
-The browser runs plain JavaScript. A small native C++ tool assembles the release—no npm, Node, or Python build step.
+The browser runs JavaScript bindings and C++/Wasm policy. A native C++ tool assembles the local candidate—no npm, Node, or Python build step.
 
 ```sh
 cmake -S . -B build -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
 cmake --build build --target d2smm-build
 ctest --test-dir build -R build-tool --output-on-failure
-./build/d2smm-build --source . --output dist
+./build/d2smm-build --source . --output dist/dev
 ```
 
-This example is for macOS with CMake, a C++20 compiler, and OpenSSL 3 installed. Linux instructions and browser verification are in the [development guide](docs/development.md).
+This example is for macOS with CMake, a C++20 compiler, OpenSSL 3 and SDK zlib. Development skips release-only verification and packaging. Use `--release --source . --output dist` at a release boundary. Linux instructions and browser verification are in the [development guide](docs/development.md).
 
 ## Explore the repository
 

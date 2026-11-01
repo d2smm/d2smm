@@ -1,5 +1,6 @@
 #include <nlohmann/json.hpp>
 #include <openssl/evp.h>
+#include <zlib.h>
 #include "core.hpp"
 #include "gather.hpp"
 #include "qol.hpp"
@@ -22,20 +23,23 @@ using Json = nlohmann::json;
 using namespace std::string_literals;
 
 namespace {
+unsigned changedOutputs=0;
 std::string read(const fs::path& path) {
     std::ifstream file(path, std::ios::binary);
     if (!file) throw std::runtime_error("Cannot read " + path.string());
     return {std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
 }
 void write(const fs::path& path, const std::string& value) {
+    if(fs::is_regular_file(path)&&fs::file_size(path)==value.size()&&read(path)==value)return;
     fs::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
     file.write(value.data(), static_cast<std::streamsize>(value.size()));
     if (!file) throw std::runtime_error("Cannot write " + path.string());
+    ++changedOutputs;
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
-const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/CMakeLists.txt"};
 const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageLootCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);
@@ -94,6 +98,14 @@ std::string base64(const std::string& value) {
     }
     return out;
 }
+std::string compressRuntime(const std::string& value){
+    uLongf length=compressBound(value.size());std::string out(length,'\0');
+    if(compress2(reinterpret_cast<Bytef*>(out.data()),&length,reinterpret_cast<const Bytef*>(value.data()),value.size(),Z_BEST_COMPRESSION)!=Z_OK)throw std::runtime_error("Runtime compression failed");
+    out.resize(length);return out;
+}
+std::string bootstrap(const std::string& source){
+    return "globalThis.D2ModsStartup=(async()=>{const data=Uint8Array.from(atob('"+base64(compressRuntime(source))+"'),c=>c.charCodeAt(0));const text=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate'))).text();(0,eval)(text);return globalThis.D2ModsStartup;})();\n";
+}
 std::string uri(const std::string& value) {
     std::ostringstream out;
     for (unsigned char c : value) {
@@ -143,6 +155,9 @@ void sitePreview(const fs::path& site, const fs::path& output) {
     write(output,Json{{"method","Runtime.evaluate"},{"params",{{"expression",expression},{"awaitPromise",true},{"returnByValue",true}}}}.dump()+"\n");
 }
 void selfCheck() {
+    const std::string input="Runtime bytes: \"quoted\"\nUTF-8 \xe2\x80\x94\n",compressed=compressRuntime(input);
+    std::string expanded(input.size(),'\0');uLongf expandedSize=expanded.size();
+    require(uncompress(reinterpret_cast<Bytef*>(expanded.data()),&expandedSize,reinterpret_cast<const Bytef*>(compressed.data()),compressed.size())==Z_OK&&expanded==input,"Lossless runtime compression");
     require(sha256("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "SHA-256 vector");
     require(base64("") == "" && base64("f") == "Zg==" && base64("fo") == "Zm8=" && base64("foo") == "Zm9v", "Base64 vectors");
     require(uri("a b/+~") == "a%20b%2F%2B~", "Bookmark encoding");
@@ -174,8 +189,9 @@ void checkSource(const fs::path& input) {
     }
     std::cout << links << " local documentation links resolve\n";
 }
-void build(const fs::path& input, const fs::path& destination) {
+void build(const fs::path& input, const fs::path& destination,bool release) {
     const auto root = fs::canonical(input), out = fs::weakly_canonical(destination);
+    if(release)require(sha256(read(root/"vendor/nlohmann/json.hpp"))=="aaf127c04cb31c406e5b04a63f1ae89369fccde6d8fa7cdda1ed4f32dfc5de63","Vendored nlohmann/json identity changed");
     require(out != root && !inside(root,out), "Output may not contain the source repository");
     require(!inside(out,root) || inside(out,root/"dist"), "In-repository output must be under dist/");
     // Never erase an arbitrary populated output tree. Existing output is reusable only
@@ -196,15 +212,15 @@ void build(const fs::path& input, const fs::path& destination) {
     source += "globalThis.D2ModsDefaultPackage=" + Json(packageText).dump() + ";\n";
     const auto pin = Json::parse(read(root/"vendor/acorn/source.json"));
     const auto parser = read(root/"vendor/acorn/generated/acorn.js"), license = read(root/"vendor/acorn/LICENSE");
-    require(sha256(parser) == pin.at("sha256").get<std::string>() &&
+    if(release){require(sha256(parser) == pin.at("sha256").get<std::string>() &&
             parser.size() == pin.at("bytes").get<std::size_t>(), "Acorn source identity changed");
-    require(sha256(license) == pin.at("licenseSha256").get<std::string>(), "Acorn license identity changed");
+    require(sha256(license) == pin.at("licenseSha256").get<std::string>(), "Acorn license identity changed");}
     source += "/* Acorn " + pin.at("version").get<std::string>() + "\n" + license + "*/\n";
     source += "(()=>{const module={exports:{}};const exports=module.exports;\n"+parser+"\nglobalThis.D2JavaScriptParser=module.exports;})();\n";
     Json skin = Json::object();
     for (const auto& [name, entry] : manifest.at("skin").items()) {
         const auto bytes=read(sourcePath(root,entry.at("path").get<std::string>()));
-        if(entry.contains("pin")) {
+        if(release&&entry.contains("pin")) {
             const auto assetPin=Json::parse(read(sourcePath(root,entry.at("pin").get<std::string>())));
             require(sha256(bytes)==assetPin.at("sha256").get<std::string>()&&bytes.size()==assetPin.at("bytes").get<std::size_t>(),"Generated skin asset identity changed");
             require(sha256(read(sourcePath(root,assetPin.at("source").get<std::string>())))==assetPin.at("sourceSha256").get<std::string>(),"Generated skin asset source changed; regenerate it");
@@ -214,18 +230,18 @@ void build(const fs::path& input, const fs::path& destination) {
     source += "globalThis.D2ModSkin="+skin.dump()+";\n";
     const auto corePin=Json::parse(read(root/"mods/terrorized/generated/core.json"));
     const auto coreBytes=read(root/"mods/terrorized/generated/core.wasm");
-    require(corePin.at("schema")=="d2smm.native-core.v1"&&sha256(coreBytes)==corePin.at("sha256").get<std::string>()&&coreBytes.size()==corePin.at("bytes").get<std::size_t>(),"Terrorized core artifact identity changed");
-    for(const auto& file:terrorSources)require(sha256(read(root/"mods/terrorized"/file))==corePin.at("sources").at(file).get<std::string>(),"Terrorized core source changed; regenerate the native artifact");
+    if(release){require(corePin.at("schema")=="d2smm.native-core.v1"&&sha256(coreBytes)==corePin.at("sha256").get<std::string>()&&coreBytes.size()==corePin.at("bytes").get<std::size_t>(),"Terrorized core artifact identity changed");
+    for(const auto& file:terrorSources)require(sha256(read(root/"mods/terrorized"/file))==corePin.at("sources").at(file).get<std::string>(),"Terrorized core source changed; regenerate the native artifact");}
     source += "globalThis.D2TerrorizedKernel="+Json({{"wasm",base64(coreBytes)},{"flags",corePin.at("flags")},{"gatherFlags",corePin.at("gatherFlags")},{"dropFlags",corePin.at("dropFlags")},{"dropKinds",corePin.at("dropKinds")}}).dump()+";\n";
     const auto managerPin=Json::parse(read(root/"src/manager/generated/core.json"));
     const auto managerBytes=read(root/"src/manager/generated/core.wasm");
-    require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
-    for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");
+    if(release){require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
+    for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");}
     source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")}}).dump()+";\n";
     const auto lootPin=Json::parse(read(root/"mods/loot-guard/generated/core.json"));
     const auto lootBytes=read(root/"mods/loot-guard/generated/core.wasm");
-    require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
-    for(const auto& file:lootSources)require(sha256(read(root/"mods/loot-guard"/file))==lootPin.at("sources").at(file).get<std::string>(),"Loot core source changed; regenerate the native artifact");
+    if(release){require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
+    for(const auto& file:lootSources)require(sha256(read(root/file))==lootPin.at("sources").at(file).get<std::string>(),"Loot core source changed; regenerate the native artifact");}
     Json lootKernel=lootPin;lootKernel.erase("sources");lootKernel["wasm"]=base64(lootBytes);
     source+="globalThis.D2LootKernel="+lootKernel.dump()+";\n";
     for (const auto& path : manifest.at("runtime")) {
@@ -238,15 +254,18 @@ void build(const fs::path& input, const fs::path& destination) {
         source += module + "\n";
     }
     source += "await globalThis.D2Mods.ready;return globalThis.D2Mods;})();\n";
+    source=bootstrap(source);
     require(source.size() <= 1048576, "Manager exceeds the installed updater's 1 MiB limit: "+std::to_string(source.size())+" bytes");
-    const auto hash = sha256(source);
-    Json descriptor = {{"version",version},{"url",origin+"/manager/"+version+"/bootstrap.js"},{"bytes",source.size()},{"sha256",hash}};
+    write(out/".d2smm-output","d2smm-build\n");
+    write(out/"bootstrap.js",source);
+    Json descriptor=nullptr;std::string hash;
+    if(release){
+    hash=sha256(source);
+    descriptor = {{"version",version},{"url",origin+"/manager/"+version+"/bootstrap.js"},{"bytes",source.size()},{"sha256",hash}};
     std::string digestBytes;
     for (size_t i=0;i<hash.size();i+=2) digestBytes += static_cast<char>(std::stoul(hash.substr(i,2),nullptr,16));
     const auto sri = "sha256-"+base64(digestBytes);
     const auto bookmark = "javascript:"+uri("void(()=>{if(location.origin!=='https://d2survivors.lol'||!location.pathname.startsWith('/play/')){alert('Open D2 Survivors first');return;}if(globalThis.D2Mods){D2Mods.show();return;}globalThis.D2ModsBootstrap="+descriptor.dump()+";const s=document.createElement('script');s.src='"+descriptor.at("url").get<std::string>()+"';s.integrity='"+sri+"';s.crossOrigin='anonymous';s.onload=async()=>{await globalThis.D2ModsStartup;globalThis.D2Mods?.show();s.remove();};s.onerror=()=>alert('The mod manager could not be loaded.');document.head.append(s);})()");
-    write(out/".d2smm-output","d2smm-build\n");
-    write(out/"bootstrap.js",source);
     write(out/"bootstrap-record.json",descriptor.dump(2)+"\n");
     write(out/"bookmarklet.txt",bookmark+"\n");
     copyTree(root/"extension",out/"extension");
@@ -271,6 +290,7 @@ void build(const fs::path& input, const fs::path& destination) {
     const Json feed = {{"schema","d2mods.updates.v1"},{"channel","stable"},{"manager",descriptor},{"mods",Json::array({mod})}};
     write(out/"site/updates/stable.json",feed.dump(2)+"\n");
     sitePreview(out/"site",out/"site-preview-command.json");
+    }else write(out/"development.json",Json({{"mode","development"},{"version",version},{"bytes",source.size()},{"releaseVerified",false}}).dump(2)+"\n");
     // Development commands stay outside the hosted site and runtime bundle.
     const auto guard = "if(!globalThis.__D2GalleryLease?.contextId||location.origin!=='https://d2survivors.lol')throw Error('Verified isolated gallery context required');";
     const auto load = "(async()=>{"+std::string(guard)+"const before=localStorage.getItem('d2-survivors/save/v1');globalThis.D2ModsBootstrap="+descriptor.dump()+";eval("+Json(source).dump()+");await D2ModsStartup;await D2Mods.ready;if(before!==localStorage.getItem('d2-survivors/save/v1'))throw Error('Candidate load changed native save');return{version:D2Mods.version,saveUnchanged:true};})()";
@@ -304,22 +324,25 @@ void build(const fs::path& input, const fs::path& destination) {
       const auto expression="(async()=>{"+std::string(guard)+"await D2Mods.ready;await D2Mods.installText(D2ModsDefaultPackage);return eval("+Json(read(root/"tests/browser"/file)).dump()+");})()";
       write(out/command,Json({{"method","Runtime.evaluate"},{"params",{{"expression",expression},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     }
-    std::cout << "D2SMM " << version << ": " << source.size() << " bytes\nSHA-256 " << hash << "\nOutput " << out << '\n';
+    std::cout << "D2SMM " << version << " (" << (release?"release":"development") << "): " << source.size() << " bytes; " << changedOutputs << " outputs changed\n";
+    if(release)std::cout<<"SHA-256 "<<hash<<'\n';
+    std::cout<<"Output "<<out<<'\n';
 }
 } // namespace
 
 int main(int argc, char** argv) {
     // Version is deliberately evaluated before any path, crypto or output work.
-    if (argc==2 && std::string(argv[1])=="--version") { std::cout<<"d2smm-build 1.0.0\n"; return 0; }
+    if (argc==2 && std::string(argv[1])=="--version") { std::cout<<"d2smm-build 1.1.0\n"; return 0; }
     try {
         if (argc==2 && std::string(argv[1])=="--self-check") { selfCheck(); return 0; }
         if (argc==3 && std::string(argv[1])=="--check-source") { checkSource(argv[2]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-terror-core") { stageTerrorCore(argv[2],argv[3]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-manager-core") { stageManagerCore(argv[2],argv[3]); return 0; }
         if (argc==4 && std::string(argv[1])=="--stage-loot-core") { stageLootCore(argv[2],argv[3]); return 0; }
-        if (argc!=5 || std::string(argv[1])!="--source" || std::string(argv[3])!="--output") {
-            std::cerr<<"Usage: d2smm-build --source REPOSITORY --output OUTPUT\n"; return 2;
+        const bool release=argc==6&&std::string(argv[1])=="--release";const int first=release?2:1;
+        if (argc!=first+4 || std::string(argv[first])!="--source" || std::string(argv[first+2])!="--output") {
+            std::cerr<<"Usage: d2smm-build [--release] --source REPOSITORY --output OUTPUT\n"; return 2;
         }
-        build(argv[2],argv[4]); return 0;
+        build(argv[first+1],argv[first+3],release); return 0;
     } catch (const std::exception& error) { std::cerr<<"Build failed: "<<error.what()<<'\n'; return 1; }
 }

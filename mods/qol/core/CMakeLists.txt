@@ -1,2 +1,7 @@
-add_library(d2smm-qol-core STATIC "${CMAKE_CURRENT_SOURCE_DIR}/qol.cpp")
+add_library(d2smm-qol-core STATIC "${CMAKE_CURRENT_SOURCE_DIR}/qol.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/combat.cpp")
 target_include_directories(d2smm-qol-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(d2smm-qol-combat-checks "${PROJECT_SOURCE_DIR}/tests/qol-combat.cpp")
+target_link_libraries(d2smm-qol-combat-checks PRIVATE d2smm-qol-core)
+add_test(NAME qol-combat-policy COMMAND d2smm-qol-combat-checks)
+add_test(NAME qol-combat-version COMMAND d2smm-qol-combat-checks --version)
+set_tests_properties(qol-combat-version PROPERTIES TIMEOUT 5 PASS_REGULAR_EXPRESSION "d2smm-qol-combat-checks 1.0.0")

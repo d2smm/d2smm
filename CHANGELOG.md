@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.13.11
+
+- QoL prevents summons from shoving monsters while preserving normal monster movement, separation and skill knockback.
+- QoL holds monster status colors for at least three seconds between changes, with instant transitions.
+- Development builds omit release-only verification and packaging; runtime compression preserves the installed updater's size limit without changing artwork.
+
 ## 2.13.10
 
 - Set the shared mod UI zoom to 1.2, including the manager, Characters, Gear Loadouts and important-events log. Keep the character-stat sheet at its existing size and preserve Retina scaling.
