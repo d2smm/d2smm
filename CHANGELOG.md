@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.10
+
+- Set the shared mod UI zoom to 1.2, including the manager, Characters, Gear Loadouts and important-events log. Keep the character-stat sheet at its existing size and preserve Retina scaling.
+
 ## 2.13.9
 
 - Show purchased Charsi ranks below Equipment, followed by the mercenary.

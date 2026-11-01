@@ -12,7 +12,7 @@ dialog[data-section=characters]{width:550px}dialog[data-section=characters] .cha
 @media(max-width:760px){.equipment{grid-template-rows:repeat(7,38px)}}
 @media(max-width:390px){.equipment{gap:3px;grid-template-rows:repeat(7,34px)}.characters__actions button{padding:9px 10px}.characters__subtle{font-size:13px}}
 `+D2GameSkin.css+`
-dialog[data-section=gear]{--zoom:calc(.75*var(--scale));width:650px;scrollbar-color:#333 #000}
+dialog[data-section=gear]{width:650px;scrollbar-color:#333 #000}
 .characters__gear-actions .characters__info{border:1px solid #8f7951;border-image:none;background:#111;box-shadow:none;min-width:42px;width:42px;padding:0;font:24px/1 Georgia,serif;border-radius:3px}
 `;
 })();

@@ -14,14 +14,14 @@ input:disabled{opacity:.45;cursor:wait}
 .d2mods__launcher .d2mods__attention-gem,.d2mods__launcher[data-state=on] .d2mods__attention-gem{clip-path:circle(8px at 33px 35px);filter:grayscale(1) brightness(3);z-index:2}
 .d2mods__attention-halo{position:absolute;left:35px;top:37px;width:15px;height:15px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 10px 5px #fff,0 0 27px 11px #e8eeffc9;z-index:1;pointer-events:none;animation:d2mods-attention-glow 2.2s ease-in-out infinite alternate}
 @keyframes d2mods-attention-glow{from{opacity:.72;box-shadow:0 0 8px 4px #fff,0 0 23px 9px #e8eeffb0}to{opacity:1;box-shadow:0 0 12px 6px #fff,0 0 30px 13px #e8eeffe0}}
-.d2mods__attention{zoom:var(--scale);position:absolute;left:50%;bottom:calc((var(--d2mods-gem-size,70px) - 3px)/var(--scale));transform:translateX(-50%);width:min(380px,calc(100vw - 20px));padding:18px 20px 22px;isolation:isolate;color:#e8e5de;font:16px/1.45 system-ui,-apple-system,sans-serif}
+.d2mods__attention{zoom:var(--zoom);position:absolute;left:50%;bottom:calc((var(--d2mods-gem-size,70px) - 3px)/var(--zoom));transform:translateX(-50%);width:min(380px,calc(100vw - 20px));padding:18px 20px 22px;isolation:isolate;color:#e8e5de;font:16px/1.45 system-ui,-apple-system,sans-serif}
 .d2mods__attention::before{content:'';position:absolute;inset:0;z-index:-1;background:#000e;box-shadow:0 0 17px 8px #000b;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent),linear-gradient(transparent,#000 9%,#000 91%,transparent);mask-composite:intersect;pointer-events:none}
 .d2mods__attention-list{list-style:none;margin:0;padding:0 5px;max-height:min(380px,calc(100svh - var(--d2mods-gem-size,70px) - 62px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8b816e #13110d}
 .d2mods__attention-list:focus-visible{outline:1px solid #9e8a61;outline-offset:3px}
 .d2mods__attention-entry{padding:12px 0;border-bottom:1px solid #ffffff16;overflow-wrap:anywhere}.d2mods__attention-entry:last-child{border-bottom:0}
 .d2mods__attention-title{display:block;color:#faf6e9;font:600 18px/1.35 D2ModHeading,Georgia,serif}.d2mods__attention-detail{display:block;margin-top:5px;color:#c9c6bf;font-size:14px}.d2mods__attention-source{display:block;margin-top:5px;color:#9d927d;font-size:12px}
 @media(prefers-reduced-motion:reduce){.d2mods__attention-halo{animation:none}}
-dialog.d2mods__panel{--zoom:calc(.75*var(--scale));width:640px;scrollbar-color:#333 #000}
+dialog.d2mods__panel{width:640px;scrollbar-color:#333 #000}
 .d2mods__panel::backdrop{background:#0008}
 .d2mods__header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:26px}
 .d2mods__title{margin:0}

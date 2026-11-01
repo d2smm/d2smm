@@ -2,7 +2,7 @@
   'use strict';
   globalThis.D2BuildInfoStyle=D2GameSkin.css+`
 .build,.build *{box-sizing:border-box}
-dialog.build{width:1640px;overflow:auto;padding:10px 14px;color:#e7dfcf;font:15px/1.35 system-ui,sans-serif;scrollbar-color:#333 #000;font-variant-numeric:tabular-nums}dialog.build::backdrop{background:#000b}
+dialog.build{--zoom:var(--scale);width:1640px;overflow:auto;padding:10px 14px;color:#e7dfcf;font:15px/1.35 system-ui,sans-serif;scrollbar-color:#333 #000;font-variant-numeric:tabular-nums}dialog.build::backdrop{background:#000b}
 .build header{display:flex;align-items:center;gap:16px;padding:0 0 8px;margin:0;border-bottom:1px solid #776138}.build__identity{display:flex;align-items:baseline;gap:24px;flex:1;flex-wrap:wrap;min-width:0}.build h2{margin:0;font-size:27px;line-height:1.2}.build__context,.build__muted{color:#c1b398;font-size:13px}.build__terror{text-align:right;font-size:13px;white-space:nowrap}.build__terror small{display:block;color:#bba77e;font-size:11px}
 .build h3{margin:0;font-size:21px;line-height:1.25}.build h4{margin:0;font:600 15px/1.35 system-ui,sans-serif}.build p{margin:6px 0}.build dl{margin:0}.build__stat{display:flex;justify-content:space-between;align-items:baseline;gap:12px;min-width:0}.build dt{color:#cbbb9e}.build dd{margin:0;text-align:right;color:#f0ebe1}.build dd.build__negative,.build__negative{color:#ff8a80}
 .build__overview{display:flex;gap:12px;border-bottom:1px solid #8b7340;align-items:center}.build__summary{display:flex;flex:1;padding:10px 0;justify-content:space-between}.build__summary>.build__stat{padding:0 8px;border-right:1px solid #695632;justify-content:flex-start;gap:14px}.build__summary>.build__stat:first-child{padding-left:2px}.build__summary dd{font-size:18px;white-space:nowrap}
