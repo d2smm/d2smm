@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION='2.13.12';
+  const VERSION='2.13.13';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
@@ -12,7 +12,7 @@
   const gameMenu=D2ModGameMenu.create(()=>show());
   const gameUI=D2ModGameUI.create(gameMenu.getGame,()=>paint());
   const terrorized=D2Terrorized.create({getGame:gameMenu.getGame,onChange:paint,notify:text=>{notice=text;show();}});
-  const coreReady=D2ManagerNative.create();let badgeControls=null;
+  const coreReady=D2ManagerNative.create({getGame:gameMenu.getGame});let badgeControls=null;
   const badges=D2ControlBadges.create({coreReady,store:db,onChange:()=>{badgeControls?.refresh();paint();},broadcast:()=>channel.postMessage({badgesChanged:true})});
   badgeControls=D2NativeControlBadges.create({getGame:gameMenu.getGame,badges,onChange:paint});
   const qol=D2Qol.create({coreReady,getGame:gameMenu.getGame,badges,controls:badgeControls,onChange:paint});

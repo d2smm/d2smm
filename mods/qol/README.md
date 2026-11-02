@@ -2,7 +2,7 @@
 
 Small conveniences that preserve the game's rules.
 
-Ordinary monster collisions and summons no longer shove monsters sideways. Approaching monsters give way to the front of the pack; melee monsters hold within native attack reach and pursue again when the target moves away. Attacks, special movement and intentional skill knockback remain native.
+Ordinary monster collisions and summons no longer shove monsters sideways. Blocked melee monsters walk around the pack toward open attack positions around their native target, including Valkyrie. Monsters in attack reach hold their ground; those with no reachable opening wait and pursue again when space opens or the target moves away. Detours use native walking frames and speed, preserving the stride on small turns and restarting it beyond 20 degrees. Attacks, special movement and intentional skill knockback remain native.
 
 **Options → Hide hit stars** hides the large critical-strike flash. It is off by default and does not change critical damage or other effects.
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.13
+
+- QoL lets blocked melee monsters walk around other monsters toward open attack positions, including around Valkyrie and other native targets. Monsters already in reach hold their ground; a fully surrounded target makes the remaining monsters wait.
+- Detours use the native walk animation and movement speed. Small turns preserve the stride; turns greater than 20 degrees restart it. Native attacks and intentional knockback remain unchanged.
+
 ## 2.13.12
 
 - QoL replaces ordinary monster overlap shoves with movement admission and approach order. Melee monsters hold within native attack reach and resume pursuit when the target leaves it; attacks and deliberate skill knockback remain native.

@@ -10,6 +10,7 @@
     const functions=module.body.filter(n=>n.type==='FunctionDeclaration'),byName=new Map(functions.map(n=>[n.id.name,n]));
     const exports=new Map(module.body.filter(n=>n.type==='ExportNamedDeclaration').flatMap(n=>n.specifiers).map(n=>[n.local.name,namespace[key(n.exported)]]));
     const constants=new Map(module.body.filter(n=>n.type==='VariableDeclaration').flatMap(n=>n.declarations).filter(n=>n.id.type==='Identifier'&&value(n.init)!==undefined).map(n=>[n.id.name,value(n.init)]));
+    const declarations=new Map(module.body.filter(n=>n.type==='VariableDeclaration').flatMap(n=>n.declarations).filter(n=>n.id.type==='Identifier').map(n=>[n.id.name,n.init])),resolved=new Map([...exports,...constants]);resolved.set('Math',Math);
     const separates=[];
     for(const fn of functions){
       if(fn.params.length!==2||fn.body.body.length!==2||fn.body.body[1].type!=='ForOfStatement')continue;
@@ -30,10 +31,20 @@
     const separation=one(separates,'ordinary separation');
     const reach=one(functions.filter(n=>n.params.length===2&&n.body.body.length===1&&n.body.body[0].type==='ReturnStatement'&&find(n,p=>member(p,'radius')).length===2&&find(n,p=>value(p)==='tentacle').length),'melee reach');
     const idle=one(functions.filter(n=>n.params.length===4&&['NU','WL','direction','animTime','texture'].every(k=>find(n,p=>member(p,k)).length)&&!find(n,p=>p.type==='AssignmentExpression'&&(member(p.left,'x')||member(p.left,'y'))).length),'native idle animation');
-    function bind(fn){
-      const names=D2SourceBindings.references(fn),values=names.map(name=>{if(exports.has(name))return exports.get(name);if(constants.has(name))return constants.get(name);throw Error('Native presentation dependency is private: '+name);});
-      return Function(...names,'"use strict";return ('+source.slice(fn.start,fn.end)+');')(...values);
+    function resolve(name,stack=[]){
+      if(resolved.has(name))return resolved.get(name);
+      if(stack.includes(name)||stack.length>=6)throw Error('Native presentation dependency cycle');
+      const fn=byName.get(name)??declarations.get(name);
+      if(!fn||!['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(fn.type)||find(fn,n=>['AssignmentExpression','UpdateExpression','NewExpression','AwaitExpression','YieldExpression'].includes(n.type)||n.type==='UnaryExpression'&&n.operator==='delete').length)throw Error('Unsupported native presentation dependency: '+name);
+      const names=D2SourceBindings.references(fn),values=names.map(n=>resolve(n,[...stack,name])),result=Function(...names,'"use strict";return ('+source.slice(fn.start,fn.end)+');')(...values);resolved.set(name,result);return result;
     }
+    function bind(fn,text=source.slice(fn.start,fn.end)){const names=D2SourceBindings.references(fn);return Function(...names,'"use strict";return ('+text+');')(...names.map(n=>resolve(n)));}
+    const mover=byName.get(separation.mover),tail=mover.body.body.slice(-2);
+    if(tail[0]?.type!=='VariableDeclaration'||tail[1]?.type!=='ExpressionStatement'||!find(tail[0],n=>member(n,'WL')).length)throw Error('Native walking presentation changed');
+    const facing=one(find(tail[1],n=>n.type==='AssignmentExpression'&&member(n.left,'direction')&&n.left.object.name===mover.params[1].name),'walking direction');
+    if(facing.right.type!=='CallExpression'||facing.right.callee.type!=='Identifier')throw Error('Native walking direction changed');
+    const walking='function('+mover.params.slice(1).map(n=>n.name).join(',')+'){'+source.slice(tail[0].start,tail[1].end)+'}',walkingAst=D2JavaScriptParser.parse('('+walking+')',{ecmaVersion:'latest',sourceType:'module'}).body[0].expression;
+    const walk=bind(walkingAst,walking),direction=resolve(facing.right.callee.name);
     const stars=[];
     for(const fn of functions){
       if(fn.params.length!==2||!find(fn,n=>member(n,'flashes')).length||!find(fn,n=>member(n,'radius')).length)continue;
@@ -47,7 +58,7 @@
       stars.push({life,colors:styles.map(s=>field(s,'color')),alphas:styles.map(s=>field(s,'alpha',1)),width:field(styles[2],'width'),helper:fn.id.name});
     }
     const hitFlash=one(stars,'critical-hit star');
-    return Object.freeze({callback:separation.callback,queryPadding:40,reach:bind(reach),idle:bind(idle),hitFlash,evidence:{separation:separation.helper,movement:separation.mover,pair:separation.pair,reach:reach.id.name,idle:idle.id.name,hit:hitFlash.helper,hitEffect:'critical-strike star'}});
+    return Object.freeze({callback:separation.callback,queryPadding:40,reach:bind(reach),idle:bind(idle),walk,direction,hitFlash,evidence:{separation:separation.helper,movement:separation.mover,pair:separation.pair,reach:reach.id.name,idle:idle.id.name,walking:'native movement presentation tail',hit:hitFlash.helper,hitEffect:'critical-strike star'}});
   }
   globalThis.D2QolCrowdNative=Object.freeze({prepare});
 })();

@@ -2,20 +2,36 @@
 #include "qol.hpp"
 #include "combat.hpp"
 #include "perfection.hpp"
+extern "C" {
+__attribute__((import_module("game"),import_name("point_open"))) unsigned host_point_open(double,double);
+__attribute__((import_module("game"),import_name("segment_clear"))) unsigned host_segment_clear(double,double,double,double);
+}
 namespace d2smm {
 namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned lengths[3];
 bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&badges::key(input[1],lengths[1],m.target)&&badges::key(input[2],lengths[2],m.context);}}
 extern "C" {
 static qol::Combat combat;
+static bool terrainPoint(void*,qol::NavPoint p){return host_point_open(p.x,p.y)!=0;}
+static bool terrainSegment(void*,qol::NavPoint a,qol::NavPoint b){return host_segment_clear(a.x,a.y,b.x,b.y)!=0;}
 void d2smm_qol_combat_configure(unsigned enabled,unsigned hideHitStars){combat.configure(enabled==1,hideHitStars==1);}
 unsigned d2smm_qol_effect_visible(unsigned kind){return combat.effectVisible(kind);}
 unsigned d2smm_qol_effect_profile(double life,double c0,double c1,double c2,double a0,double a1,double a2,double width){return combat.effectProfile(life,c0,c1,c2,a0,a1,a2,width);}
 void d2smm_qol_effect_begin(double life,unsigned additive,unsigned count){combat.effectBegin(life,additive!=0,count);}
 void d2smm_qol_effect_part(unsigned index,unsigned kind,double color,double alpha,double width,unsigned polygons,unsigned points,unsigned circles,unsigned moves,unsigned other){combat.effectPart(index,kind,color,alpha,width,polygons,points,circles,moves,other);}
 unsigned d2smm_qol_effect_end(){return combat.effectEnd();}
-unsigned d2smm_qol_motion_observe(unsigned handle,double x,double y,double radius,unsigned melee,unsigned ranged,unsigned special,double tx,double ty,unsigned animated,double speed){auto* m=combat.motion(handle);return m&&m->observe(x,y,radius,melee!=0,ranged!=0,special!=0,tx,ty,animated!=0,speed,handle&0xfff);}
-unsigned d2smm_qol_motion_begin(unsigned handle,double x,double y,double tx,double ty,double radius,double reach){auto* m=combat.motion(handle);return m&&m->begin(x,y,tx,ty,radius,reach);}
-unsigned d2smm_qol_motion_neighbor(unsigned handle,unsigned other,double x,double y,double radius,unsigned same,unsigned dead,unsigned nativeDisplaced){auto* m=combat.motion(handle);return m&&m->neighbor(x,y,radius,same!=0,dead!=0,combat.motion(other),true,nativeDisplaced!=0);}
+unsigned d2smm_qol_motion_frame(unsigned walls,double now,double dt){return combat.frame(walls!=0,now,dt,{nullptr,terrainPoint,terrainSegment});}
+unsigned d2smm_qol_motion_observe(unsigned handle,double x,double y,double radius,unsigned melee,unsigned ranged,unsigned special,unsigned target,double tx,double ty,double tr,double life,unsigned animated,double speed,double animation,double facing,double directions){return combat.observe(handle,x,y,radius,melee,ranged,special,target,tx,ty,tr,life,animated,speed,animation,facing,directions);}
+unsigned d2smm_qol_motion_prop(double x,double y,double radius){return combat.scenery(x,y,radius);}
+unsigned d2smm_qol_motion_begin(unsigned handle,double x,double y,unsigned target,double tx,double ty,double radius,double life,double reach){return combat.beginMotion(handle,x,y,target,tx,ty,radius,life,reach);}
+unsigned d2smm_qol_motion_neighbor(unsigned handle,unsigned other,double x,double y,double radius,unsigned same,unsigned dead,unsigned nativeDisplaced,unsigned animated){return combat.neighbor(handle,other,x,y,radius,same!=0,dead!=0,nativeDisplaced!=0,animated!=0);}
+unsigned d2smm_qol_motion_needs_route(unsigned handle){return combat.needsRoute(handle);}
+unsigned d2smm_qol_motion_geometry_begin(unsigned handle){return combat.geometryBegin(handle);}
+unsigned d2smm_qol_motion_pose(unsigned handle,double x,double y,double radius,unsigned dead,unsigned animated){return combat.pose(handle,x,y,radius,dead!=0,animated!=0);}
+void d2smm_qol_motion_resolve(unsigned handle){combat.resolve(handle);}
+unsigned d2smm_qol_motion_guided(unsigned handle){auto* m=combat.motion(handle);return m&&m->guided&&!m->idle;}
+double d2smm_qol_motion_velocity(unsigned handle,unsigned axis){auto* m=combat.motion(handle);if(!m||m->dt<=0)return 0;return (axis?m->dy:m->dx)/m->dt;}
+double d2smm_qol_motion_walk_phase(unsigned handle,double direction,double directions){auto* m=combat.motion(handle);return m?m->walkPhase(direction,directions):-1;}
+unsigned d2smm_qol_navigation_count(unsigned status){return combat.navigationCount(status);}
 double d2smm_qol_motion_coordinate(unsigned handle,unsigned axis){auto* m=combat.motion(handle);return m?m->coordinate(axis!=0):0;}
 unsigned d2smm_qol_motion_idle(unsigned handle,unsigned animated){auto* m=combat.motion(handle);return m&&m->idle&&!animated;}
 void d2smm_qol_motion_finish(unsigned handle){if(auto* m=combat.motion(handle))m->finish();}

@@ -67,6 +67,7 @@ int main(int argc,char** argv){
     c.configure(false,true);
     if(!check(c.effectVisible(1),"Disabling QoL restores the native hit visual"))return 1;
     Motion leader,follower;
+    leader.targetId=follower.targetId=1;
     leader.observe(10,0,10,true,false,false,100,0,false,90,1);
     follower.observe(0,0,10,true,false,false,100,0,false,90,2);
     if(!check(follower.yieldsTo(leader)&&!leader.yieldsTo(follower),"Mobile followers yield to the closer native pursuer"))return 1;
@@ -76,9 +77,9 @@ int main(int argc,char** argv){
     if(!check(!follower.yieldsTo(leader),"Established melee actors remain solid between attacks"))return 1;
     follower.held=false;follower.animated=true;
     if(!check(!follower.yieldsTo(leader),"An attacking actor never yields its ground"))return 1;
-    follower.animated=false;follower.targetY=1;
+    follower.animated=false;follower.targetY=1;follower.targetId=2;
     if(!check(!follower.yieldsTo(leader),"Unrelated target flows retain solid contact"))return 1;
-    follower.targetY=0;follower.melee=false;
+    follower.targetY=0;follower.targetId=1;follower.melee=false;
     if(!check(!follower.yieldsTo(leader),"Ranged and special actors do not enter melee right of way"))return 1;
     m.observe(0,0,10,false,false,false);m.begin(1,0,100,0,10,26);m.neighbor(15,0,10,false,false,nullptr,true,false);
     if(!check(m.coordinate(false)==1,"Native private pair exclusions survive contact admission"))return 1;

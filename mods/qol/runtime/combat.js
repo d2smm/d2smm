@@ -33,7 +33,7 @@
       const run=function(name,callback,...args){
         if(name!=='enemies'||closed||!enabled||problem)return original.call(this,name,callback,...args);
         return original.call(this,name,()=>{
-          try{attachWorld(game.world);motion.begin(world);inEnemies=true;}catch(error){fail(error);return callback();}
+          try{attachWorld(game.world);motion.begin(world,tickDt);inEnemies=true;}catch(error){fail(error);return callback();}
           try{const result=callback();if(!problem)try{motion.finish(tickDt);}catch(error){fail(error);}return result;}finally{inEnemies=false;}
         },...args);
       };
@@ -76,8 +76,8 @@
       pending=(async()=>{if(!native){const contract=await connectGame();if(!contract||closed)return;native=await prepare(contract);motion=D2QolMotion.create({core,native:native.crowd,track});effects=D2QolEffects.create({core,profile:native.crowd.hitFlash});}if(!closed&&enabled)install();})().catch(fail).finally(()=>pending=null);
       await pending;
     }
-    const ready=coreReady.then(value=>{core=value;for(const name of ['combat_configure','query_allowed','tint_reset','tint_open','tint','tint_release','effect_visible','effect_profile','effect_begin','effect_part','effect_end','motion_observe','motion_begin','motion_neighbor','motion_coordinate','motion_idle','motion_finish'])if(typeof core['d2smm_qol_'+name]!=='function')throw Error('Combat policy exports are unavailable');core.d2smm_qol_combat_configure(Number(enabled),Number(hideHitStars));return connect();}).catch(fail);
-    return Object.freeze({ready,connect,configure(value,hideStars){enabled=value;hideHitStars=hideStars;core?.d2smm_qol_combat_configure(Number(value),Number(hideStars));effects?.restore();if(!value)uninstall();else void connect();},status:()=>({enabled,hideHitStars,connected:!!restoreUpdate,problem,evidence:native?.evidence??null,tracked:actors.size}),async dispose(){closed=true;uninstall();await ready;if(pending)await pending;uninstall();}});
+    const ready=coreReady.then(value=>{core=value;for(const name of ['combat_configure','query_allowed','tint_reset','tint_open','tint','tint_release','effect_visible','effect_profile','effect_begin','effect_part','effect_end','motion_observe','motion_begin','motion_neighbor','motion_coordinate','motion_idle','motion_finish','motion_frame','motion_prop','motion_needs_route','motion_geometry_begin','motion_pose','motion_resolve','motion_guided','motion_velocity','motion_walk_phase','navigation_count'])if(typeof core['d2smm_qol_'+name]!=='function')throw Error('Combat policy exports are unavailable');core.d2smm_qol_combat_configure(Number(enabled),Number(hideHitStars));return connect();}).catch(fail);
+    return Object.freeze({ready,connect,configure(value,hideStars){enabled=value;hideHitStars=hideStars;core?.d2smm_qol_combat_configure(Number(value),Number(hideStars));effects?.restore();if(!value)uninstall();else void connect();},status:()=>({enabled,hideHitStars,connected:!!restoreUpdate,problem,evidence:native?.evidence??null,tracked:actors.size,navigation:motion?.status()??null}),async dispose(){closed=true;uninstall();await ready;if(pending)await pending;uninstall();}});
   }
   globalThis.D2QolCombat=Object.freeze({create});
 })();
