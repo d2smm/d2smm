@@ -64,6 +64,8 @@ cmake --build build --target d2smm-cdp
 
 It accepts one CDP command or up to 32 sequential commands from standard input and an exact loopback WebSocket target as its argument. It neither launches nor discovers a browser. Use only a browser/profile you own for testing, with remote debugging explicitly enabled. Verify the context and exact target before sending commands. Never point a mutation fixture at a player's session.
 
+Within one input array, a parameter may reference a prior response with `{"$cdpResult":0,"path":["result","result","objectId"]}`. Indices are zero-based; remote object handles remain scoped to that connection. `--list-windows PID` and `--inspect-window PID "unique title substring"` provide bounded, read-only native window labels for an already-identified browser process; a CDP context ID alone does not establish its visible profile.
+
 For the installer website, release assembly also emits `dist/site-preview-command.json`. Send it through that transport to an owned test tab already on `https://d2s.arken.gg/`. It replaces that tab's document with the candidate site and embedded assets; it refuses other origins. This is a preview only. Final acceptance must use the published page.
 
 ## Existing browser checks
@@ -139,6 +141,8 @@ Also exercise **U**, the actual info button beside Equip, Escape, editable field
 Use the selected output directory (`dist/dev` for development) for generated browser commands. After loading the candidate in a verified isolated Druid game, evaluate [`qol-combat-fixture.js`](../tests/browser/qol-combat-fixture.js) and call `installCombatFixture()`, then `D2CombatProof.verify()`. Setup starts a new disposable, tainted run and creates durable native monster/summon objects only in that test world. Never run it on a player's target.
 
 The fixture compares native summon pushing with QoL enabled/disabled, preserves ordinary monster separation and Molten Boulder knockback, and checks native hit/chill tint timing through real game updates. `animate(enabled, durationMs)` provides a bounded capture sequence; `stop()` ends it, and `dispose()` restores the prior QoL toggle. The native nonvisual checks are in the `qol-combat` CTest group. Keep the admitted page visible during native loading; a timed-out CDP wait may leave its original loading promise active, so reconcile it before repeating setup.
+
+For the Decoy regression, [`baal-movement-fixture.js`](../tests/browser/baal-movement-fixture.js) uses an owned, paused, tainted native Amazon run through `D2BaalScene.g`. `installBaalMovementFixture()` prepares thirty real Minions of Destruction; `prepareNativeDecoy()` casts a real finite-life Decoy. Record physical directional input and the gem switch through the existing native recorder. The fixture changes health and population only for a durable comparison; native AI, attacks, animation and Decoy lifetime remain active. Ordinary movement and the former turn-restart/pathfinding overrides are no longer owned by QoL.
 
 ## Promo production
 

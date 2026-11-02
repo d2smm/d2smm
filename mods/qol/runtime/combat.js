@@ -1,11 +1,11 @@
 (() => {
   'use strict';
   function create({getGame,coreReady,onChange=()=>{},connectGame=()=>D2GameContract.connect(),prepare=D2QolCombatNative.prepare}){
-    let enabled=false,hideHitStars=false,closed=false,core=null,native=null,motion=null,effects=null,pending=null,restoreUpdate=null,restoreGrid=null,restoreStage=null,restoreRender=null,stageGame=null,world=null,epoch=0,problem='',inEnemies=false,tickDt=0;
+    let enabled=false,hideHitStars=false,closed=false,core=null,native=null,effects=null,pending=null,restoreUpdate=null,restoreGrid=null,restoreRender=null,world=null,epoch=0,problem='';
     const actors=new Map(),sourceOf=Function.prototype.toString;
     function restoreColors(){for(const r of actors.values())if(!r.sprite.destroyed)r.sprite.tint=r.requested;}
-    function clear(){restoreColors();effects?.restore();motion?.clear();actors.clear();core?.d2smm_qol_tint_reset();restoreGrid?.();restoreGrid=null;world=null;}
-    function uninstall(){clear();restoreStage?.();restoreStage=null;stageGame=null;restoreRender?.();restoreRender=null;restoreUpdate?.();restoreUpdate=null;}
+    function clear(){restoreColors();effects?.restore();actors.clear();core?.d2smm_qol_tint_reset();restoreGrid?.();restoreGrid=null;world=null;}
+    function uninstall(){clear();restoreRender?.();restoreRender=null;restoreUpdate?.();restoreUpdate=null;}
     function fail(error){problem=error.message;uninstall();console.warn('[QoL] combat adjustments unavailable',error);onChange();}
     function attachWorld(next){
       if(world===next)return;clear();
@@ -13,9 +13,18 @@
       const grid=next.grid,original=grid.query,descriptor=Object.getOwnPropertyDescriptor(grid,'query');
       if(typeof original!=='function'||descriptor&&!descriptor.writable||!descriptor&&!Object.isExtensible(grid))throw Error('Spatial query ownership changed');
       const query=function(x,y,r,callback){
-        const source=typeof callback==='function'?sourceOf.call(callback):'',kind=source===native.pushCallback?1:0;
-        if(!closed&&enabled&&world===next&&!core.d2smm_qol_query_allowed(kind))return;
-        if(!closed&&enabled&&inEnemies&&world===next&&source===native.crowd.callback){try{return motion.query(this,original,x,y,r,callback);}catch(error){fail(error);}}
+        const source=typeof callback==='function'?sourceOf.call(callback):'',kind=source===native.pushCallback?1:source===native.decoyCallback?2:0;
+        const mode=!closed&&enabled&&world===next?core.d2smm_qol_query_mode(kind):0;
+        if(mode===1)return;
+        if(mode===2)return original.call(this,x,y,r,enemy=>{
+          const sprite=enemy.sprite;if(!sprite||sprite.destroyed)return callback(enemy);
+          const pose={x:enemy.x,y:enemy.y,direction:enemy.direction,animTime:enemy.animTime,spriteX:sprite.x,spriteY:sprite.y,z:sprite.zIndex,texture:sprite.texture};
+          try{return callback(enemy);}finally{
+            enemy.x=pose.x;enemy.y=pose.y;enemy.direction=pose.direction;enemy.animTime=pose.animTime;
+            if(enemy.sprite!==sprite||sprite.destroyed)throw Error('Native Decoy callback changed sprite lifetime');
+            sprite.position.set(pose.spriteX,pose.spriteY);sprite.zIndex=pose.z;sprite.texture=pose.texture;
+          }
+        });
         return original.call(this,x,y,r,callback);
       };
       grid.query=query;world=next;restoreGrid=()=>{if(grid.query===query)descriptor?Object.defineProperty(grid,'query',descriptor):delete grid.query;};
@@ -25,19 +34,6 @@
       if(record&&record.sprite!==sprite){core.d2smm_qol_tint_release(record.handle);actors.delete(enemy);record=null;}
       if(!record){const requested=sprite.tint,handle=core.d2smm_qol_tint_open(requested,world.time);if(!handle)throw Error('Monster tracking capacity or format is unsupported');record={handle,sprite,requested,epoch};actors.set(enemy,record);}
       return record;
-    }
-    function attachStage(game){
-      if(stageGame===game)return;restoreStage?.();restoreStage=null;stageGame=null;
-      const guard=game.frameGuard,original=guard?.run,descriptor=guard&&Object.getOwnPropertyDescriptor(guard,'run');
-      if(typeof original!=='function'||descriptor&&!descriptor.writable||!descriptor&&!Object.isExtensible(guard))throw Error('Enemy stage ownership changed');
-      const run=function(name,callback,...args){
-        if(name!=='enemies'||closed||!enabled||problem)return original.call(this,name,callback,...args);
-        return original.call(this,name,()=>{
-          try{attachWorld(game.world);motion.begin(world,tickDt);inEnemies=true;}catch(error){fail(error);return callback();}
-          try{const result=callback();if(!problem)try{motion.finish(tickDt);}catch(error){fail(error);}return result;}finally{inEnemies=false;}
-        },...args);
-      };
-      guard.run=run;stageGame=game;restoreStage=()=>{if(guard.run===run)descriptor?Object.defineProperty(guard,'run',descriptor):delete guard.run;};
     }
     function present(){
       ++epoch;
@@ -55,7 +51,7 @@
       if(p.update!==original)throw Error('Game update ownership changed');
       const update=function(...args){
         if(closed||!enabled||problem||getGame()!==this)return original.apply(this,args);
-        try{tickDt=args[0];attachWorld(this.world);attachStage(this);restoreColors();}catch(error){fail(error);return original.apply(this,args);}
+        try{attachWorld(this.world);restoreColors();}catch(error){fail(error);return original.apply(this,args);}
         const result=original.apply(this,args);
         try{if(this.world!==world)attachWorld(this.world);else if(world)present();}catch(error){fail(error);}
         return result;
@@ -73,11 +69,11 @@
     }
     async function connect(){
       if(closed||!enabled||!core||pending||problem||restoreUpdate)return;
-      pending=(async()=>{if(!native){const contract=await connectGame();if(!contract||closed)return;native=await prepare(contract);motion=D2QolMotion.create({core,native:native.crowd,track});effects=D2QolEffects.create({core,profile:native.crowd.hitFlash});}if(!closed&&enabled)install();})().catch(fail).finally(()=>pending=null);
+      pending=(async()=>{if(!native){const contract=await connectGame();if(!contract||closed)return;native=await prepare(contract);effects=D2QolEffects.create({core,profile:native.hitFlash});}if(!closed&&enabled)install();})().catch(fail).finally(()=>pending=null);
       await pending;
     }
-    const ready=coreReady.then(value=>{core=value;for(const name of ['combat_configure','query_allowed','tint_reset','tint_open','tint','tint_release','effect_visible','effect_profile','effect_begin','effect_part','effect_end','motion_observe','motion_begin','motion_neighbor','motion_coordinate','motion_idle','motion_finish','motion_frame','motion_prop','motion_needs_route','motion_geometry_begin','motion_pose','motion_resolve','motion_guided','motion_velocity','motion_walk_phase','navigation_count'])if(typeof core['d2smm_qol_'+name]!=='function')throw Error('Combat policy exports are unavailable');core.d2smm_qol_combat_configure(Number(enabled),Number(hideHitStars));return connect();}).catch(fail);
-    return Object.freeze({ready,connect,configure(value,hideStars){enabled=value;hideHitStars=hideStars;core?.d2smm_qol_combat_configure(Number(value),Number(hideStars));effects?.restore();if(!value)uninstall();else void connect();},status:()=>({enabled,hideHitStars,connected:!!restoreUpdate,problem,evidence:native?.evidence??null,tracked:actors.size,navigation:motion?.status()??null}),async dispose(){closed=true;uninstall();await ready;if(pending)await pending;uninstall();}});
+    const ready=coreReady.then(value=>{core=value;for(const name of ['combat_configure','query_mode','tint_reset','tint_open','tint','tint_release','effect_visible','effect_profile','effect_begin','effect_part','effect_end'])if(typeof core['d2smm_qol_'+name]!=='function')throw Error('Combat policy exports are unavailable');core.d2smm_qol_combat_configure(Number(enabled),Number(hideHitStars));return connect();}).catch(fail);
+    return Object.freeze({ready,connect,configure(value,hideStars){enabled=value;hideHitStars=hideStars;core?.d2smm_qol_combat_configure(Number(value),Number(hideStars));effects?.restore();if(!value)uninstall();else void connect();},status:()=>({enabled,hideHitStars,connected:!!restoreUpdate,problem,evidence:native?.evidence??null,tracked:actors.size,movement:'native'}),async dispose(){closed=true;uninstall();await ready;if(pending)await pending;uninstall();}});
   }
   globalThis.D2QolCombat=Object.freeze({create});
 })();

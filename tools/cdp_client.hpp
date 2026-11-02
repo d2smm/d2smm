@@ -16,3 +16,4 @@ public:
     NSDictionary *checked(NSDictionary *command);
 };
 int RecordCdp(NSString *address, NSString *recipePath, NSString *outputPath);
+int InspectCdpWindow(pid_t pid,NSString *title);

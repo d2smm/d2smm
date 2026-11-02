@@ -22,8 +22,12 @@ void Combat::effectPart(unsigned index,unsigned kind,double color,double alpha,d
     else effectMatches_=effectMatches_&&kind==2&&polygons==0&&circles==1&&width==effectWidth_;
 }
 bool Combat::effectEnd()const{return effectVisible(effectMatches_&&effectParts_==3?1:0);}
-Motion* Combat::motion(unsigned handle){auto* entry=find(handle);return enabled_&&entry?&entry->movement:nullptr;}
-bool Combat::allows(QueryKind kind)const{return !enabled_||kind!=QueryKind::passiveSummonPush;}
+QueryMode Combat::queryMode(QueryKind kind)const{
+    if(!enabled_)return QueryMode::native;
+    if(kind==QueryKind::passiveSummonPush)return QueryMode::suppress;
+    if(kind==QueryKind::legacyDecoyMovement)return QueryMode::retainNativePose;
+    return QueryMode::native;
+}
 Combat::Entry* Combat::find(unsigned handle){
     const unsigned slot=handle&0xfff,generation=handle>>12;
     if(!slot||slot>capacity)return nullptr;
@@ -33,7 +37,7 @@ void Combat::reset(){for(auto& entry:entries_){entry.live=false;advance(entry.ge
 unsigned Combat::open(double color,double now){
     if(!enabled_||!validColor(color)||!validTime(now))return 0;
     for(unsigned i=0;i<capacity;++i){auto& e=entries_[i];if(e.live)continue;
-        e.live=true;e.color=static_cast<unsigned>(color);e.observed=now;e.admitted=now-holdSeconds;e.movement={};
+        e.live=true;e.color=static_cast<unsigned>(color);e.observed=now;e.admitted=now-holdSeconds;
         return (e.generation<<12)|(i+1);
     }
     return 0;

@@ -4,15 +4,16 @@
   function create(actions){
     if(document.getElementById('d2-mod-system'))throw Error('Another mod manager owns this page');
     const host=el('div',undefined,{id:'d2-mod-system'}),shadow=host.attachShadow({mode:'open'}),style=el('style',globalThis.D2ModStyle);
-    const launcher=el('button',undefined,{'class':'d2mods__launcher','data-action':'open-manager','aria-label':'Open Mod Manager','aria-haspopup':'dialog','aria-expanded':'false','title':'Mod Manager (M)'});launcher.hidden=true;
+    const launcher=el('button',undefined,{'class':'d2mods__launcher','data-action':'toggle-manager','aria-label':'Disable Mod Manager','aria-pressed':'true','title':'Disable Mod Manager'});launcher.hidden=true;
     const gemOff=el('img',undefined,{src:D2ModSkin.gemOff,alt:'',width:'66',height:'66',draggable:'false'}),gemOn=el('img',undefined,{src:D2ModSkin.gemOn,alt:'',width:'66',height:'66',draggable:'false'});launcher.append(gemOff,gemOn);
     const attention=D2AttentionView.create(launcher);
     const panel=el('dialog',undefined,{'class':'d2mods__panel','aria-labelledby':'d2mods-title'});
     const run=fn=>()=>{const focused=shadow.activeElement;return Promise.resolve().then(fn).catch(actions.report).finally(()=>{if(panel.open&&focused?.isConnected&&!shadow.activeElement)focused.focus({preventScroll:true});});};
     const button=(label,id,fn,variation='')=>{const b=el('button',label,{'class':'d2mods__button '+variation,'data-action':id});b.addEventListener('click',run(fn));return b;};
     const header=el('header',undefined,{'class':'d2mods__header'}),headerActions=el('div',undefined,{'class':'d2mods__header-actions'});
+    const master=button('On','toggle-manager-panel',actions.toggleManager,'d2mods__button--quiet');master.setAttribute('aria-pressed','true');
     const close=el('button','×',{'class':'d2mods__close','aria-label':'Close Mod Manager','data-action':'close'});close.addEventListener('click',()=>panel.close());
-    headerActions.append(el('kbd','M',{'class':'d2mods__key'}),close);header.append(el('h2','Mod Manager',{id:'d2mods-title','class':'d2mods__title'}),headerActions);
+    headerActions.append(master,el('kbd','M',{'class':'d2mods__key'}),close);header.append(el('h2','Mod Manager',{id:'d2mods-title','class':'d2mods__title'}),headerActions);
     const empty=el('section',undefined,{'class':'d2mods__card d2mods__empty','data-empty-mod':''});
     const enable=button('Enable Loot Guard','enable-default',actions.enableDefault,'d2mods__button--primary');
     empty.append(el('strong','Loot Guard',{'class':'d2mods__name'}),el('p','Highlight valuable drops for every class.'),enable);
@@ -65,15 +66,15 @@
       {key:'hideHitStars',label:'Hide hit stars',configure:value=>actions.configurePreferences({qolHideHitStars:value})}
     ]:[]}));
     panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
-    launcher.addEventListener('click',actions.show);
+    launcher.addEventListener('click',run(actions.toggleManager));
     let session={inGame:false,atTitle:false,canExit:false,anchor:null};
-    panel.addEventListener('close',()=>{launcher.setAttribute('aria-expanded','false');attention.display({visible:!launcher.hidden,open:false,anchor:session.anchor});actions.focusGame();});
+    panel.addEventListener('close',()=>{attention.display({visible:!launcher.hidden,open:false,anchor:session.anchor});actions.focusGame();});
     for(const eventName of ['pointerdown','pointerup','click','keydown','keyup'])host.addEventListener(eventName,event=>event.stopPropagation());
     let rulesHash=null;
     function paint(s,pack,installerBootstrap){
       empty.hidden=!!s.mod;card.hidden=!s.mod;protection.hidden=!s.mod;exportButton.hidden=!s.mod;remove.hidden=!s.mod;
       for(const c of builtins)c.paint(s.builtinMods.find(m=>m.id===c.id),s);
-      session=s.session;const on=!!s.mod?.settings.enabled||s.builtinMods.some(m=>m.enabled);launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame||!session.anchor;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.setAttribute('aria-expanded',String(panel.open));launcher.setAttribute('aria-label','Open Mod Manager — mods '+(on?'on':'off'));launcher.title='Mod Manager (M) · Mods '+(on?'on':'off');showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
+      session=s.session;const on=s.managerEnabled,label=on?'Disable Mod Manager':'Enable Mod Manager';launcher.hidden=!s.ready||!s.preferences.showGem||!session.inGame||!session.anchor;launcher.dataset.state=on?'on':'off';gemOn.hidden=!on;gemOff.hidden=on;launcher.disabled=s.busy||!s.ready;launcher.setAttribute('aria-pressed',String(on));launcher.setAttribute('aria-label',label);launcher.title=label;master.textContent=on?'On':'Off';master.disabled=s.busy||!s.ready;master.setAttribute('aria-pressed',String(on));master.setAttribute('aria-label',label);showGem.checked=s.preferences.showGem;showGem.disabled=s.busy;
       attention.paint(s.attention);attention.display({visible:!launcher.hidden,open:panel.open,anchor:session.anchor});
       version.textContent='v'+s.version;
       if(s.mod){

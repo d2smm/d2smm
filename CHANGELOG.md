@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.13.14
+
+- Enable **Hide hit stars** by default for new or unset QoL preferences; keep explicit saved choices.
+
+- The bottom gem now toggles Mod Manager on/off: purple on, blue off, preserving selected mods. M still opens settings; the panel also has a master toggle.
+- Fix Decoy applying movement twice after the official 20261101.1 targeting change. Monsters keep their native movement and attacks instead of being displaced again relative to the hero.
+- Restore native ordinary monster movement and walking animation. Remove the experimental contact admission, attack-gap routing and 20-degree stride resets after the Baal-minion comparison exposed sticking and worse movement.
+- Keep summon shove protection, status-color stabilization and the optional critical-hit-star control.
+
 ## 2.13.13
 
 - QoL lets blocked melee monsters walk around other monsters toward open attack positions, including around Valkyrie and other native targets. Monsters already in reach hold their ground; a fully surrounded target makes the remaining monsters wait.

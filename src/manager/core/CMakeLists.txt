@@ -24,13 +24,20 @@ if(D2SMM_WASM_CXX)
       -Wl,--export=d2smm_badge_input -Wl,--export=d2smm_badge_length -Wl,--export=d2smm_badge_valid_key
       -Wl,--export=d2smm_badge_reset -Wl,--export=d2smm_badge_apply -Wl,--export=d2smm_badge_count -Wl,--export=d2smm_badge_key
       -Wl,--export=d2smm_qol_candidate -Wl,--export=d2smm_qol_admit -Wl,--export=d2smm_qol_transferred
-      -Wl,--export=d2smm_qol_combat_configure -Wl,--export=d2smm_qol_query_allowed -Wl,--export=d2smm_qol_tint_reset -Wl,--export=d2smm_qol_tint_open -Wl,--export=d2smm_qol_tint -Wl,--export=d2smm_qol_tint_release
-      -Wl,--export=d2smm_qol_effect_visible -Wl,--export=d2smm_qol_motion_observe -Wl,--export=d2smm_qol_motion_begin -Wl,--export=d2smm_qol_motion_neighbor -Wl,--export=d2smm_qol_motion_coordinate -Wl,--export=d2smm_qol_motion_idle -Wl,--export=d2smm_qol_motion_finish
+      -Wl,--export=d2smm_qol_combat_configure -Wl,--export=d2smm_qol_query_mode -Wl,--export=d2smm_qol_tint_reset -Wl,--export=d2smm_qol_tint_open -Wl,--export=d2smm_qol_tint -Wl,--export=d2smm_qol_tint_release
+      -Wl,--export=d2smm_qol_effect_visible
+      -Wl,--export=d2smm_manager_configure -Wl,--export=d2smm_manager_enabled -Wl,--export=d2smm_manager_next_enabled -Wl,--export=d2smm_manager_feature
       -Wl,--export=d2smm_qol_effect_profile -Wl,--export=d2smm_qol_effect_begin -Wl,--export=d2smm_qol_effect_part -Wl,--export=d2smm_qol_effect_end
-      -Wl,--export=d2smm_qol_motion_frame -Wl,--export=d2smm_qol_motion_prop -Wl,--export=d2smm_qol_motion_needs_route -Wl,--export=d2smm_qol_motion_geometry_begin -Wl,--export=d2smm_qol_motion_pose -Wl,--export=d2smm_qol_motion_resolve -Wl,--export=d2smm_qol_motion_guided -Wl,--export=d2smm_qol_motion_velocity -Wl,--export=d2smm_qol_motion_walk_phase -Wl,--export=d2smm_qol_navigation_count
       -Wl,--export=d2smm_perfection_begin -Wl,--export=d2smm_perfection_property -Wl,--export=d2smm_perfection_input -Wl,--export=d2smm_perfection_member -Wl,--export=d2smm_perfection_end -Wl,--export=d2smm_perfection_finish -Wl,--export=d2smm_perfection_rolls
       -Wl,--export=d2smm_perfection_observe -Wl,--export=d2smm_perfection_armor -Wl,--export=d2smm_perfection_value
       -o "${manager_wasm}"
-    DEPENDS badges.cpp badges.hpp wasm.cpp CMakeLists.txt ${qol_sources} "${qol_includes}/qol.hpp" "${qol_includes}/combat.hpp" "${qol_includes}/motion.hpp" "${qol_includes}/navigation.hpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.cpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.hpp" VERBATIM)
+    DEPENDS badges.cpp badges.hpp controls.hpp wasm.cpp CMakeLists.txt ${qol_sources} "${qol_includes}/qol.hpp" "${qol_includes}/combat.hpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.cpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.hpp" VERBATIM)
   add_custom_target(d2smm-manager-wasm DEPENDS "${manager_wasm}")
 endif()
+add_library(d2smm-manager-controls INTERFACE)
+target_include_directories(d2smm-manager-controls INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(d2smm-manager-controls-checks "${PROJECT_SOURCE_DIR}/tests/manager-controls.cpp")
+target_link_libraries(d2smm-manager-controls-checks PRIVATE d2smm-manager-controls)
+add_test(NAME manager-controls COMMAND d2smm-manager-controls-checks)
+add_test(NAME manager-controls-version COMMAND d2smm-manager-controls-checks --version)
+set_tests_properties(manager-controls-version PROPERTIES TIMEOUT 5 PASS_REGULAR_EXPRESSION "d2smm-manager-controls-checks 1.0.0")

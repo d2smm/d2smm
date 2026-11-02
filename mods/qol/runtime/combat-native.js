@@ -33,9 +33,28 @@
       candidates.push({callback:source.slice(callback.start,callback.end),helper:fn.id.name});
     }
     const push=one(candidates,'passive summon push'),prototype=base.Game.prototype,original=prototype.update;
+    const functions=module.body.filter(n=>n.type==='FunctionDeclaration'),byName=new Map(functions.map(n=>[n.id.name,n])),decoys=[];let registeredLures=0;
+    for(const factory of functions){
+      if(factory.params.length!==4)continue;
+      const[world,x,y,config]=factory.params.map(p=>p.name);if(!world||!x||!y||!config)continue;
+      const body=find(factory,n=>n.type==='CallExpression'&&n.arguments[0]?.name===world&&literal(n.arguments[3])==='lure');if(!body.length)continue;++registeredLures;
+      const queries=find(factory,n=>n.type==='CallExpression'&&member(n.callee,'query')&&member(n.callee.object,'grid')&&n.arguments[0]?.name===x&&n.arguments[1]?.name===y);
+      if(queries.length!==1)continue;const query=queries[0],radius=query.arguments[2],callback=query.arguments[3];
+      if(radius?.type!=='BinaryExpression'||radius.operator!=='+'||literal(radius.right)!==40||!member(radius.left,'radius')||radius.left.object.name!==config||callback?.type!=='ArrowFunctionExpression'||callback.params.length!==1)continue;
+      const enemy=callback.params[0].name,calls=find(callback,n=>n.type==='CallExpression'&&n.callee.type==='Identifier'&&n.arguments.length===5&&n.arguments[0]?.name===world&&n.arguments[1]?.name===enemy&&n.arguments[2]?.name===x&&n.arguments[3]?.name===y);
+      if(calls.length!==1)continue;const mover=byName.get(calls[0].callee.name);if(!mover||mover.params.length!==5)continue;
+      const actor=mover.params[1].name,writes=find(mover,n=>n.type==='AssignmentExpression'),path=n=>n.type==='Identifier'?n.name:n.type==='MemberExpression'?path(n.object)+'.'+key(n.property):'';
+      const positions=writes.filter(n=>[actor+'.x',actor+'.y'].includes(path(n.left)));
+      if(positions.length!==4||positions.filter(n=>n.operator==='-=').length!==2||positions.filter(n=>n.operator==='+=').length!==2||writes.length!==7||!writes.every(n=>positions.includes(n)||n.operator==='='&&[actor+'.direction',actor+'.sprite.texture',actor+'.sprite.zIndex'].includes(path(n.left))))continue;
+      if(!find(mover,n=>n.type==='VariableDeclarator'&&n.init?.name===mover.params[0].name&&n.id.type==='ObjectPattern'&&n.id.properties.some(p=>key(p.key)==='player')).length)continue;
+      const callers=functions.filter(n=>n!==factory&&find(n,p=>p.type==='CallExpression'&&p.callee.name===factory.id.name).length);
+      if(callers.length!==1||!find(callers[0],n=>literal(n)==='dopplezon.cast').length||!find(callers[0],n=>n.type==='CallExpression'&&n.callee.name===factory.id.name&&n.arguments[3]?.type==='ObjectExpression'&&n.arguments[3].properties.some(p=>key(p.key)==='life')).length)continue;
+      decoys.push({callback:source.slice(callback.start,callback.end),factory:factory.id.name,mover:mover.id.name});
+    }
+    const decoy=registeredLures?one(decoys,'registered Decoy movement'):null;
     if(!Object.getOwnPropertyDescriptor(prototype,'update')?.writable)throw Error('Game update is not writable');
-    const crowd=D2QolCrowdNative.prepare({source,module,namespace:binding.namespace});
-    return Object.freeze({Game:base.Game,original,pushCallback:push.callback,crowd,evidence:{game:contract.url,module:binding.url,enemyExport:binding.name,pushHelper:push.helper,crowd:crowd.evidence}});
+    const hitFlash=D2QolHitNative.prepare({module});
+    return Object.freeze({Game:base.Game,original,pushCallback:push.callback,decoyCallback:decoy?.callback??null,hitFlash,evidence:{game:contract.url,module:binding.url,enemyExport:binding.name,pushHelper:push.helper,hitHelper:hitFlash.helper,hitEffect:'critical-strike star',decoy:decoy?{factory:decoy.factory,mover:decoy.mover,correction:'retain native movement before obsolete lure compensation'}:null}});
   }
   globalThis.D2QolCombatNative=Object.freeze({prepare});
 })();

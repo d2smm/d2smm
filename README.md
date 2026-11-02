@@ -33,7 +33,7 @@ Click the bookmark again after reloading the game. No account or game-file repla
 | **Terrorized** | Replay the Terror tier and act you just finished, or gather run drops into a ring after the boss falls. | [Terrorized](mods/terrorized/) |
 | **QoL** | Put newly picked-up charms into Charms when they fit, with a red unread dot until you open it. | [QoL](mods/qol/) |
 
-**The gem keeps watch.** Purple means at least one mod is enabled; blue means all mods are off. A bright white gem calls out important events. Uncollected matched loot stays in its hover log until resolved; other notices expire after a minute. During play, the gem sits over the bottom-center mini-panel button. Click it to open the manager.
+**The gem is the master switch.** Click it to toggle Mod Manager: purple is on, blue is off. Your selected mods are preserved. Press **M** to open settings. Uncollected matched loot stays in the gem's hover log until resolved; other notices expire after a minute.
 
 <p align="center">
   <img src="site/assets/gallery/manager.webp" alt="The Mod Manager's dark stone controls" width="29%">

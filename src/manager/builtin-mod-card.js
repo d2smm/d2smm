@@ -13,7 +13,7 @@
     const optionInputs=[];
     if(options.length){const details=el('details',undefined,{class:'d2mods__details d2mods__options','data-builtin-options':id});details.append(el('summary','Options'));
       for(const option of options){const row=el('label',undefined,{class:'d2mods__row'}),input=el('input',undefined,{type:'checkbox','data-builtin-option':option.key,'aria-label':option.label});input.addEventListener('change',()=>option.configure(input.checked).catch(report));row.append(el('span',option.label,{class:'d2mods__row-label'}),input);details.append(row);optionInputs.push({key:option.key,input});}node.append(details);}
-    return Object.freeze({id,node,paint(mod,{busy,checking,updates}){enabled.checked=mod.enabled;enabled.disabled=busy;if(launch)launch.disabled=busy||!mod.enabled;for(const{key,input}of optionInputs){input.checked=!!mod.options?.[key];input.disabled=busy||!mod.enabled;}problem.textContent=mod.problem||'';problem.hidden=!mod.problem;metadata.textContent='Current '+mod.version+' · '+(updates?.latestManager?'Latest '+updates.latestManager.version:checking?'Checking latest…':'Latest not checked');}});
+    return Object.freeze({id,node,paint(mod,{busy,checking,updates,managerEnabled}){enabled.checked=mod.enabled;enabled.disabled=busy;if(launch)launch.disabled=busy||!managerEnabled||!mod.enabled;for(const{key,input}of optionInputs){input.checked=!!mod.options?.[key];input.disabled=busy||!mod.enabled;}problem.textContent=mod.problem||'';problem.hidden=!mod.problem;metadata.textContent='Current '+mod.version+' · '+(updates?.latestManager?'Latest '+updates.latestManager.version:checking?'Checking latest…':'Latest not checked');}});
   }
   globalThis.D2BuiltinModCard=Object.freeze({create});
 })();

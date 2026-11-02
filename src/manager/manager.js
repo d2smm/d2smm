@@ -1,29 +1,32 @@
 (() => {
   'use strict';
-  const VERSION='2.13.13';
+  const VERSION='2.13.14';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
   const blank={enabled:false,protectMatches:true,sound:true,testFcr:false};
-  let preferences={revision:0,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:false};
-  function applyBuiltins(){globalThis.D2Characters.configureFeatures({characters:preferences.charactersEnabled,gearLoadouts:preferences.gearLoadoutsEnabled});terrorized.configure(preferences.terrorizedEnabled,preferences.terrorizedGatherDrops,preferences.terrorizedGatherChests);qol.configure(preferences.qolEnabled,preferences.qolHideHitStars);}
+  let preferences={revision:0,managerEnabled:true,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:true},nativeCore=null;
+  function refreshControls(){if(!nativeCore?.d2smm_manager_configure(Number(preferences.managerEnabled),Number(record?.pack?record.settings.enabled:false),Number(preferences.charactersEnabled),Number(preferences.gearLoadoutsEnabled),Number(preferences.terrorizedEnabled),Number(preferences.qolEnabled)))throw Error('Manager control state is unavailable');}
+  function feature(key){return nativeCore.d2smm_manager_feature(D2ManagerKernel.managerFeatures[key])===1;}
+  function applyBuiltins(){refreshControls();globalThis.D2Characters.configureFeatures({characters:feature('characters'),gearLoadouts:feature('gearLoadouts')});terrorized.configure(feature('terrorized'),preferences.terrorizedGatherDrops,preferences.terrorizedGatherChests);qol.configure(feature('qol'),preferences.qolHideHitStars);}
   const attention=D2ModAttention.create({onChange:entries=>view?.paintAttention(entries)});
   globalThis.D2LootGuard.setAttention(attention.source('loot-guard','Loot Guard'));
   const gameMenu=D2ModGameMenu.create(()=>show());
   const gameUI=D2ModGameUI.create(gameMenu.getGame,()=>paint());
   const terrorized=D2Terrorized.create({getGame:gameMenu.getGame,onChange:paint,notify:text=>{notice=text;show();}});
-  const coreReady=D2ManagerNative.create({getGame:gameMenu.getGame});let badgeControls=null;
+  const coreReady=D2ManagerNative.create();let badgeControls=null;
   const badges=D2ControlBadges.create({coreReady,store:db,onChange:()=>{badgeControls?.refresh();paint();},broadcast:()=>channel.postMessage({badgesChanged:true})});
   badgeControls=D2NativeControlBadges.create({getGame:gameMenu.getGame,badges,onChange:paint});
   const qol=D2Qol.create({coreReady,getGame:gameMenu.getGame,badges,controls:badgeControls,onChange:paint});
   function assertOpen(){if(closed)throw Error('Mod manager has been closed');}
   function task(work){const operation=queue.then(async()=>{assertOpen();busy=true;paint();try{return await work();}finally{busy=false;paint();}});queue=operation.catch(error=>{notice=error.message;console.error('[D2 Mods]',error);paint();});return operation;}
   function apply(){
+    refreshControls();
     if(!record?.pack){globalThis.D2LootGuard.configure(blank);return;}
     globalThis.D2ModPackages.validate(record.pack);globalThis.D2ModPackages.settings(record.settings);
-    globalThis.D2LootGuard.configure(record.settings,record.pack);
+    globalThis.D2LootGuard.configure({...record.settings,enabled:feature('lootGuard')},record.pack);
   }
-  async function load(){let[value,display]=await Promise.all([db.read(),db.readPreferences()]);assertOpen();if(value?.pack){const decoded=await globalThis.D2ModPackages.decode(value.source);if(decoded.sha256!==value.sha256)throw Error('Stored mod checksum differs. Reinstall its file.');value.pack=decoded.pack;if(value.elitePolicyVersion!==1)value=await db.write({...value,settings:{...value.settings,testFcr:false},elitePolicyVersion:1},value.revision);}assertOpen();record=value;preferences=display;applyBuiltins();apply();initialized=true;paint();}
+  async function load(){let[value,display,core]=await Promise.all([db.read(),db.readPreferences(),coreReady]);assertOpen();if(value?.pack){const decoded=await globalThis.D2ModPackages.decode(value.source);if(decoded.sha256!==value.sha256)throw Error('Stored mod checksum differs. Reinstall its file.');value.pack=decoded.pack;if(value.elitePolicyVersion!==1)value=await db.write({...value,settings:{...value.settings,testFcr:false},elitePolicyVersion:1},value.revision);}assertOpen();record=value;preferences=display;nativeCore=core;applyBuiltins();apply();initialized=true;paint();}
   async function installText(source,{customRules=false}={}){return task(async()=>{
     const decoded=await globalThis.D2ModPackages.decode(source);assertOpen();
     if(record?.pack&&record.pack.id!==decoded.pack.id)throw Error('A loot mod is already installed. Remove it before installing another.');
@@ -53,10 +56,12 @@
     const saved=await db.write({...record,settings},record.revision);assertOpen();record=saved;apply();notice='';channel.postMessage({changed:true});return summary();
   });}
   async function uninstall(){return task(async()=>{record=await db.write(null,record?.revision??0);assertOpen();apply();notice='Mod removed';channel.postMessage({changed:true});return summary();});}
-  async function configurePreferences(changes){return task(async()=>{
-    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
-    preferences=await db.writePreferences({...preferences,...changes},preferences.revision);assertOpen();applyBuiltins();notice='';channel.postMessage({changed:true});return summary();
-  });}
+  async function savePreferences(changes){
+    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['managerEnabled','showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
+    preferences=await db.writePreferences({...preferences,...changes},preferences.revision);assertOpen();applyBuiltins();apply();notice='';channel.postMessage({changed:true});return summary();
+  }
+  function configurePreferences(changes){return task(()=>savePreferences(changes));}
+  function toggleManager(){return task(()=>savePreferences({managerEnabled:nativeCore.d2smm_manager_next_enabled()===1})).finally(()=>gameUI.focus());}
   async function configureBuiltin(id,enabled){const keys={'characters':'charactersEnabled','gear-loadouts':'gearLoadoutsEnabled','terrorized':'terrorizedEnabled','qol':'qolEnabled'};if(!Object.hasOwn(keys,id)||typeof enabled!=='boolean')throw Error('Invalid built-in mod setting');return configurePreferences({[keys[id]]:enabled});}
   async function checkUpdates(){if(checking)return;if(installing||busy)throw Error('Wait for the current mod operation');checking=true;notice='';paint();try{updates=await globalThis.D2ModUpdates.check(record?.pack?{id:record.pack.id,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules}:null,VERSION);notice=updates.mod||updates.manager?'':'Everything is up to date';return updates;}catch(error){updates=null;throw error;}finally{checking=false;paint();}}
   async function installModUpdate(){
@@ -92,7 +97,7 @@
       if(next)try{await next.checkUpdates();}catch(error){console.warn('[D2 Mods] post-update check',error);next.notify(`Manager updated. Could not check mod updates: ${error.message}`);}
     }finally{installing=false;if(!closed)paint();}
   }
-  function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,preferences:{showGem:preferences.showGem},
+  function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,managerEnabled:preferences.managerEnabled,preferences:{showGem:preferences.showGem},
     builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops,gatherChests:preferences.terrorizedGatherChests},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''},{id:'qol',version:VERSION,enabled:preferences.qolEnabled,options:{hideHitStars:preferences.qolHideHitStars},problem:qol.status().combat.problem?'Combat adjustments are unavailable in this game build.':qol.status().problem||badges.status().problem||badgeControls.status().problem?'Automatic charm placement is unavailable.':''}],
     mod:record?.pack?{id:record.pack.id,name:record.pack.name,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules,settings:{...record.settings},ruleCount:record.pack.builtinRules.length+record.pack.extraRules.length,revision:record.revision}:null,
     runtime:globalThis.D2LootGuard.snapshot(),attention:attention.snapshot(),gameMenu:gameMenu.status(),terrorized:terrorized.status(),qol:qol.status(),badges:badges.status(),badgeControls:badgeControls.status(),session:gameUI.snapshot()};}
@@ -102,7 +107,7 @@
   function paint(){view?.paint(summary(),record?.pack,installerBootstrap);}
   function mount(){
     view=globalThis.D2ModView.create({
-      show,report,configure,configurePreferences,configureBuiltin,installFile,exportText,uninstall,checkUpdates,installModUpdate,installManagerUpdate,focusGame:gameUI.focus,
+      show,report,configure,configurePreferences,configureBuiltin,toggleManager,installFile,exportText,uninstall,checkUpdates,installModUpdate,installManagerUpdate,focusGame:gameUI.focus,
       characters:()=>{panel.close();globalThis.D2Characters.show({section:'characters'});},
       gear:()=>{panel.close();globalThis.D2Characters.show({section:'gear'});},
       toggleFilter:()=>configure({enabled:!record.settings.enabled}),
@@ -120,7 +125,7 @@
       if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.isComposing)return;
       const target=event.composedPath()[0];
       if(target?.isContentEditable||target?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select'))return;
-      if(!preferences.gearLoadoutsEnabled||!gameUI.snapshot().inGame)return;
+      if(!initialized||!feature('gearLoadouts')||!gameUI.snapshot().inGame)return;
       consumeHotkey(event);if(event.repeat)return;loadoutKeyHeld=true;
       globalThis.D2Characters?.toggleGear();return;
     }
@@ -147,6 +152,6 @@
   channel.onmessage=event=>{if(event.data?.badgesChanged)void badges.reload().catch(error=>console.warn('[D2SMM] unread refresh',error));else void task(load).catch(report);};
   const ready=task(async()=>{mount();persistent=await navigator.storage?.persisted?.()??false;await Promise.all([badges.ready,D2LootRules.ready]);await load();});
   async function dispose(){await queue;closed=true;await qol.dispose();await badgeControls.dispose();await badges.dispose();await terrorized.dispose();gameUI.dispose();view?.dispose();globalThis.D2LootGuard.dispose();attention.dispose();await globalThis.D2Characters?.dispose();await gameMenu.dispose();await globalThis.D2GameContract?.dispose();globalThis.D2GameSkin?.dispose();db.close();channel.close();document.removeEventListener('dragover',dragOver,true);document.removeEventListener('drop',drop,true);window.removeEventListener('keydown',hotkey,true);window.removeEventListener('keyup',releaseHotkey,true);window.removeEventListener('blur',resetHotkey);window.removeEventListener('message',message);window.removeEventListener('d2mods:loot-status',lootStatus);document.getElementById('d2-mod-system')?.remove();delete globalThis.D2Mods;delete globalThis.D2LootGuard;delete globalThis.D2Characters;}
-  globalThis.D2Mods=Object.freeze({version:VERSION,ready,status:summary,show,focusGame:gameUI.focus,close:()=>panel?.close(),installFile,installText,configure,configurePreferences,configureBuiltin,uninstall,dispose,exportText,checkUpdates,installModUpdate,installManagerUpdate,attention:Object.freeze({source:attention.source}),badges:Object.freeze({source:badges.source}),notify:text=>{notice=String(text).slice(0,400);paint();}});
+  globalThis.D2Mods=Object.freeze({version:VERSION,ready,status:summary,show,focusGame:gameUI.focus,close:()=>panel?.close(),installFile,installText,configure,configurePreferences,configureBuiltin,toggleManager,uninstall,dispose,exportText,checkUpdates,installModUpdate,installManagerUpdate,attention:Object.freeze({source:attention.source}),badges:Object.freeze({source:badges.source}),notify:text=>{notice=String(text).slice(0,400);paint();}});
   ready.catch(report);
 })();

@@ -5,8 +5,7 @@
     const host=el('div','d2mods__beacon'),popover=el('section','d2mods__attention'),list=el('ul','d2mods__attention-list');
     host.hidden=true;popover.hidden=true;popover.dataset.attentionLog='';popover.setAttribute('aria-label','Important events');
     list.tabIndex=0;list.setAttribute('aria-label','Important events');list.setAttribute('role','log');list.setAttribute('aria-live','polite');list.setAttribute('aria-relevant','additions');
-    const halo=el('span','d2mods__attention-halo'),jewel=el('img','d2mods__attention-gem');halo.setAttribute('aria-hidden','true');jewel.alt='';jewel.src=D2ModSkin.gemOn;jewel.width=66;jewel.height=66;jewel.draggable=false;
-    launcher.append(halo,jewel);popover.append(list);host.append(launcher,popover);
+    popover.append(list);host.append(launcher,popover);
     const rows=new Map();let entries=[],hovered=false,focused=false,dismissed=false,managerOpen=false,covered=null,oldVisibility='';
     function uncover(){if(covered?.style.visibility==='hidden')covered.style.visibility=oldVisibility;covered=null;}
     function visibility(){const open=entries.length>0&&!host.hidden&&!managerOpen&&!dismissed&&(hovered||focused);popover.hidden=!open;launcher.setAttribute('aria-describedby',open?'d2mods-attention-log':'');}
@@ -17,7 +16,7 @@
     popover.addEventListener('wheel',event=>event.stopPropagation(),{passive:true});
     launcher.addEventListener('click',()=>{dismissed=true;visibility();});
     function paint(next){
-      entries=next;launcher.dataset.attention=String(!!entries.length);halo.hidden=jewel.hidden=!entries.length;
+      entries=next;launcher.dataset.attention=String(!!entries.length);
       const wanted=new Set(entries.map(e=>e.key));for(const[key,row]of rows)if(!wanted.has(key)){row.remove();rows.delete(key);}
       let cursor=list.firstElementChild;
       for(const entry of entries){
@@ -26,8 +25,6 @@
         if(row!==cursor)list.insertBefore(row,cursor);cursor=row.nextElementSibling;
       }
       launcher.dataset.attentionCount=String(entries.length);visibility();
-      launcher.setAttribute('aria-label',entries.length?'Open Mod Manager — '+entries.length+' important '+(entries.length===1?'event':'events'):'Open Mod Manager — mods '+launcher.dataset.state);
-      launcher.title=entries.length?'':'Mod Manager (M) · Mods '+launcher.dataset.state;
     }
     function display({visible,open,anchor}){
       host.hidden=!visible||!anchor;managerOpen=open;

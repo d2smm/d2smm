@@ -5,6 +5,7 @@
 #include "gather.hpp"
 #include "qol.hpp"
 #include "badges.hpp"
+#include "controls.hpp"
 #include "loot.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -39,7 +40,7 @@ void write(const fs::path& path, const std::string& value) {
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
-const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/motion.hpp","mods/qol/core/motion.cpp","mods/qol/core/navigation.hpp","mods/qol/core/navigation.cpp","mods/qol/core/combat-navigation.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/controls.hpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/CMakeLists.txt"};
 const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageLootCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);
@@ -59,6 +60,7 @@ void stageManagerCore(const fs::path& root,const fs::path& input){
         {"keyLimit",d2smm::badges::keyLimit},{"capacity",d2smm::badges::capacity},
         {"qolFlags",{{"enabled",d2smm::qol::enabled},{"pickedUp",d2smm::qol::pickedUp},{"sameWorld",d2smm::qol::sameWorld},{"sameClass",d2smm::qol::sameClass},{"cursorClear",d2smm::qol::cursorClear},{"nativeAllowed",d2smm::qol::nativeAllowed},{"notificationsReady",d2smm::qol::notificationsReady},{"notSwapping",d2smm::qol::notSwapping}}}};
     pin["badgeOperations"]={{"load",unsigned(d2smm::badges::Operation::load)},{"mark",unsigned(d2smm::badges::Operation::mark)},{"clear",unsigned(d2smm::badges::Operation::clear)},{"read",unsigned(d2smm::badges::Operation::read)},{"unread",unsigned(d2smm::badges::Operation::unread)}};
+    pin["managerFeatures"]={{"lootGuard",unsigned(d2smm::manager::Feature::lootGuard)},{"characters",unsigned(d2smm::manager::Feature::characters)},{"gearLoadouts",unsigned(d2smm::manager::Feature::gearLoadouts)},{"terrorized",unsigned(d2smm::manager::Feature::terrorized)},{"qol",unsigned(d2smm::manager::Feature::qol)}};
     for(const auto& source:managerSources)pin["sources"][source]=sha256(read(root/source));
     write(root/"src/manager/generated/core.wasm",bytes);write(root/"src/manager/generated/core.json",pin.dump(2)+"\n");
     std::cout<<"Staged manager core: "<<bytes.size()<<" bytes\n";
@@ -237,7 +239,7 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
     const auto managerBytes=read(root/"src/manager/generated/core.wasm");
     if(release){require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
     for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");}
-    source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")}}).dump()+";\n";
+    source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")},{"managerFeatures",managerPin.at("managerFeatures")}}).dump()+";\n";
     const auto lootPin=Json::parse(read(root/"mods/loot-guard/generated/core.json"));
     const auto lootBytes=read(root/"mods/loot-guard/generated/core.wasm");
     if(release){require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
