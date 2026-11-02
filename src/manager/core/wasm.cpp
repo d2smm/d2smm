@@ -7,7 +7,18 @@ namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned leng
 bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&badges::key(input[1],lengths[1],m.target)&&badges::key(input[2],lengths[2],m.context);}}
 extern "C" {
 static qol::Combat combat;
-void d2smm_qol_combat_configure(unsigned enabled){combat.configure(enabled==1);}
+void d2smm_qol_combat_configure(unsigned enabled,unsigned hideHitStars){combat.configure(enabled==1,hideHitStars==1);}
+unsigned d2smm_qol_effect_visible(unsigned kind){return combat.effectVisible(kind);}
+unsigned d2smm_qol_effect_profile(double life,double c0,double c1,double c2,double a0,double a1,double a2,double width){return combat.effectProfile(life,c0,c1,c2,a0,a1,a2,width);}
+void d2smm_qol_effect_begin(double life,unsigned additive,unsigned count){combat.effectBegin(life,additive!=0,count);}
+void d2smm_qol_effect_part(unsigned index,unsigned kind,double color,double alpha,double width,unsigned polygons,unsigned points,unsigned circles,unsigned moves,unsigned other){combat.effectPart(index,kind,color,alpha,width,polygons,points,circles,moves,other);}
+unsigned d2smm_qol_effect_end(){return combat.effectEnd();}
+unsigned d2smm_qol_motion_observe(unsigned handle,double x,double y,double radius,unsigned melee,unsigned ranged,unsigned special,double tx,double ty,unsigned animated,double speed){auto* m=combat.motion(handle);return m&&m->observe(x,y,radius,melee!=0,ranged!=0,special!=0,tx,ty,animated!=0,speed,handle&0xfff);}
+unsigned d2smm_qol_motion_begin(unsigned handle,double x,double y,double tx,double ty,double radius,double reach){auto* m=combat.motion(handle);return m&&m->begin(x,y,tx,ty,radius,reach);}
+unsigned d2smm_qol_motion_neighbor(unsigned handle,unsigned other,double x,double y,double radius,unsigned same,unsigned dead,unsigned nativeDisplaced){auto* m=combat.motion(handle);return m&&m->neighbor(x,y,radius,same!=0,dead!=0,combat.motion(other),true,nativeDisplaced!=0);}
+double d2smm_qol_motion_coordinate(unsigned handle,unsigned axis){auto* m=combat.motion(handle);return m?m->coordinate(axis!=0):0;}
+unsigned d2smm_qol_motion_idle(unsigned handle,unsigned animated){auto* m=combat.motion(handle);return m&&m->idle&&!animated;}
+void d2smm_qol_motion_finish(unsigned handle){if(auto* m=combat.motion(handle))m->finish();}
 unsigned d2smm_qol_query_allowed(unsigned kind){return combat.allows(static_cast<qol::QueryKind>(kind));}
 void d2smm_qol_tint_reset(){combat.reset();}
 unsigned d2smm_qol_tint_open(double color,double now){return combat.open(color,now);}

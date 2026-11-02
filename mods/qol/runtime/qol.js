@@ -29,7 +29,7 @@
     }
     const observer=new PerformanceObserver(()=>void connect());observer.observe({type:'resource',buffered:true});
     const timer=setInterval(()=>void connect(),500);
-    return Object.freeze({ready:Promise.all([ready,combat.ready]),configure(value){if(typeof value!=='boolean')throw Error('Invalid QoL setting');enabled=value;combat.configure(value);void connect();onChange();},status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,combat:combat.status()}),async dispose(){if(closed)return;closed=true;observer.disconnect();clearInterval(timer);await combat.dispose();await ready;if(pending)await pending;restore?.();source?.dispose();}});
+    return Object.freeze({ready:Promise.all([ready,combat.ready]),configure(value,hideHitStars=false){if(typeof value!=='boolean'||typeof hideHitStars!=='boolean')throw Error('Invalid QoL setting');enabled=value;combat.configure(value,hideHitStars);void connect();onChange();},status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,combat:combat.status()}),async dispose(){if(closed)return;closed=true;observer.disconnect();clearInterval(timer);await combat.dispose();await ready;if(pending)await pending;restore?.();source?.dispose();}});
   }
   globalThis.D2Qol=Object.freeze({create});
 })();

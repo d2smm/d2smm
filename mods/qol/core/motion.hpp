@@ -1,0 +1,17 @@
+#pragma once
+
+namespace d2smm::qol {
+// One actor's voluntary movement. Neighbors are observations, never writable bodies.
+struct Motion {
+    double x=0,y=0,radius=0,dx=0,dy=0,fraction=0;
+    double targetX=0,targetY=0,speed=0;
+    unsigned priority=0;
+    bool observed=false,melee=false,held=false,idle=false,active=false,animated=false;
+    bool observe(double px,double py,double r,bool hasMelee,bool hasRanged,bool special,double tx=0,double ty=0,bool anim=false,double nativeSpeed=1,unsigned order=0);
+    bool begin(double proposedX,double proposedY,double targetX,double targetY,double targetRadius,double reach);
+    bool neighbor(double px,double py,double r,bool same=false,bool dead=false,const Motion* other=nullptr,bool nativeChecked=false,bool nativeDisplaced=true);
+    bool yieldsTo(const Motion& leader)const;
+    double coordinate(bool vertical)const;
+    void finish();
+};
+}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.12
+
+- QoL replaces ordinary monster overlap shoves with movement admission and approach order. Melee monsters hold within native attack reach and resume pursuit when the target leaves it; attacks and deliberate skill knockback remain native.
+- Add **QoL → Options → Hide hit stars** for the large critical-strike flash. The optional setting preserves critical damage and other effects.
+
 ## 2.13.11
 
 - QoL prevents summons from shoving monsters while preserving normal monster movement, separation and skill knockback.

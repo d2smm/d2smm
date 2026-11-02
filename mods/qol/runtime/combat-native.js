@@ -34,7 +34,8 @@
     }
     const push=one(candidates,'passive summon push'),prototype=base.Game.prototype,original=prototype.update;
     if(!Object.getOwnPropertyDescriptor(prototype,'update')?.writable)throw Error('Game update is not writable');
-    return Object.freeze({Game:base.Game,original,pushCallback:push.callback,evidence:{game:contract.url,module:binding.url,enemyExport:binding.name,pushHelper:push.helper}});
+    const crowd=D2QolCrowdNative.prepare({source,module,namespace:binding.namespace});
+    return Object.freeze({Game:base.Game,original,pushCallback:push.callback,crowd,evidence:{game:contract.url,module:binding.url,enemyExport:binding.name,pushHelper:push.helper,crowd:crowd.evidence}});
   }
   globalThis.D2QolCombatNative=Object.freeze({prepare});
 })();

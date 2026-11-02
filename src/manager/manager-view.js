@@ -61,6 +61,8 @@
     const builtins=[['characters','Characters',actions.characters],['gear-loadouts','Gear Loadouts',actions.gear],['terrorized','Terrorized'],['qol','QoL']].map(([id,name,open])=>D2BuiltinModCard.create({id,name,open,configure:actions.configureBuiltin,report:actions.report,options:id==='terrorized'?[
       {key:'gatherRunDrops',label:'Gather Run Drops',configure:value=>actions.configurePreferences({terrorizedGatherDrops:value})},
       {key:'gatherChests',label:'Gather Chests',configure:value=>actions.configurePreferences({terrorizedGatherChests:value})}
+    ]:id==='qol'?[
+      {key:'hideHitStars',label:'Hide hit stars',configure:value=>actions.configurePreferences({qolHideHitStars:value})}
     ]:[]}));
     panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
     launcher.addEventListener('click',actions.show);
