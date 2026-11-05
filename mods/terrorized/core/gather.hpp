@@ -1,17 +1,21 @@
 #pragma once
 namespace d2smm::terrorized {
-enum GatherFlag : unsigned { gatherEnabled=1, terror=2, playing=4, portal=8, bossWon=16, gatherTraining=32, timeUp=64, gatherDebug=128, gatherChests=256 };
-enum DropFlag : unsigned { dead=1, magnet=2, discarded=4, reaching=8, noSprite=16 };
-enum class DropKind : unsigned { item=1, chest, potion, rejuvenation, scroll, gold, xp };
+enum GatherFlag : unsigned { gatherEnabled=1, terror=2, playing=4, portal=8, bossWon=16, gatherTraining=32, timeUp=64, gatherDebug=128, gatherChests=256, gatherFrameFailed=512 };
+enum DropFlag : unsigned { dead=1, magnet=2, discarded=4, reaching=8, noSprite=16, airborne=32, hidden=64 };
+enum class DropKind : unsigned { item=1, chest, potion, rejuvenation, scroll, gold, xp, mana };
 struct Point { double x,y; };
 class Gather {
 public:
     static constexpr unsigned capacity=4096;
     static constexpr double duration=1.5;
-    // 0: idle, 1: supply the existing drops, 2: animate the accepted snapshot.
+    // 0: idle, 1: snapshot, 2: spread, 3: complete, 4: native pickup opportunity.
     unsigned observe(unsigned portalId,double time,Point center,Point halfView,double bodyRadius,double pickupRadius,unsigned flags);
     unsigned add(Point from,unsigned kind,unsigned flags);
     bool layout();
+    bool deposit(unsigned slot,Point actual);
+    void settle(unsigned slot,Point position,unsigned flags);
+    bool spread(double time);
+    bool pickupPending(unsigned slot) const;
     Point ideal(unsigned slot) const;
     bool target(unsigned slot,Point point);
     void release(unsigned slot);
@@ -21,13 +25,14 @@ public:
     void cancel();
     unsigned phase() const {return phase_;}
     unsigned count() const {return count_;}
+    unsigned deposited() const {return deposited_;}
     double radius() const {return radius_;}
 private:
-    struct Slot {Point from,to,current;double angle,fromRadius,toAngle,toRadius;unsigned kind;bool active;};
+    struct Slot {Point from,to,current;double angle,fromAngle,fromRadius,toAngle,toRadius,depositedAt;unsigned kind;bool active,pending,deposited;};
     Slot slots_[capacity];
     unsigned order_[capacity];
-    unsigned consumed_=0,phase_=0,count_=0,selection_=0;
-    double started_=0,last_=0,radius_=0,clearance_=0;
+    unsigned consumed_=0,phase_=0,count_=0,selection_=0,deposited_=0;
+    double started_=0,last_=0,radius_=0,clearance_=0,body_=0;
     Point center_{0,0};
     bool overflow_=false;
 };

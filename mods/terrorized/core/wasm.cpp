@@ -26,6 +26,11 @@ unsigned terrorized_act(){return session.act();}
 unsigned gather_observe(unsigned id,double time,double x,double y,double halfW,double halfH,double body,double pickup,unsigned flags){return gather.observe(id,time,{x,y},{halfW,halfH},body,pickup,flags);}
 unsigned gather_add(double x,double y,unsigned kind,unsigned flags){return gather.add({x,y},kind,flags);}
 unsigned gather_layout(){return gather.layout();}
+unsigned gather_deposit(unsigned slot,double x,double y){return gather.deposit(slot,{x,y});}
+unsigned gather_deposited(){return gather.deposited();}
+void gather_settle(unsigned slot,double x,double y,unsigned flags){gather.settle(slot,{x,y},flags);}
+unsigned gather_spread(double time){return gather.spread(time);}
+unsigned gather_pickup_pending(unsigned slot){return gather.pickupPending(slot);}
 double gather_ideal_x(unsigned slot){return gather.ideal(slot).x;}
 double gather_ideal_y(unsigned slot){return gather.ideal(slot).y;}
 unsigned gather_target(unsigned slot,double x,double y){return gather.target(slot,{x,y});}

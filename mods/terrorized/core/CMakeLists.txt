@@ -20,6 +20,8 @@ if(D2SMM_WASM_CXX)
       -Wl,--export=terrorized_offer -Wl,--export=terrorized_begin
       -Wl,--export=terrorized_invalidate -Wl,--export=terrorized_tier -Wl,--export=terrorized_act
       -Wl,--export=gather_observe -Wl,--export=gather_add -Wl,--export=gather_layout
+      -Wl,--export=gather_settle -Wl,--export=gather_spread -Wl,--export=gather_pickup_pending
+      -Wl,--export=gather_deposit -Wl,--export=gather_deposited
       -Wl,--export=gather_ideal_x -Wl,--export=gather_ideal_y -Wl,--export=gather_target
       -Wl,--export=gather_release -Wl,--export=gather_advance -Wl,--export=gather_x -Wl,--export=gather_y
       -Wl,--export=gather_moving -Wl,--export=gather_cancel -Wl,--export=gather_phase

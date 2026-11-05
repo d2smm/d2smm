@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.17
+
+- Gather Run Drops now brings loose drops to the hero for normal pickup, then spreads only uncollected leftovers into the circle.
+- Preserve loot filters, full-inventory behavior, native gold/experience collection, and the independent Gather Chests option. Include mana potions among gathered consumables.
+
 ## 2.13.16
 
 - Add QoL → Six Shared tabs: number the tabs 1–6 and add three native-sized stash grids.
