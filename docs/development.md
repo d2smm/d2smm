@@ -81,8 +81,11 @@ For the installer website, release assembly also emits `dist/site-preview-comman
 | `game-exit-checks.js` | Defines `checkGameExit(source)`; pass the text of `src/game/game-menu.js`. Controlled native-action receivers verify cancellation and teardown |
 | `builtin-mod-hooks.js` | Native builder emits `builtin-mod-hooks-command.json`; actual core/integration in a detached realm checks independent activation and retained protections |
 | `builtin-mod-ui.js` | Native builder emits `builtin-mod-ui-command.json`; isolated real game checks the cards, persisted settings, gem state, and unchanged native save/metadata; leaves built-ins off for restart verification |
+| `game-contract-checks.js` | Native builder emits `game-contract-command.json`; checks current character, tooltip, replay, gathering and QoL bindings, plus a synthetic tempered-item tooltip, without starting a run or changing a save |
 
 Some checks refer to the current official package version. Update their expectation deliberately when releasing a new package; do not weaken failed assertions to accommodate a bug.
+
+The rules JSON command receives development/release intent from the native builder. Import, validation, persistence and matcher checks run in both modes. Descriptor-dependent update checks run only in release mode; development reports them as `not-run-development`.
 
 ## Real interaction proof
 

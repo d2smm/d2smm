@@ -13,6 +13,20 @@
     try{return parse('('+source+')').body[0].expression;}
     catch(first){try{return parse('({'+source+'})').body[0].expression.properties[0].value;}catch(second){throw Error('Cannot inspect the native function syntax: '+second.message);}}
   }
+  // Identify a native (save, class) lookup by its returned field, not by the
+  // number of arguments at a caller that can contain several such lookups.
+  function isClassSaveReader(fn,fieldName){
+    if(typeof fn!=='function')return false;
+    const ast=fnAst(fn),[owner,cls]=ast.params??[];
+    if(owner?.type!=='Identifier'||cls?.type!=='Identifier')return false;
+    const body=ast.body;
+    let value=body?.type==='BlockStatement'?
+      (body.body.length===1&&body.body[0].type==='ReturnStatement'?body.body[0].argument:null):body;
+    if(value?.type==='LogicalExpression'&&value.operator==='??'&&literal(value.right)===null)value=value.left;
+    if(value?.type==='ChainExpression')value=value.expression;
+    return value?.type==='MemberExpression'&&value.computed&&value.property?.type==='Identifier'&&value.property.name===cls.name&&
+      member(value.object,fieldName)&&value.object.object?.type==='Identifier'&&value.object.object.name===owner.name;
+  }
   function names(pattern,out){if(!pattern)return;if(pattern.type==='Identifier')out.add(pattern.name);else if(pattern.type==='RestElement')names(pattern.argument,out);else if(pattern.type==='AssignmentPattern')names(pattern.left,out);else if(pattern.type==='ArrayPattern')pattern.elements.forEach(p=>names(p,out));else if(pattern.type==='ObjectPattern')pattern.properties.forEach(p=>names(p.type==='RestElement'?p.argument:p.value,out));}
   function locals(ast){const out=new Set();walk(ast,n=>{if(n.params)n.params.forEach(p=>names(p,out));if(n.type==='VariableDeclarator')names(n.id,out);if(n.type==='CatchClause')names(n.param,out);if(n.type==='FunctionDeclaration'||n.type==='ClassDeclaration')names(n.id,out);});return out;}
   function one(values,label){const unique=[...new Set(values)];if(unique.length!==1)throw Error('Cannot uniquely identify '+label);return unique[0];}
@@ -70,10 +84,16 @@
       const icon=await binding(one(calls(ware).filter(n=>n===property.value),'item picture'));
       const descriptions=[...new Set(Object.values(icon.namespace).filter(fn=>typeof fn==='function'))].filter(fn=>{
         const source=Function.prototype.toString.call(fn);
-        if(!['lines','price','implicit','unusable'].every(word=>source.includes(word)))return false;
-        const ast=fnAst(fn),item=ast.params?.[0];
-        return item?.type==='Identifier'&&find(ast,n=>member(n,'mods')&&n.object?.name===item.name).length>0&&
-          find(ast,n=>n.type==='ObjectExpression'&&['name','base','lines','price'].every(p=>n.properties.some(v=>key(v.key)===p))).length>0;
+        if(!source.includes('lines')||!source.includes('price'))return false;
+        const ast=fnAst(fn),params=ast.params??[],ids=params.map(p=>p.type==='AssignmentPattern'?p.left:p);
+        if(ids.length!==6||ids.some(p=>p?.type!=='Identifier')||literal(params[2]?.right)!==1||params[4]?.right?.type!=='ObjectExpression')return false;
+        // The exported tooltip now applies Forge changes before calling the
+        // base renderer and appends tempering lines to the returned model.
+        const forwards=find(ast,n=>n.type==='CallExpression'&&n.callee.type==='Identifier'&&n.arguments.length===ids.length&&
+          n.arguments[0]?.type==='CallExpression'&&n.arguments[0].arguments.length===1&&n.arguments[0].arguments[0]?.name===ids[0].name&&
+          n.arguments.slice(1).every((arg,index)=>arg.type==='Identifier'&&arg.name===ids[index+1].name));
+        return forwards.length===1&&find(ast,n=>n.type==='ObjectExpression'&&n.properties.some(p=>p.type==='SpreadElement')&&
+          ['lines','price'].every(name=>n.properties.some(p=>key(p.key)===name))).length===1;
       });
       const describe=one(descriptions,'item description model');
       const name=await binding(one(calls(method('autoSell')).filter(n=>n.arguments.length===3&&['name','rarity','base'].every((p,i)=>member(n.arguments[i],p))),'localized item name'));
@@ -86,7 +106,7 @@
       method('characterView');method('mercViewOf');
       const refs=find(method('showTown'),n=>n.type==='MemberExpression'&&n.computed&&n.object.type==='Identifier'&&imports.has(n.object.name));
       const ranks=await select(refs.map(n=>({callee:n.object})),d=>d.value&&typeof d.value==='object'&&!Array.isArray(d.value)&&Object.values(d.value).length&&Object.values(d.value).every(r=>typeof r.name==='string'&&typeof r.maxRank==='number'&&typeof r.ware==='string'),'Charsi ranks');
-      const enter=method('enterTier'),progress=await binding(one(calls(enter).filter(n=>n.arguments.length===2&&save(n.arguments[0])),'Terror progress'));
+      const enter=method('enterTier'),progress=await select(calls(enter).filter(n=>n.arguments.length===2&&save(n.arguments[0])),d=>isClassSaveReader(d.value,'terror'),'Terror progress');
       if(typeof progress.value!=='function')throw Error('Terror progress is unavailable for this game update.');
       return{numbers:Game.prototype.characterView,merc:Game.prototype.mercViewOf,progress:progress.value,ranks:ranks.value};
     }
@@ -131,5 +151,5 @@
   }
   function connect(){if(closed)return Promise.resolve(null);if(record)return Promise.resolve(record);if(pending)return pending;pending=build().then(r=>{record=r;return r;}).finally(()=>{pending=null;});return pending;}
   async function dispose(){closed=true;if(pending)await pending.catch(error=>console.info('[D2 contract] connection ended',error.message));record?.dispose();record=null;}
-  globalThis.D2GameContract=Object.freeze({connect,dispose,analyze,isolate});
+  globalThis.D2GameContract=Object.freeze({connect,dispose,analyze,isolate,isClassSaveReader});
 })();

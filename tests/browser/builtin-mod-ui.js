@@ -32,7 +32,13 @@
     check(id+' disables through its actual checkbox',!card(id).querySelector('input').checked&&(!card(id).querySelector('button')||card(id).querySelector('button').disabled));
   }
   if(D2Mods.status().mod)await D2Mods.configure({enabled:false});
-  check('All mods off gives the gem its off state',root.querySelector('.d2mods__launcher').dataset.state==='off');
+  const gem=root.querySelector('[data-action=toggle-manager]'),master=root.querySelector('[data-action=toggle-manager-panel]');
+  check('Feature selections do not override the master gem state',D2Mods.status().managerEnabled&&gem.dataset.state==='on');
+  const selections=JSON.stringify(D2Mods.status().builtinMods.map(m=>[m.id,m.enabled]));
+  master.click();await settle(()=>!D2Mods.status().managerEnabled);
+  check('Master off makes the gem blue and retains selections',gem.dataset.state==='off'&&JSON.stringify(D2Mods.status().builtinMods.map(m=>[m.id,m.enabled]))===selections);
+  master.click();await settle(()=>D2Mods.status().managerEnabled);
+  check('Master on makes the gem purple and retains selections',gem.dataset.state==='on'&&JSON.stringify(D2Mods.status().builtinMods.map(m=>[m.id,m.enabled]))===selections);
   card('characters').querySelector('input').click();await settle(()=>feature('characters').enabled);
   check('Characters alone gives the gem its on state',root.querySelector('.d2mods__launcher').dataset.state==='on'&&!feature('gear-loadouts').enabled);
   card('characters').querySelector('input').click();await settle(()=>!feature('characters').enabled);
@@ -40,7 +46,7 @@
   check('Changing gem visibility preserves disabled mods',D2Mods.status().builtinMods.every(m=>!m.enabled));
   const db=D2ModStore.create();let persisted;try{persisted=await db.readPreferences();}finally{db.close();}
   check('Settings survive reopening their store',persisted.charactersEnabled===false&&persisted.gearLoadoutsEnabled===false&&persisted.terrorizedEnabled===false&&persisted.qolEnabled===false&&persisted.showGem===true);
-  check('Gather preference survives master disable and store reopen',persisted.terrorizedGatherDrops===initialGather&&gather.disabled);
+  check('Gather preference survives feature/master toggles and store reopen',persisted.terrorizedGatherDrops===initialGather&&gather.disabled);
   for(const [id,value] of [['missing',true],['characters','false']]){let rejected=false;try{await D2Mods.configureBuiltin(id,value);}catch(error){rejected=true;}check('Invalid built-in setting rejected: '+id,rejected);}
   check('Native save and character metadata are unchanged',raw()===before.save&&await metadata()===before.metadata);
   check('The game page was retained',performance.timeOrigin===before.origin);

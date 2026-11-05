@@ -1,5 +1,5 @@
 // Actual integration/core modules with an isolated native boundary. No player save is used.
-async function checkBuiltinHooks(coreSource,integrationSource){
+async function checkBuiltinHooks(coreSource,integrationSource,informationSource){
   const frame=document.createElement('iframe');frame.hidden=true;document.body.append(frame);const w=frame.contentWindow;
   const checks=[],check=(name,value)=>{checks.push({name,passed:!!value});if(!value)throw Error(name);};
   const rejected=async(name,fn)=>{let failed=false;try{await fn();}catch(error){failed=true;}check(name,failed);};
@@ -27,7 +27,7 @@ async function checkBuiltinHooks(coreSource,integrationSource){
       perform:async(cls,action)=>{calls.perform.push({cls,action});return meta;},dispose:async()=>{calls.disposed=true;}})};
     w.D2GameContract={connect:async()=>({Game:NativeBoundary,characters:{}})};
     w.D2CharacterView={create:()=>({show:options=>{section=options.section;open=true;shown++;},paint:()=>{},isOpen:()=>open,section:()=>section,close:()=>{open=false;},dispose:()=>{open=false;}})};
-    w.eval(integrationSource);await w.D2Characters.ready;
+    w.eval(informationSource);w.eval(integrationSource);await w.D2Characters.ready;
     const g=new NativeBoundary();Object.assign(g,{save,kit:{id:'amazon'},camp:true,state:'camp',swapping:false,hud:{refuse:message=>{g.refusal=message;}}});g.tick();
     g.swapHero('amazon');check('Feature hooks stay inert until settings load',calls.nativeSelect===1&&!open);
     w.D2Characters.configureFeatures({characters:true,gearLoadouts:true});g.swapHero('amazon');check('Enabled Characters opens the level-99 chooser',open&&section==='characters'&&calls.nativeSelect===1);

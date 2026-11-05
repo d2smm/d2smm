@@ -25,7 +25,10 @@ async function checkLoadoutAccess(){
     info.click();await new Promise(resolve=>setTimeout(resolve,0));
     const details=root.querySelector('[data-build-info]');check('Info opens the build sheet',details.open);
     check('All requested sections exist',['character','equipment','mercenary','skills','charms','terror'].every(id=>details.querySelector('[data-build-section='+id+']')));
-    const native=g.characterView(true,cls,false).stats.map(r=>[r.label,r.value]).sort(),shown=[...details.querySelectorAll('[data-build-stat]')].map(n=>[n.dataset.buildStat,n.dataset.statValue]).sort();
+    // Native characterView lazily creates inventory/charm containers. Match
+    // the production reader's isolated save receiver so the check stays read-only.
+    const nativeReceiver=Object.create(g);nativeReceiver.save=structuredClone(g.save);
+    const native=nativeReceiver.characterView(true,cls,false).stats.map(r=>[r.label,r.value]).sort(),shown=[...details.querySelectorAll('[data-build-stat]')].map(n=>[n.dataset.buildStat,n.dataset.statValue]).sort();
     check('Character rows match native C view',JSON.stringify(native)===JSON.stringify(shown));
     check('Experience and next level are omitted',!shown.some(([label])=>['Experience','Next level','Next Level'].includes(label)));
     details.close();await until(()=>root.activeElement===info);check('Closing details restores the info button',root.activeElement===info);

@@ -22,8 +22,10 @@
     const importedSaveCall=(n,count)=>n?.type==='CallExpression'&&n.callee.type==='Identifier'&&imports.has(n.callee.name)&&n.arguments.length===count&&save(n.arguments[0]);
     const replayCall=one(find(start,n=>n.type==='VariableDeclarator'&&n.init?.type==='ConditionalExpression'&&importedSaveCall(n.init.consequent,3)),'replay preparation').init.consequent;
     const keptCall=one(find(start,n=>n.type==='VariableDeclarator'&&importedSaveCall(n.init,2)),'kept hero').init;
-    const progressCall=one(find(enter,n=>n.type==='VariableDeclarator'&&importedSaveCall(n.init,2)),'Terror progress').init;
-    const actsId=one(find(cleared,n=>member(n,'numeral')&&n.object?.type==='MemberExpression'&&n.object.computed&&n.object.object?.type==='Identifier'),'act names').object.object.name;
+    const progressCandidates=find(enter,n=>n.type==='VariableDeclarator'&&importedSaveCall(n.init,2)).map(n=>n.init);
+    const progressBindings=await Promise.all(progressCandidates.map(async call=>({call,value:await resolve(call.callee.name)})));
+    const progressCall=one(progressBindings.filter(({value})=>D2GameContract.isClassSaveReader(value,'terror')).map(({call})=>call),'Terror progress');
+    const actsId=one(find(method('runPlace'),n=>member(n,'numeral')&&n.object?.type==='MemberExpression'&&n.object.computed&&n.object.object?.type==='Identifier'),'act names').object.object.name;
     const [nativeReplay,kept,progress,acts]=await Promise.all([resolve(replayCall.callee.name),resolve(keptCall.callee.name),resolve(progressCall.callee.name),resolve(actsId)]);
     if([nativeReplay,kept,progress].some(fn=>typeof fn!=='function')||!Array.isArray(acts)||!acts.length)throw Error('Native Terror bindings are unavailable');
     const replayAST=functionAST(nativeReplay);

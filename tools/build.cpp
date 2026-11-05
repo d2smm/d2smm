@@ -299,6 +299,7 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
     write(out/"gallery-load-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",load},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"build-info-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/build-info-checks.js")+"\ninstallBuildInfoProof()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"loadout-access-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/loadout-access-checks.js")+"\ncheckLoadoutAccess()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    write(out/"game-contract-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/game-contract-checks.js")+"\ncheckGameContract()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     Json fixtureSources=Json::array();
     fixtureSources.push_back("globalThis.D2LootKernel="+lootKernel.dump()+";");
     for(const auto& name:{"base-kinds.js","rule-catalog.js","rules.js","alerts.js","adapter.js"})fixtureSources.push_back(read(root/"mods/loot-guard/runtime"/name));
@@ -318,12 +319,12 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
         {{"method","Emulation.clearDeviceMetricsOverride"}}
     });
     write(out/"gallery-menu-command.json",menuCommands.dump()+"\n");
-    const auto builtinCheck=read(root/"tests/browser/builtin-mod-hooks.js")+"\ncheckBuiltinHooks("+Json(read(root/"mods/characters/runtime/characters-core.js")).dump()+","+Json(read(root/"mods/characters/runtime/characters.js")).dump()+")";
+    const auto builtinCheck=read(root/"tests/browser/builtin-mod-hooks.js")+"\ncheckBuiltinHooks("+Json(read(root/"mods/characters/runtime/characters-core.js")).dump()+","+Json(read(root/"mods/characters/runtime/characters.js")).dump()+","+Json(read(root/"mods/characters/runtime/build-information.js")).dump()+")";
     write(out/"builtin-mod-hooks-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",builtinCheck},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"builtin-mod-ui-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/builtin-mod-ui.js")},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"gather-settings-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/gather-settings.js")},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     for(const auto& [file,command]:std::vector<std::pair<std::string,std::string>>{{"loot-guard-checks.js","loot-rules-command.json"},{"rules-json-checks.js","loot-json-command.json"},{"loot-guard-alert-checks.js","loot-alerts-command.json"}}){
-      const auto expression="(async()=>{"+std::string(guard)+"await D2Mods.ready;await D2Mods.installText(D2ModsDefaultPackage);return eval("+Json(read(root/"tests/browser"/file)).dump()+");})()";
+      const auto expression="(async()=>{"+std::string(guard)+"const releaseVerification="+(release?"true":"false")+";await D2Mods.ready;await D2Mods.installText(D2ModsDefaultPackage);return eval("+Json(read(root/"tests/browser"/file)).dump()+");})()";
       write(out/command,Json({{"method","Runtime.evaluate"},{"params",{{"expression",expression},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     }
     std::cout << "D2SMM " << version << " (" << (release?"release":"development") << "): " << source.size() << " bytes; " << changedOutputs << " outputs changed\n";

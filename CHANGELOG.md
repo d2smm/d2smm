@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.15
+
+- Restore Terrorized Rerun and character build information after the game's save-helper changes.
+- Resolve the Forge-aware item tooltip so loadouts include tempered item details.
+
 ## 2.13.14
 
 - Enable **Hide hit stars** by default for new or unset QoL preferences; keep explicit saved choices.

@@ -21,12 +21,17 @@
   check('Unsupported conditions leave the accepted rules unchanged',rejected&&D2Mods.status().mod.sha256===before.sha256);
   const db=D2ModStore.create(),stored=await db.read();db.close();check('Edited rules and provenance survive storage reopen',stored.customRules&&stored.sha256===before.sha256&&JSON.parse(stored.source).extraRules.find(r=>r.id==='ring-blue-caster').when.all.find(c=>c.stat==='mana').value===150);
   const roundtrip=JSON.parse(D2Mods.exportText());check('Export preserves the edited threshold',roundtrip.extraRules.find(r=>r.id==='ring-blue-caster').when.all.find(c=>c.stat==='mana').value===150);
-  const decoded=await D2ModPackages.decode(D2ModsDefaultPackage),updateFeed={schema:'d2mods.updates.v1',channel:'stable',manager:D2ModsBootstrap,mods:[{id:'loot-guard',version:official.version,bytes:new TextEncoder().encode(D2ModsDefaultPackage).length,sha256:decoded.sha256,url:'https://d2s.arken.gg/mods/loot-guard/'+official.version+'.d2mod.json'}]},fetcher=async()=>new Response(JSON.stringify(updateFeed));
-  const feed=await D2ModUpdates.check({id:'loot-guard',version:official.version,sha256:before.sha256,customRules:true},D2Mods.version,fetcher);check('Custom same-version rules do not break update checks',feed.latestMod.version===official.version&&D2Mods.status().mod.sha256===before.sha256);
-  rejected=false;try{await D2ModUpdates.check({id:'loot-guard',version:official.version,sha256:'0'.repeat(64)},D2Mods.version,fetcher);}catch(error){rejected=true;}
-  check('Official same-version checksum protection remains enforced',rejected);
+  // Native assembly explicitly selects the proof mode. Development has no
+  // release descriptor; do not manufacture one or imply release checks passed.
+  if(typeof releaseVerification!=='boolean')throw Error('Native proof mode is required');
+  if(releaseVerification){
+    const decoded=await D2ModPackages.decode(D2ModsDefaultPackage),updateFeed={schema:'d2mods.updates.v1',channel:'stable',manager:D2ModsBootstrap,mods:[{id:'loot-guard',version:official.version,bytes:new TextEncoder().encode(D2ModsDefaultPackage).length,sha256:decoded.sha256,url:'https://d2s.arken.gg/mods/loot-guard/'+official.version+'.d2mod.json'}]},fetcher=async()=>new Response(JSON.stringify(updateFeed));
+    const feed=await D2ModUpdates.check({id:'loot-guard',version:official.version,sha256:before.sha256,customRules:true},D2Mods.version,fetcher);check('Custom same-version rules do not break update checks',feed.latestMod.version===official.version&&D2Mods.status().mod.sha256===before.sha256);
+    rejected=false;try{await D2ModUpdates.check({id:'loot-guard',version:official.version,sha256:'0'.repeat(64)},D2Mods.version,fetcher);}catch(error){rejected=true;}
+    check('Official same-version checksum protection remains enforced',rejected);
+  }
   await D2Mods.installText(D2ModsDefaultPackage);check('Canonical replacement clears edited status',!D2Mods.status().mod.customRules);
   check('Official perfect-roll threshold is restored',!D2LootRules.evaluate(boots,{testFcr:false}).match);
   check('Import/export never writes the native game save',save===localStorage.getItem('d2-survivors/save/v1'));
-  return{passed:true,checks,exportBytes:new TextEncoder().encode(exported).length,scope:'Actual manager queue, validator, matcher and mod database; no game save edits'};
+  return{passed:true,checks,releaseUpdateChecks:releaseVerification?'passed':'not-run-development',exportBytes:new TextEncoder().encode(exported).length,scope:'Actual manager queue, validator, matcher and mod database; no game save edits'};
 })()
