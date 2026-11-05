@@ -63,7 +63,8 @@
       {key:'gatherRunDrops',label:'Gather Run Drops',configure:value=>actions.configurePreferences({terrorizedGatherDrops:value})},
       {key:'gatherChests',label:'Gather Chests',configure:value=>actions.configurePreferences({terrorizedGatherChests:value})}
     ]:id==='qol'?[
-      {key:'hideHitStars',label:'Hide hit stars',configure:value=>actions.configurePreferences({qolHideHitStars:value})}
+      {key:'hideHitStars',label:'Hide hit stars',configure:value=>actions.configurePreferences({qolHideHitStars:value})},
+      {key:'extraSharedTabs',label:'Six Shared tabs',configure:value=>actions.configurePreferences({qolExtraSharedTabs:value})}
     ]:[]}));
     panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
     launcher.addEventListener('click',run(actions.toggleManager));

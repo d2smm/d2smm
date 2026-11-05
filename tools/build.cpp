@@ -4,6 +4,7 @@
 #include "core.hpp"
 #include "gather.hpp"
 #include "qol.hpp"
+#include "stash.hpp"
 #include "badges.hpp"
 #include "controls.hpp"
 #include "loot.hpp"
@@ -40,7 +41,7 @@ void write(const fs::path& path, const std::string& value) {
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
-const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/controls.hpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/controls.hpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/stash.hpp","mods/qol/core/stash.cpp","mods/qol/core/CMakeLists.txt"};
 const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageLootCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);
@@ -61,6 +62,8 @@ void stageManagerCore(const fs::path& root,const fs::path& input){
         {"qolFlags",{{"enabled",d2smm::qol::enabled},{"pickedUp",d2smm::qol::pickedUp},{"sameWorld",d2smm::qol::sameWorld},{"sameClass",d2smm::qol::sameClass},{"cursorClear",d2smm::qol::cursorClear},{"nativeAllowed",d2smm::qol::nativeAllowed},{"notificationsReady",d2smm::qol::notificationsReady},{"notSwapping",d2smm::qol::notSwapping}}}};
     pin["badgeOperations"]={{"load",unsigned(d2smm::badges::Operation::load)},{"mark",unsigned(d2smm::badges::Operation::mark)},{"clear",unsigned(d2smm::badges::Operation::clear)},{"read",unsigned(d2smm::badges::Operation::read)},{"unread",unsigned(d2smm::badges::Operation::unread)}};
     pin["managerFeatures"]={{"lootGuard",unsigned(d2smm::manager::Feature::lootGuard)},{"characters",unsigned(d2smm::manager::Feature::characters)},{"gearLoadouts",unsigned(d2smm::manager::Feature::gearLoadouts)},{"terrorized",unsigned(d2smm::manager::Feature::terrorized)},{"qol",unsigned(d2smm::manager::Feature::qol)}};
+    namespace stash=d2smm::qol::stash;
+    pin["stash"]={{"version",stash::version},{"field",stash::field},{"keys",stash::keys},{"nativeTabs",stash::nativeTabs},{"columns",stash::columns},{"rows",stash::rows},{"itemLimit",stash::itemLimit},{"encodedLimit",stash::encodedLimit},{"decodedLimit",stash::decodedLimit},{"nativePrefix",stash::nativePrefix},{"backupPrefix",stash::backupPrefix},{"facts",{{"shape",stash::shape},{"itemsValid",stash::itemsValid},{"identitiesUnique",stash::identitiesUnique},{"itemsFit",stash::itemsFit}}}};
     for(const auto& source:managerSources)pin["sources"][source]=sha256(read(root/source));
     write(root/"src/manager/generated/core.wasm",bytes);write(root/"src/manager/generated/core.json",pin.dump(2)+"\n");
     std::cout<<"Staged manager core: "<<bytes.size()<<" bytes\n";
@@ -239,7 +242,7 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
     const auto managerBytes=read(root/"src/manager/generated/core.wasm");
     if(release){require(managerPin.at("schema")=="d2smm.native-core.v1"&&sha256(managerBytes)==managerPin.at("sha256").get<std::string>()&&managerBytes.size()==managerPin.at("bytes").get<std::size_t>(),"Manager core artifact identity changed");
     for(const auto& file:managerSources)require(sha256(read(root/file))==managerPin.at("sources").at(file).get<std::string>(),"Manager core source changed; regenerate the native artifact");}
-    source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")},{"managerFeatures",managerPin.at("managerFeatures")}}).dump()+";\n";
+    source += "globalThis.D2ManagerKernel="+Json({{"wasm",base64(managerBytes)},{"keyLimit",managerPin.at("keyLimit")},{"capacity",managerPin.at("capacity")},{"qolFlags",managerPin.at("qolFlags")},{"badgeOperations",managerPin.at("badgeOperations")},{"managerFeatures",managerPin.at("managerFeatures")},{"stash",managerPin.at("stash")}}).dump()+";\n";
     const auto lootPin=Json::parse(read(root/"mods/loot-guard/generated/core.json"));
     const auto lootBytes=read(root/"mods/loot-guard/generated/core.wasm");
     if(release){require(lootPin.at("schema")=="d2smm.native-core.v1"&&sha256(lootBytes)==lootPin.at("sha256").get<std::string>()&&lootBytes.size()==lootPin.at("bytes").get<std::size_t>(),"Loot core artifact identity changed");
@@ -300,6 +303,7 @@ void build(const fs::path& input, const fs::path& destination,bool release) {
     write(out/"build-info-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/build-info-checks.js")+"\ninstallBuildInfoProof()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"loadout-access-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/loadout-access-checks.js")+"\ncheckLoadoutAccess()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     write(out/"game-contract-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/game-contract-checks.js")+"\ncheckGameContract()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
+    write(out/"shared-stash-command.json",Json({{"method","Runtime.evaluate"},{"params",{{"expression",read(root/"tests/browser/shared-stash-checks.js")+"\ninstallSharedStashProof()"},{"awaitPromise",true},{"returnByValue",true}}}}).dump()+"\n");
     Json fixtureSources=Json::array();
     fixtureSources.push_back("globalThis.D2LootKernel="+lootKernel.dump()+";");
     for(const auto& name:{"base-kinds.js","rule-catalog.js","rules.js","alerts.js","adapter.js"})fixtureSources.push_back(read(root/"mods/loot-guard/runtime"/name));

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.16
+
+- Add QoL → Six Shared tabs: number the tabs 1–6 and add three native-sized stash grids.
+- Preserve extra items through toggles, reloads and gear loadouts. Saves exported with extra items use a Mod Manager backup code; import them with Mod Manager enabled.
+
 ## 2.13.15
 
 - Restore Terrorized Rerun and character build information after the game's save-helper changes.

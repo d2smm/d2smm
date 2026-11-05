@@ -6,7 +6,7 @@
     const core=D2CharacterCore;
     let metadata={revision:0,classes:{},pending:null},busy=false,closed=false,flight=null;
     const context=g=>({camp:!!g?.camp&&g.state==='camp',inRun:!!g?.inRun,swapping:!!g?.swapping});
-    const replace=(target,value)=>{for(const key of Object.keys(target))delete target[key];Object.assign(target,value);};
+    const replace=(target,value)=>{for(const key of Object.keys(target))delete target[key];Object.assign(target,value);D2SharedStashData.bind(target);};
     async function recover(){
       if(!metadata.pending)return;
       const p=metadata.pending,current=core.body(JSON.parse(readRaw()));

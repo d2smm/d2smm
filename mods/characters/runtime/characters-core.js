@@ -2,8 +2,8 @@
   'use strict';
   const slots=['weapon','head','amulet','shield','body','gloves','ring1','ring2','belt','boots'];
   const classes=['amazon','assassin','barbarian','druid','necromancer','paladin','sorceress'];
-  const sharedTabs=['shared1','shared2','shared3'];
-  const clone=value=>structuredClone(value);
+  const sharedTabs=D2ManagerKernel.stash.keys;
+  const clone=value=>D2SharedStashData.clone(value);
   function requireValue(ok,message){if(!ok)throw Error(message);}
   function stable(value){if(Array.isArray(value))return '['+value.map(stable).join(',')+']';if(value&&typeof value==='object')return '{'+Object.keys(value).filter(k=>value[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}';return JSON.stringify(value);}
   function archiveKey(hero){return stable(hero);}

@@ -2,6 +2,7 @@
 #include "controls.hpp"
 #include "qol.hpp"
 #include "combat.hpp"
+#include "stash.hpp"
 #include "perfection.hpp"
 namespace d2smm {
 namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned lengths[3];
@@ -9,6 +10,20 @@ bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&b
 extern "C" {
 static qol::Combat combat;
 static manager::Controls controls;
+static qol::stash::ImportFence stashImport;
+static char stashPrefix[8];
+unsigned d2smm_stash_validate(double version,double a,double b,double c,unsigned facts){return unsigned(qol::stash::validate(version,a,b,c,facts));}
+unsigned d2smm_stash_has_items(double a,double b,double c){return qol::stash::hasItems(a,b,c);}
+unsigned d2smm_stash_configure(unsigned enabled,unsigned cursor){return qol::stash::canConfigure(enabled!=0,cursor,stashImport.busy());}
+unsigned d2smm_stash_selected(unsigned current,unsigned enabled){return qol::stash::selected(current,enabled!=0);}
+char* d2smm_stash_prefix(){return stashPrefix;}
+unsigned d2smm_stash_code(unsigned length,unsigned bytes){return unsigned(qol::stash::code(stashPrefix,length,bytes));}
+double d2smm_stash_left(unsigned slot,double left,double span,double personal,double unique,double gap){return qol::stash::tabLeft(slot,left,span,personal,unique,gap);}
+double d2smm_stash_width(unsigned slot,double span,double personal,double unique,double gap){return qol::stash::tabWidth(slot,span,personal,unique,gap);}
+unsigned d2smm_stash_import_begin(){return stashImport.begin();}
+unsigned d2smm_stash_import_current(unsigned ticket){return stashImport.current(ticket);}
+unsigned d2smm_stash_import_finish(unsigned ticket){return stashImport.finish(ticket);}
+void d2smm_stash_import_cancel(){stashImport.cancel();}
 unsigned d2smm_manager_configure(unsigned master,unsigned loot,unsigned characters,unsigned gear,unsigned terror,unsigned qol){return controls.configure(master,loot,characters,gear,terror,qol);}
 unsigned d2smm_manager_enabled(){return controls.masterEnabled();}
 unsigned d2smm_manager_next_enabled(){return controls.nextEnabled();}

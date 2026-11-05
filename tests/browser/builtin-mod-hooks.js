@@ -5,6 +5,7 @@ async function checkBuiltinHooks(coreSource,integrationSource,informationSource)
   const rejected=async(name,fn)=>{let failed=false;try{await fn();}catch(error){failed=true;}check(name,failed);};
   const before=localStorage.getItem('d2-survivors/save/v1');
   try{
+    w.D2ManagerKernel=D2ManagerKernel;w.D2SharedStashData=D2SharedStashData;
     w.eval(coreSource);
     const ring={id:'activation-ring',name:'Beast Loop',base:'Ring',rarity:'rare',type:'ring',mods:[]};
     const vault={...ring,id:'activation-vault-ring'};

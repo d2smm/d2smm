@@ -1,0 +1,31 @@
+async function finishSharedStashProof(code,expectedIds){
+  if(!globalThis.__D2GalleryLease?.contextId||!__D2GalleryLease.targetId||!globalThis.__D2VanillaSaveImport)throw Error('Approved reloaded fixture with captured native importer required');
+  const g=D2Characters.currentGame(),spec=D2ManagerKernel.stash,keys=D2SharedStashData.keys,checks=[];
+  const check=(name,ok)=>{checks.push({name,passed:!!ok});if(!ok)throw Error(name);};
+  const ids=save=>keys.flatMap(k=>save[spec.field]?.tabs[k]?.map(i=>i.id)??[]).sort();
+  check('Actual page reload retained all extra items',JSON.stringify(ids(g.save))===JSON.stringify([...expectedIds].sort()));
+  const originalTabs=JSON.stringify(spec.keys.slice(0,3).map(k=>g.save.stashTabs[k]??[])),before=localStorage.getItem('d2-survivors/save/v1');
+  g.transferSave();const dialog=g.saveTransfer;
+  await __D2VanillaSaveImport.call(dialog,code);
+  check('Unmodified upstream importer rejects the extended code',!dialog.pending&&!!dialog.message.textContent);
+  check('Vanilla rejection leaves storage intact',localStorage.getItem('d2-survivors/save/v1')===before);
+  const cancelled=dialog.import(code);dialog.close();dialog.open();await cancelled;
+  check('Close and reopen cannot publish a cancelled import',!dialog.pending&&!dialog.main.classList.contains('hidden')&&localStorage.getItem('d2-survivors/save/v1')===before);
+  await dialog.import(code);
+  check('Mod import reconstructs the complete pending stash',!!dialog.pending&&JSON.stringify(ids(dialog.pending))===JSON.stringify([...expectedIds].sort()));
+  dialog.replace();
+  const stored=JSON.parse(localStorage.getItem('d2-survivors/save/v1'));
+  check('Native confirmed import persisted every extra item',JSON.stringify(ids(stored))===JSON.stringify([...expectedIds].sort()));
+  check('Confirmed import retains native Shared tabs',JSON.stringify(spec.keys.slice(0,3).map(k=>stored.stashTabs[k]??[]))===originalTabs);
+  check('Imported extra views are not duplicate serialized arrays',keys.every(k=>!Object.keys(stored.stashTabs).includes(k)&&g.save.stashTabs[k]===g.save[spec.field].tabs[k]));
+  dialog.close();
+  const core=D2CharacterCore,contract=await D2GameContract.connect(),cls=g.kit.id,context={camp:true,inRun:false,swapping:false};
+  const detached=D2SharedStashData.clone(g.save),meta=core.enable(detached,cls,context,['stash-proof-hero',1,2,3]);
+  const ring=detached.stashTabs.shared4.find(i=>i.type==='ring');meta.loadouts[1].items.ring1=ring.id;
+  const plan=core.plan(detached,meta,cls,{kind:'equip',loadout:2},context,contract.characters);
+  core.sameItems(detached,plan.draft);
+  check('Native loadout planning equips an item from tab four',plan.draft.equippedByClass[cls].ring1.id===ring.id&&!plan.draft.stashTabs.shared4.some(i=>i.id===ring.id));
+  check('Loadout planning preserves other extra tabs and the source',plan.draft.stashTabs.shared5.length===1&&plan.draft.stashTabs.shared6.length===1&&detached.stashTabs.shared4.includes(ring));
+  g.openCampTrade('stash');g.stashTab='shared4';g.showTown();
+  return{passed:true,checks,timeOrigin:performance.timeOrigin,items:ids(g.save),grid:D2SharedStashProtection.evidence.grid};
+}
