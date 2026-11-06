@@ -20,7 +20,7 @@ jobs:
         if: runner.os == 'macOS'
         run: cmake -S . -B build -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
       - name: Build native assembler
-        run: cmake --build build --target d2smm-build d2smm-manager-controls-checks d2smm-terrorized-checks d2smm-qol-checks d2smm-qol-combat-checks d2smm-loot-checks d2smm-perfection-checks
+        run: cmake --build build --target d2smm-build d2smm-manager-controls-checks d2smm-terrorized-checks d2smm-qol-checks d2smm-qol-combat-checks d2smm-qol-stash-checks d2smm-loot-checks d2smm-perfection-checks
       - name: Check build boundary and documentation
         run: ctest --test-dir build -R 'build-tool|source-links|manager-controls|terrorized|qol|loot|perfection' --output-on-failure
       - name: Assemble distribution twice
