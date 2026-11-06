@@ -2,14 +2,18 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+namespace {
+using namespace d2smm::terrorized;
+constexpr unsigned completedTerrorFlags = gatherEnabled | terror | playing | portal | bossWon;
+}
 int gatherChecks(){
     using namespace d2smm::terrorized;
-    constexpr unsigned flags=gatherEnabled|terror|playing|portal|bossWon;
+    constexpr unsigned flags=completedTerrorFlags;
     constexpr auto item=unsigned(DropKind::item),chest=unsigned(DropKind::chest);
     const Point hero{95000,95000};Gather g;unsigned checks=0;
     const auto check=[&](bool ok,const char* name){++checks;if(!ok)std::cerr<<name<<'\n';return ok;};
-    const auto begin=[&](unsigned id,unsigned bits=flags){return g.observe(id,10,hero,{540,300},12,70,32,bits);};
-    const auto pass=[&](unsigned id,double time,Point center=Point{95000,95000},unsigned bits=flags){return g.observe(id,time,center,{540,300},12,70,32,bits);};
+    const auto begin=[&](unsigned id,unsigned bits=completedTerrorFlags){return g.observe(id,10,hero,{540,300},12,70,32,bits);};
+    const auto pass=[&](unsigned id,double time,Point center=Point{95000,95000},unsigned bits=completedTerrorFlags){return g.observe(id,time,center,{540,300},12,70,32,bits);};
     const auto deposit=[&](){for(unsigned i=1;i<=g.count();++i)if(g.pickupPending(i)&&!g.deposit(i,g.position(i)))return false;return true;};
     const unsigned defeated=gatherEnabled|playing|terror|bossWon;
     for(unsigned required:{gatherEnabled,playing,terror,bossWon})
