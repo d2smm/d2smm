@@ -68,8 +68,11 @@
         }
         metadata=await db.finish(metadata.revision,operation.id,true);
         if(plan.gameChanged){
+          if(!plan.restand){g.refreshGear();g.fitBelt();}
+          // The game's camp rebuild uses the current heroLook. Load the
+          // committed outfit before rebuilding the newly selected character.
+          await g.dressHero();
           if(plan.restand)await g.restandHero();
-          else{g.refreshGear();g.fitBelt();await g.dressHero();}
           g.refilter();
         }
         return metadata;

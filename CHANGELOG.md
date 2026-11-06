@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.21
+
+- Switching characters now refreshes the hero's visible equipment from the incoming loadout before rebuilding the camp character.
+
 ## 2.13.20
 
 - With **Terrorized → Gather Run Drops** enabled, killing the Terror boss opens spawned reward chests, smashes breakable containers such as urns and barrels, and activates unused Gem Shrines. When the exit portal appears, their drops join the normal pickup pass. Items left on the ground spread into a circle.
