@@ -8,9 +8,21 @@ int gatherChecks(){
     constexpr auto item=unsigned(DropKind::item),chest=unsigned(DropKind::chest);
     const Point hero{95000,95000};Gather g;unsigned checks=0;
     const auto check=[&](bool ok,const char* name){++checks;if(!ok)std::cerr<<name<<'\n';return ok;};
-    const auto begin=[&](unsigned id,unsigned bits=flags){return g.observe(id,10,hero,{540,300},12,70,bits);};
-    const auto pass=[&](unsigned id,double time,Point center=Point{95000,95000},unsigned bits=flags){return g.observe(id,time,center,{540,300},12,70,bits);};
+    const auto begin=[&](unsigned id,unsigned bits=flags){return g.observe(id,10,hero,{540,300},12,70,32,bits);};
+    const auto pass=[&](unsigned id,double time,Point center=Point{95000,95000},unsigned bits=flags){return g.observe(id,time,center,{540,300},12,70,32,bits);};
     const auto deposit=[&](){for(unsigned i=1;i<=g.count();++i)if(g.pickupPending(i)&&!g.deposit(i,g.position(i)))return false;return true;};
+    const unsigned defeated=gatherEnabled|playing|terror|bossWon;
+    for(unsigned required:{gatherEnabled,playing,terror,bossWon})
+        if(!check(!g.claimOpening(1,defeated&~required),"Opening requires a playing, enabled Terror victory"))return 1;
+    for(unsigned forbidden:{gatherTraining,timeUp,gatherDebug,gatherFrameFailed,portal})
+        if(!check(!g.claimOpening(1,defeated|forbidden),"Unsafe or late observation cannot open containers"))return 1;
+    if(!check(!g.claimOpening(0,defeated)&&g.claimOpening(1,defeated),"First real victory opens before portal generation"))return 1;
+    g.cancel();
+    if(!check(!g.claimOpening(1,defeated)&&g.claimOpening(2,defeated),"Toggling cannot repay the same victory; a new victory opens again"))return 1;
+    if(!check(Gather::openTarget(false,false,true,false,false,false)&&Gather::openTarget(false,false,false,true,false,false)&&
+              Gather::openTarget(false,false,false,false,true,true),"Live chests, breakables and unused Gem Shrines qualify"))return 1;
+    if(!check(!Gather::openTarget(true,false,true,false,false,false)&&!Gather::openTarget(false,true,false,true,false,false)&&
+              !Gather::openTarget(false,false,false,false,true,false)&&!Gather::openTarget(false,false,false,false,false,true),"Spent, removed and non-gem objects stay ineligible"))return 1;
     if(!check(!begin(1,flags&~gatherEnabled)&&begin(1)==1,"Disabled option does not consume the portal"))return 1;
     if(!check(!g.add({95400,95000},chest,0),"Loose drops exclude chests by default"))return 1;
     for(unsigned f:{dead,magnet,discarded,reaching,noSprite})if(!check(!g.add({95400,95000},item,f),"Native-owned or discarded objects stay untouched"))return 1;
@@ -56,7 +68,7 @@ int gatherChecks(){
     pass(6,10.1,hero,(flags&~gatherEnabled)|gatherChests);
     if(!check(!g.pickupPending(1)&&!g.moving(1)&&g.spread(10.1)&&g.moving(2),"Disabling loose drops preserves the selected chest path"))return 1;
     for(unsigned flag:{gatherTraining,timeUp,gatherDebug,gatherFrameFailed})if(!check(!begin(7,flags|flag),"Unsafe or failed native frame never admits collection"))return 1;
-    if(!check(!g.observe(7,10,hero,{0,300},12,70,flags)&&!g.observe(7,10,{std::numeric_limits<double>::infinity(),0},{500,300},12,70,flags),"Invalid geometry never starts"))return 1;
+    if(!check(!g.observe(7,10,hero,{0,300},12,70,32,flags)&&!g.observe(7,10,{std::numeric_limits<double>::infinity(),0},{500,300},12,70,32,flags),"Invalid geometry never starts"))return 1;
     begin(7);for(unsigned i=0;i<Gather::capacity+1;++i)g.add({95400,95000},item,0);
     if(!check(!g.layout()&&!g.count(),"Oversized snapshot fails before moving anything"))return 1;
     begin(8);g.add({95400,95000},unsigned(DropKind::mana),0);g.layout();pass(8,10.1);g.settle(1,hero,magnet);
@@ -65,5 +77,7 @@ int gatherChecks(){
     if(!check(!pass(9,9)&&!g.phase()&&!pass(9,11),"Backward clock cancels pending pickup without replay"))return 1;
     begin(10);g.add({95400,95000},item,0);g.layout();
     if(!check(!pass(10,10.1,hero,flags|gatherFrameFailed)&&!g.phase(),"Native frame error cancels an active deposit"))return 1;
+    if(!check(g.observe(11,10,hero,{40,40},12,0,32,flags)&&g.radius()==60,"Small views still keep leftovers outside the wider native item reach"))return 1;
+    if(!check(!g.observe(12,10,hero,{40,40},12,0,std::numeric_limits<double>::quiet_NaN(),flags)&&!g.phase(),"Invalid upstream item reach cannot admit movement"))return 1;
     std::cout<<checks<<" Gather Run Drops checks passed\n";return 0;
 }

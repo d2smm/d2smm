@@ -8,9 +8,9 @@ The game still handles eligibility, the retained hero, modifier rolls, rewards, 
 
 Turn Terrorized on or off in Mod Manager.
 
-**Gather Run Drops**, under **Options**, is on by default; existing saved preferences are preserved. When a defeated Terror boss's exit portal appears, available floor drops move into an evenly spaced ring around your character over 1.5 seconds. The ring scales with the game view. Pick items up normally.
+**Gather Run Drops** is on by default. Defeating the Terror boss opens spawned reward chests, smashes urns, barrels and other breakable containers, and activates unused Gem Shrines. Each gives its normal game rewards. When the exit portal appears, loose drops move to the hero for pickup. The remaining drops spread into a circle over 1.5 seconds.
 
-Unopened chests stay in place unless **Gather Chests** is enabled. That separate option is off by default and also works without Gather Run Drops. Items already dropped from a chest count as ordinary floor loot.
+With Gather Run Drops off, **Gather Chests** can independently move unopened chests into the circle for manual pickup.
 
 The native ground-placement helper keeps resting positions reachable, so obstacles can shift individual spots. Gold and experience already being collected keep their normal attraction. Discarded gear and items you're already reaching for stay under native control. Pauses and skill choices hold the animation; switching it off stops movement where it is. It runs once per portal, without creating items or changing their stats.
 

@@ -43,7 +43,7 @@
             try{Promise.resolve(native.replay(game,tier,act)).catch(error=>{console.warn('[Terrorized] replay',error);if(!closed)notify('Unable to rerun this Terror.');});}
             catch(error){console.warn('[Terrorized] replay',error);notify('Unable to rerun this Terror.');}
           };
-          view={...info,ways:[{label:'RERUN',run:rerun},...info.ways],hint:"Enter: rerun - T: Charsi's wares - Esc: end the run"};
+          view={...info,ways:[{key:'again',label:'RERUN',run:rerun},...info.ways.filter(way=>way.key!=='again')],hint:"Enter / R: rerun - T: Charsi's wares - Esc: end the run"};
         }
         const result=native.original.showEnding.call(game,view,actions,...rest);token.screen=game.frontend?.surface?.screen;shown=token;onChange();return result;
       };

@@ -30,7 +30,6 @@
     function installHooks(){
       const wrap=(name,make)=>{const original=p[name],wrapper=make(original);p[name]=wrapper;restores.push(()=>{if(p[name]===wrapper)p[name]=original;});};
       wrap('stashView',original=>function(...args){data.bind(this.save);select(this);return original.apply(this,args);});
-      wrap('gearActions',original=>function(...args){data.bind(this.save);select(this);return original.apply(this,args);});
       wrap('readCodex',original=>function(cls,item,refresh){
       data.bind(this.save);
       if(data.keys.some(k=>this.save.stashTabs[k].includes(item))){
@@ -48,6 +47,7 @@
     // Save guards outlive the UI lease, so unloading/replacing Mod Manager
     // cannot produce a vanilla backup that silently drops nonempty extra tabs.
     return Object.freeze({version:1,Game:native.Game,evidence:native.evidence,admit,check,configure,sync,
+      prepareGear(game){data.bind(game.save);select(game);},
       attach(options){getGame=options.getGame;changed=options.onChange;if(!restores.length)installHooks();sync();},release(){configure(false);for(const restore of restores.reverse())restore();restores=[];getGame=()=>null;changed=()=>{};restoreView?.();restoreView=null;hud=null;},status:()=>({enabled,connected:true,evidence:native.evidence,importing:transfer.busy()})});
   }
   function create({getGame,onChange=()=>{},connectGame=()=>D2GameContract.connect()}){

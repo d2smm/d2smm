@@ -97,5 +97,5 @@
       loadouts:(meta?.loadouts??[]).map(l=>({...l,matches:stable(l.items)===stable(wornIds(save,cls)),items:Object.entries(l.items).map(([slot,id])=>{const item=items.find(i=>i.id===id);return{slot,id,name:item?.name??'Unavailable item',location:locate(save,cls,id)};})})),
       archived:list.map((h,index)=>({index,key:archiveKey(h),level:(h.run??h.kept)?.run?.level??1})).filter(h=>!meta?.characters.some(c=>c.archive===h.key))};
   }
-  globalThis.D2CharacterCore=Object.freeze({slots,classes,body,archiveKey,itemKey,inventory,sameItems,wornIds,enable,plan,describe,reserved,validateMeta});
+  globalThis.D2CharacterCore=Object.freeze({slots,classes,body,archiveKey,itemKey,inventory,sameItems,availableItems,wornIds,enable,plan,describe,reserved,validateMeta});
 })();

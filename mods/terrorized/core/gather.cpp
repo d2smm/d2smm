@@ -12,14 +12,24 @@ double shortest(double angle){while(angle>pi)angle-=2*pi;while(angle<-pi)angle+=
 bool selected(unsigned kind,unsigned flags){return flags&(kind==static_cast<unsigned>(DropKind::chest)?gatherChests:gatherEnabled);}
 }
 void Gather::cancel(){phase_=0;count_=0;selection_=0;deposited_=0;overflow_=false;}
-unsigned Gather::observe(unsigned id,double time,Point center,Point view,double body,double pickup,unsigned flags){
+bool Gather::claimOpening(unsigned victoryId,unsigned flags){
+    constexpr unsigned required=gatherEnabled|terror|playing|bossWon;
+    constexpr unsigned excluded=gatherTraining|timeUp|gatherDebug|gatherFrameFailed|portal;
+    if(!victoryId||victoryId==openedVictory_||(flags&required)!=required||(flags&excluded))return false;
+    openedVictory_=victoryId;
+    return true;
+}
+bool Gather::openTarget(bool gone,bool noSprite,bool chest,bool breakable,bool gem,bool unused){
+    return !gone&&!noSprite&&(chest||breakable||(gem&&unused));
+}
+unsigned Gather::observe(unsigned id,double time,Point center,Point view,double body,double pickup,double itemMargin,unsigned flags){
     constexpr unsigned required=terror|portal|bossWon;
     if(!id||!(flags&(gatherEnabled|gatherChests))||(flags&required)!=required||(flags&(gatherTraining|timeUp|gatherDebug|gatherFrameFailed))){cancel();return 0;}
     if(id==consumed_&&(phase_==2||phase_==4))for(unsigned i=0;i<count_;++i)if(!selected(slots_[i].kind,flags))release(i+1);
     // Native choices and pause screens retain the same world/portal. Their
     // stopped game clock holds the motion without consuming or cancelling it.
     if(!(flags&playing))return 0;
-    if(!finite(time)||!finite(center)||!finite(view)||view.x<=0||view.y<=0||!finite(body)||body<1||!finite(pickup)||pickup<0){cancel();return 0;}
+    if(!finite(time)||!finite(center)||!finite(view)||view.x<=0||view.y<=0||!finite(body)||body<1||!finite(pickup)||pickup<0||!finite(itemMargin)||itemMargin<=0){cancel();return 0;}
     if(id==consumed_){
         if(phase_!=2&&phase_!=4)return 0;
         if(time<last_){cancel();return 0;}
@@ -28,7 +38,7 @@ unsigned Gather::observe(unsigned id,double time,Point center,Point view,double 
         return 4;
     }
     cancel();
-    center_=center;body_=body;clearance_=maximum(body+10,pickup)+16;
+    center_=center;body_=body;clearance_=maximum(body+itemMargin,pickup)+16;
     radius_=maximum((view.x<view.y?view.x:view.y)*.5,clearance_);
     if(!finite(radius_))return 0;
     consumed_=id;started_=last_=time;selection_=flags;phase_=1;return 1;

@@ -88,6 +88,10 @@
       if (value.match && config.protectMatches) delete pickup.loot;
     }
   }
+  function syncLabelVisibility(pickup, entry) {
+    // HIDE AND SELL also hides the native ground sprite.
+    entry.decorated.visible = !pickup.flippy && pickup.loot !== 'hide' && pickup.sprite.visible;
+  }
   function decorate(pickup, game) {
     let entry = labels.get(pickup);
     if (entry && pickup.label !== entry.decorated) { restore(pickup, entry); entry = null; }
@@ -107,7 +111,7 @@
       labels.set(pickup, entry);
     }
     // Keep protected magic labels visible at normal on-screen distances.
-    entry.decorated.visible = !pickup.flippy && pickup.loot !== 'hide';
+    syncLabelVisibility(pickup, entry);
     return true;
   }
   function afterTick(game) {
@@ -131,7 +135,7 @@
     if (changed && !inRefilter) {
       inRefilter = true;
       try { api.refilter(world); } finally { inRefilter = false; }
-      for (const [pickup, entry] of labels) entry.decorated.visible = !pickup.flippy && pickup.loot !== 'hide';
+      for (const [pickup, entry] of labels) syncLabelVisibility(pickup, entry);
     }
     publish();
   }

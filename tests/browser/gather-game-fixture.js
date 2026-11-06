@@ -55,16 +55,16 @@ async function seedGatherDrops(seed,freeCells=40){
     },
     result(){const state=D2Mods.status().terrorized.gather,items=drops.filter(d=>d.item&&!d.discarded),remaining=items.filter(d=>!d.p.dead),inventory=g.inventoryOf(g.kit.id);
       const intact=d=>d.p.item===d.item&&D2CharacterCore.itemKey(d.item)===d.itemKey&&d.p.value===d.value;
-      const chestsUnmoved=drops.filter(d=>d.kind==='chest').every(d=>d.p.x===d.source.x&&d.p.y===d.source.y);
+      const chestsOpened=drops.filter(d=>d.kind==='chest').every(d=>d.p.dead&&d.p.sprite.destroyed);
       const collected=items.filter(d=>d.p.dead),expectedCollected=Math.min(freeCells,items.filter(d=>!d.hidden).length);
       const discardedUnmoved=drops.filter(d=>d.discarded).every(d=>!d.p.dead&&d.p.x===d.source.x&&d.p.y===d.source.y&&!inventory.includes(d.item));
       const exactlyOnce=items.every(d=>intact(d)&&(d.p.dead?inventory.filter(i=>i.id===d.item.id).length===1&&!w.pickups.includes(d.p):!inventory.some(i=>i.id===d.item.id)&&w.pickups.includes(d.p)));
-      const ring=remaining.every(d=>Math.hypot(d.p.x-center.x,d.p.y-center.y)>=Math.max(w.player.radius+10,w.player.pickupRadius)+16-1e-6&&!d.p.sprite.destroyed&&d.p.sprite.x===d.p.x&&d.p.sprite.y===d.p.y);
+      const ring=remaining.every(d=>Math.hypot(d.p.x-center.x,d.p.y-center.y)>=Math.max(w.player.radius+D2Mods.status().terrorized.gather.evidence.itemRadiusMargin,w.player.pickupRadius)+16-1e-6&&!d.p.sprite.destroyed&&d.p.sprite.x===d.p.x&&d.p.sprite.y===d.p.y);
       const hiddenPreserved=items.filter(d=>d.hidden).every(d=>!d.p.dead&&d.p.loot==='hide');
       const stashUnchanged=JSON.stringify({native:g.save.stashTabs,extra:g.save.d2smmSharedStash})===stashBefore;
       const currency=drops.filter(d=>d.kind==='gold'||d.kind==='xp'),nativeCurrency=currency.every(d=>d.p.value===d.value&&(d.p.dead||d.p.magnet));
-      const passed=state.phase===3&&!state.problem&&state.deposited>=items.length&&collected.length===expectedCollected&&inventory.length===40-freeCells+expectedCollected&&exactlyOnce&&ring&&hiddenPreserved&&discardedUnmoved&&stashUnchanged&&nativeCurrency&&(status.chests||chestsUnmoved);
-      return{passed,status:state,freeCells,expectedCollected,collected:collected.length,remaining:remaining.length,exactlyOnce,ring,hiddenPreserved,discardedUnmoved,stashUnchanged,chestsUnmoved,nativeCurrency,originUnchanged:performance.timeOrigin===origin,runId:g.runId,currency:currency.map(d=>({kind:d.kind,dead:d.p.dead,magnet:d.p.magnet})),positions:remaining.map(d=>({name:d.item.name,hidden:d.hidden,x:d.p.x,y:d.p.y,radius:Math.hypot(d.p.x-w.player.x,d.p.y-w.player.y)})),pickupAtMs:trace.find(t=>t.deposited>0)?.atMs,spreadAtMs:trace.find(t=>t.phase===2)?.atMs,frames:trace.length};
+      const passed=state.phase===3&&!state.problem&&state.deposited>=items.length&&collected.length===expectedCollected&&inventory.length===40-freeCells+expectedCollected&&exactlyOnce&&ring&&hiddenPreserved&&discardedUnmoved&&stashUnchanged&&nativeCurrency&&chestsOpened;
+      return{passed,status:state,freeCells,expectedCollected,collected:collected.length,remaining:remaining.length,exactlyOnce,ring,hiddenPreserved,discardedUnmoved,stashUnchanged,chestsOpened,nativeCurrency,originUnchanged:performance.timeOrigin===origin,runId:g.runId,currency:currency.map(d=>({kind:d.kind,dead:d.p.dead,magnet:d.p.magnet})),positions:remaining.map(d=>({name:d.item.name,hidden:d.hidden,x:d.p.x,y:d.p.y,radius:Math.hypot(d.p.x-w.player.x,d.p.y-w.player.y)})),pickupAtMs:trace.find(t=>t.deposited>0)?.atMs,spreadAtMs:trace.find(t=>t.phase===2)?.atMs,frames:trace.length};
     },
     dispose(){if(timer)clearInterval(timer);timer=null;}
   });

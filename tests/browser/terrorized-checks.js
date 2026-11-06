@@ -6,7 +6,7 @@
   class Receiver{
     constructor(){this.state='dead';this.runId=7;this.whose='hero';this.kit={id:'amazon'};this.world={act:1,terror:{tier:25}};this.tierDone={tier:25,open:26};this.save={heroes:{amazon:{kept:{}}},terror:{amazon:{cleared:25,open:26}}};this.frontend={surface:{screen:{ending:true}},hide(){this.surface.screen=null;}};}
     startReplay(){}
-    showTierCleared(){this.state='dead';this.originalWays=[{label:'NEXT TIER',run:()=>{this.tierDone=null;}},{label:"CHARSI'S WARES",key:'town',run:()=>{this.state='town';}},{label:'END THE RUN',key:'menu',run:()=>{this.tierDone=null;this.state='select';}}];this.showEnding({victory:true,ways:this.originalWays});}
+    showTierCleared(){this.state='dead';this.originalWays=[...(this.nativeAgain?[{key:'again',label:'RERUN',run:()=>{this.nativeReplay=true;}}]:[]),{label:'NEXT TIER',run:()=>{this.tierDone=null;}},{label:"CHARSI'S WARES",key:'town',run:()=>{this.state='town';}},{label:'END THE RUN',key:'menu',run:()=>{this.tierDone=null;this.state='select';}}];this.showEnding({victory:true,ways:this.originalWays});}
     showEnding(view){this.model=view;this.frontend.surface.screen={ending:true};this.buttons=view.ways.map(way=>({...way,run:()=>{this.frontend.hide();way.run();}}));}
   }
   const game=new Receiver();let current=game;
@@ -21,7 +21,7 @@
     check('RERUN is first',game.model.ways[0].label==='RERUN');
     check('Original choices and callbacks are retained',game.model.ways.slice(1).every((row,i)=>row===game.originalWays[i]));
     check('Original ways array is untouched',game.originalWays.length===3&&game.originalWays[0].label==='NEXT TIER');
-    check('Enter hint describes rerun',game.model.hint.startsWith('Enter: rerun'));
+    check('Enter and R hint describes rerun',game.model.hint.startsWith('Enter / R: rerun'));
     const twice=game.buttons[0].run;twice();twice();
     check('Native hide-before-action still starts once',starts.length===1);
     check('Completed 25 Act II is used despite open 26',starts[0].tier===25&&starts[0].act===1&&starts[0].open===26);
@@ -40,6 +40,11 @@
     reset();game.world.terror.cow=true;game.showTierCleared();check('Unsupported Cow replay preserves the native menu',game.model.ways[0].label==='NEXT TIER');
     reset();game.tierDone=null;game.world.terror=null;game.showEnding({victory:true,ways:[{label:'CONTINUE',run(){}}]});
     check('Ordinary endings are untouched',game.model.ways.length===1&&game.model.ways[0].label==='CONTINUE');
+    game.nativeAgain=true;reset();
+    check('Native Rerun is replaced once with the same keyboard key',game.model.ways.length===4&&game.model.ways[0].key==='again'&&game.model.ways.filter(way=>way.key==='again').length===1);
+    check('Other native actions retain their callbacks',game.model.ways.slice(1).every((way,index)=>way===game.originalWays[index+1]));
+    bridge.configure(false);check('Disabling restores the native Rerun callback',game.model.ways===game.originalWays&&game.model.ways[0].key==='again');
+    game.nativeAgain=false;bridge.configure(true);
     reset();const own=Receiver.prototype.showEnding,foreign=function(...args){return own.apply(this,args);};Receiver.prototype.showEnding=foreign;
     await bridge.dispose();
     check('Disposal preserves another wrapper',Receiver.prototype.showEnding===foreign);

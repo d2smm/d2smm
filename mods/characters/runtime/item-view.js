@@ -11,7 +11,7 @@
   }
   function worn(save,cls,loadout,selected){
     if(loadout.id===selected)return save.equippedByClass?.[cls]??{};
-    const pool=[...Object.values(save.equippedByClass?.[cls]??{}),...(save.inventoryByClass?.[cls]??[]),...(save.stashTabs?.[cls]??[]),...['shared1','shared2','shared3'].flatMap(tab=>save.stashTabs?.[tab]??[])];
+    const pool=D2CharacterCore.availableItems(save,cls);
     return Object.fromEntries(Object.entries(loadout.items).filter(([,id])=>id).map(([slot,id])=>[slot,pool.find(i=>i?.id===id)]));
   }
   globalThis.D2ItemView=Object.freeze({read,worn});

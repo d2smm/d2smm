@@ -24,8 +24,8 @@
     const pickupFunction=(await import(pickupBinding.url))[pickupBinding.name];
     const pickupAst=parse('('+Function.prototype.toString.call(pickupFunction)+')').body[0].expression;
     if(pickupAst.async||!pickupSource.includes(pickupFunction.toString())||!['pickups','dead','flippy','loot','carry','sell'].every(k=>find(pickupAst,n=>member(n,k)).length))throw Error('Native pickup pass changed');
-    const radius=one(find(pickupAst,n=>n.type==='VariableDeclarator'&&n.init?.type==='BinaryExpression'&&n.init.operator==='+'&&member(n.init.left,'radius')&&n.init.right.type==='Identifier'),'item collection radius');
-    const margin=one(pickups.body.flatMap(n=>n.type==='VariableDeclaration'?n.declarations:[]).filter(n=>n.id?.name===radius.init.right.name&&n.init?.type==='Literal'),'radius margin').init.value;
+    const radius=one(find(pickupAst,n=>n.type==='VariableDeclarator'&&n.init?.type==='BinaryExpression'&&n.init.operator==='+'&&member(n.init.left,'radius')&&n.init.right.type==='Literal'),'item collection radius');
+    const margin=radius.init.right.value;
     if(typeof margin!=='number'||!Number.isFinite(margin)||margin<=0)throw Error('Native collection margin changed');
     const accepted=one(find(pickupAst,n=>n.type==='IfStatement'&&find(n.test,v=>v.type==='CallExpression'&&member(v.callee,'carry')).length),'accepted pickup branch');
     const destroyCall=one(find(accepted.consequent,n=>n.type==='CallExpression'&&n.callee.type==='Identifier'&&n.arguments.length===2),'accepted drop cleanup');
@@ -35,10 +35,45 @@
     const dirtyName=one(D2SourceBindings.references(mover),'layout dependency'),dirty=one(pickups.body.filter(n=>n.type==='FunctionDeclaration'&&n.id.name===dirtyName),'layout helper');
     const trueValue=n=>n?.value===true||n?.type==='UnaryExpression'&&n.operator==='!'&&n.argument?.value===0;
     if(!find(dirty,n=>n.type==='AssignmentExpression'&&member(n.left,'dirty')&&trueValue(n.right)).length)throw Error('Native label layout changed');
+    const kickRefs=new Set(D2SourceBindings.references(method('kick')));
+    const kickTargets=ast.body.filter(n=>n.type==='FunctionDeclaration'&&kickRefs.has(n.id.name))
+      .flatMap(fn=>find(fn,n=>n.type==='CallExpression'&&imports.has(n.callee.name)&&n.arguments.length===2&&member(n.arguments[1],'target')));
+    const smashBinding=imports.get(one(kickTargets,'breakable kick').callee.name);
+    if(smashBinding.url!==binding.url)throw Error('Native breakable module changed');
+    const smash=(await import(smashBinding.url))[smashBinding.name];
+    const smashAst=parse('('+smash.toString()+')').body[0].expression;
+    if(!find(smashAst,n=>member(n,'rank')).length||!find(smashAst,n=>n.type==='AssignmentExpression'&&member(n.left,'life')&&n.right.value===0).length)throw Error('Native breakable destruction changed');
+    const floor=method('collectFloorLoot'),reward=method('openNextChest');
+    const drain=one(find(floor,n=>n.type==='CallExpression'&&member(n.callee,'openNextChest')),'chest reward drain');
+    if(!find(floor,n=>member(n,'gone')).length||!find(floor,n=>member(n,'pendingChests')).length||
+       !find(floor,n=>member(n,'destroy')).length||drain.arguments.length!==1||
+       !find(reward,n=>n.type==='CallExpression'&&member(n.callee,'shift')&&member(n.callee.object,'pendingChests')).length||
+       !find(reward,n=>member(n,'chestOpened')).length)throw Error('Native chest collection changed');
+    const collectChests=p.collectFloorLoot,openChest=p.openNextChest;
     let labelsDirty=false;
     const move=Function(dirtyName,'"use strict";return ('+pickupSource.slice(mover.start,mover.end)+');')(()=>{labelsDirty=true;});
     const original={waitForPortal:p.waitForPortal,refilter:p.refilter};
     return Object.freeze({Game:contract.Game,original,
+      openRewards(game,accept){
+        const w=game.world,manager=game.scenery?.shrines;
+        if(!manager||typeof manager.activate!=='function'||!Array.isArray(manager.standing)||
+           !Array.isArray(game.pendingChests)||game.collectFloorLoot!==collectChests||game.openNextChest!==openChest)
+          throw Error('Native victory reward handlers changed');
+        const chests=w.pickups.filter(accept),props=w.enemies.filter(accept),shrines=manager.standing.filter(accept);
+        for(const prop of props)smash(w,prop);
+        const source=w.source;
+        try{
+          w.source='shrine';
+          for(const shrine of shrines)manager.activate(w,shrine);
+        }finally{w.source=source;}
+        // The native floor collector may only see these chest references. Its
+        // normal opening callback rolls on the real world with item drops on.
+        const chestView=Object.create(w);
+        chestView.pickups=chests;
+        const pending=game.pendingChests.length;
+        const result=collectChests.call({world:chestView,pendingChests:game.pendingChests,openNextChest:()=>openChest.call(game,true)});
+        return {chests:result.chests.length,pending,breakables:props.length,gemShrines:shrines.length};
+      },
       begin(){labelsDirty=false;},move,
       finish(game){if(labelsDirty){labelsDirty=false;if(game.refilter!==original.refilter)throw Error('Native label refresh ownership changed');original.refilter.call(game);}},
       evidence:{game:contract.url,pickups:binding.url,mover:mover.id.name,refilter:binding.name,pickupUpdate:pickupBinding.name,pickupBeforePortal:true,itemRadiusMargin:margin}

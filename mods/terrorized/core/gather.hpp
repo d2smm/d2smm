@@ -8,8 +8,10 @@ class Gather {
 public:
     static constexpr unsigned capacity=4096;
     static constexpr double duration=1.5;
+    bool claimOpening(unsigned victoryId,unsigned flags);
+    static bool openTarget(bool gone,bool noSprite,bool chest,bool breakable,bool gem,bool unused);
     // 0: idle, 1: snapshot, 2: spread, 3: complete, 4: native pickup opportunity.
-    unsigned observe(unsigned portalId,double time,Point center,Point halfView,double bodyRadius,double pickupRadius,unsigned flags);
+    unsigned observe(unsigned portalId,double time,Point center,Point halfView,double bodyRadius,double pickupRadius,double itemReachMargin,unsigned flags);
     unsigned add(Point from,unsigned kind,unsigned flags);
     bool layout();
     bool deposit(unsigned slot,Point actual);
@@ -32,6 +34,7 @@ private:
     Slot slots_[capacity];
     unsigned order_[capacity];
     unsigned consumed_=0,phase_=0,count_=0,selection_=0,deposited_=0;
+    unsigned openedVictory_=0;
     double started_=0,last_=0,radius_=0,clearance_=0,body_=0;
     Point center_{0,0};
     bool overflow_=false;

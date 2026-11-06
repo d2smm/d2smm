@@ -21,9 +21,13 @@ unsigned terrorized_begin(unsigned ticket,double tier,double worldTier,double ac
     return session.begin(ticket,{tier,worldTier,act,actCount,cleared,flags},sameContext==1);
 }
 void terrorized_invalidate(){session.invalidate();}
+unsigned gather_claim_opening(unsigned id,unsigned flags){return gather.claimOpening(id,flags);}
+unsigned gather_open_target(unsigned gone,unsigned noSprite,unsigned chest,unsigned breakable,unsigned gem,unsigned unused){
+    return Gather::openTarget(gone,noSprite,chest,breakable,gem,unused);
+}
 unsigned terrorized_tier(){return session.tier();}
 unsigned terrorized_act(){return session.act();}
-unsigned gather_observe(unsigned id,double time,double x,double y,double halfW,double halfH,double body,double pickup,unsigned flags){return gather.observe(id,time,{x,y},{halfW,halfH},body,pickup,flags);}
+unsigned gather_observe(unsigned id,double time,double x,double y,double halfW,double halfH,double body,double pickup,double itemMargin,unsigned flags){return gather.observe(id,time,{x,y},{halfW,halfH},body,pickup,itemMargin,flags);}
 unsigned gather_add(double x,double y,unsigned kind,unsigned flags){return gather.add({x,y},kind,flags);}
 unsigned gather_layout(){return gather.layout();}
 unsigned gather_deposit(unsigned slot,double x,double y){return gather.deposit(slot,{x,y});}

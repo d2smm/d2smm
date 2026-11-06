@@ -50,9 +50,10 @@
       patch(Game.prototype,'openAkara',original=>function(selected,section){if(managed(this.kit?.id)&&(selected==='restart'||section==='earlier')){if(!features.characters){refuse(this,'Turn on Characters to manage saved heroes.');return;}show({classId:this.kit.id,section:'characters',intent:selected==='restart'?'create':'choose'});return;}return original.apply(this,arguments);});
       for(const key of ['dropHeld','discardHeld'])patch(Game.prototype,key,original=>function(...args){const blocked=operationBlock();if(blocked){refuse(this,blocked);return;}if(reserved(this.save.cursor?.item)||inVault(this,this.save.cursor?.item)){refuse(this);return;}return original.apply(this,args);});
       patch(Game.prototype,'gearActions',original=>function(cls,...args){
+        globalThis.D2SharedStashProtection?.prepareGear?.(this);
         const game=this,actions=original.call(this,cls,...args),owner=args[2]?.doll?.owner??'hero';
         const protectedItem=item=>reserved(item)||inVault(game,item);
-        const shared=grid=>['shared1','shared2','shared3'].includes(grid);
+        const shared=grid=>D2ManagerKernel.stash.keys.includes(grid);
         const block=(key,check)=>{if(typeof actions[key]!=='function')return;const fn=actions[key];actions[key]=function(...values){const blocked=operationBlock();if(blocked){refuse(game,blocked);return;}if(check(...values)){refuse(game);return;}return fn.apply(this,values);};};
         if(typeof actions.openStashTab==='function'){
           const open=actions.openStashTab;
