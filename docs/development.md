@@ -155,6 +155,8 @@ Build the native media tools with `cmake --build build --target d2smm-cdp d2smm-
 
 `d2smm-cdp --record WEBSOCKET RECIPE NEW_OUTPUT` records process-native screencast frames and their timing. A `d2smm.capture.v1` recipe requires the verified `browserContextId`, `targetId`, a duration of 500–30000 milliseconds, and timed `actions` containing CDP commands. Its optional `prepare` commands run before recording. Capture uses 2500×1400 by default and rejects a mismatched compositor size. Never substitute a player's target for the disposable context. Recording activates that exact owned tab before fixing its viewport.
 
+For an already framed demo window, set `preserveViewport: true` and omit `viewport`. This mode samples the existing page with process-native screenshots, preserves its dimensions and pixel density across takes, and does not change window focus. The timed inputs and frame list use the same recipe format.
+
 Encode each approved capture into a reusable clip:
 
 ```sh

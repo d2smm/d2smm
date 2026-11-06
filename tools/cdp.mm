@@ -38,7 +38,7 @@ int CheckReferences(){
 }
 
 int main(int argc,char **argv){
-    if(argc==2&&std::string(argv[1])=="--version"){std::cout<<"d2-debug-cdp r6\n";return 0;}
+    if(argc==2&&std::string(argv[1])=="--version"){std::cout<<"d2-debug-cdp r7\n";return 0;}
     @autoreleasepool {
         try {
             if(argc==2&&std::string(argv[1])=="--self-check")return CheckReferences();

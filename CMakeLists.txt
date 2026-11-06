@@ -54,6 +54,6 @@ set_tests_properties(build-tool-version PROPERTIES TIMEOUT 5 PASS_REGULAR_EXPRES
 if(APPLE)
   add_test(NAME cdp-version COMMAND d2smm-cdp --version)
   add_test(NAME cdp-result-references COMMAND d2smm-cdp --self-check)
-  set_tests_properties(cdp-version PROPERTIES TIMEOUT 5 PASS_REGULAR_EXPRESSION "d2-debug-cdp r6")
+  set_tests_properties(cdp-version PROPERTIES TIMEOUT 5 PASS_REGULAR_EXPRESSION "d2-debug-cdp r7")
   set_tests_properties(cdp-result-references PROPERTIES TIMEOUT 5)
 endif()
