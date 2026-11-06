@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.13.19
+
+- With **Terrorized → Gather Run Drops** enabled, killing the Terror boss opens spawned reward chests, smashes breakable containers such as urns and barrels, and activates unused Gem Shrines. When the exit portal appears, their drops join the normal pickup pass. Items left on the ground spread into a circle.
+- Update Characters, Gear Loadouts, and shared stash integration for game build 20261105.3. Loot Guard now follows the game's ground-sprite visibility so items hidden by Hide and Sell also lose their labels.
+
 ## 2.13.17
 
 - Gather Run Drops now brings loose drops to the hero for normal pickup, then spreads only uncollected leftovers into the circle.
