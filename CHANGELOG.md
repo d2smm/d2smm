@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.13.22
+
+- Add QoL mouse-wheel zoom from normal scale to 4× view distance. Scroll down over the game to zoom out and up to return. Uses the game's window scale and matching pointer coordinates. Disable it under QoL options or with the master gem switch.
+
 ## 2.13.21
 
 - Switching characters now refreshes the hero's visible equipment from the incoming loadout before rebuilding the camp character.

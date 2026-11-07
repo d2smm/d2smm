@@ -30,10 +30,11 @@
     });}
     function close(){db?.close();db=null;opening=null;}
     function preferences(value){
-      if(!value)return{revision:0,managerEnabled:true,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:true,qolExtraSharedTabs:false};
+      if(!value)return{revision:0,managerEnabled:true,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:true,qolExtraSharedTabs:false,qolWheelZoom:true};
       const result={revision:value.revision,managerEnabled:value.managerEnabled===undefined?true:value.managerEnabled,showGem:value.showGem,charactersEnabled:value.charactersEnabled===undefined?true:value.charactersEnabled,gearLoadoutsEnabled:value.gearLoadoutsEnabled===undefined?true:value.gearLoadoutsEnabled,terrorizedEnabled:value.terrorizedEnabled===undefined?true:value.terrorizedEnabled,terrorizedGatherDrops:value.terrorizedGatherDrops===undefined?true:value.terrorizedGatherDrops,terrorizedGatherChests:value.terrorizedGatherChests===undefined?false:value.terrorizedGatherChests,qolEnabled:value.qolEnabled===undefined?true:value.qolEnabled,qolHideHitStars:value.qolHideHitStars===undefined?true:value.qolHideHitStars};
       result.qolExtraSharedTabs=value.qolExtraSharedTabs===undefined?false:value.qolExtraSharedTabs;
-      if(!Number.isSafeInteger(result.revision)||result.revision<0||['managerEnabled','showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars','qolExtraSharedTabs'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
+      result.qolWheelZoom=value.qolWheelZoom===undefined?true:value.qolWheelZoom;
+      if(!Number.isSafeInteger(result.revision)||result.revision<0||['managerEnabled','showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars','qolExtraSharedTabs','qolWheelZoom'].some(k=>typeof result[k]!=='boolean'))throw Error('Invalid manager settings');
       return result;
     }
     async function readPreferences(){const connection=await open();return new Promise((resolve,reject)=>{

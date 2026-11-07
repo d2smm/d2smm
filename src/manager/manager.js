@@ -1,14 +1,14 @@
 (() => {
   'use strict';
-  const VERSION='2.13.21';
+  const VERSION='2.13.22';
   if(globalThis.D2Mods?.version===VERSION){globalThis.D2Mods.show();return;}
   const db=globalThis.D2ModStore.create();let record=null,closed=false,initialized=false,busy=false,installing=false,queue=Promise.resolve(),notice='',panel=null,view=null,persistent=null,updates=null,checking=false,installerBootstrap=null;
   const channel=new BroadcastChannel('d2-survivors-mods-v1');
   const blank={enabled:false,protectMatches:true,sound:true,testFcr:false};
-  let preferences={revision:0,managerEnabled:true,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:true,qolExtraSharedTabs:false},nativeCore=null;
+  let preferences={revision:0,managerEnabled:true,showGem:true,charactersEnabled:true,gearLoadoutsEnabled:true,terrorizedEnabled:true,terrorizedGatherDrops:true,terrorizedGatherChests:false,qolEnabled:true,qolHideHitStars:true,qolExtraSharedTabs:false,qolWheelZoom:true},nativeCore=null;
   function refreshControls(){if(!nativeCore?.d2smm_manager_configure(Number(preferences.managerEnabled),Number(record?.pack?record.settings.enabled:false),Number(preferences.charactersEnabled),Number(preferences.gearLoadoutsEnabled),Number(preferences.terrorizedEnabled),Number(preferences.qolEnabled)))throw Error('Manager control state is unavailable');}
   function feature(key){return nativeCore.d2smm_manager_feature(D2ManagerKernel.managerFeatures[key])===1;}
-  function applyBuiltins(){refreshControls();globalThis.D2Characters.configureFeatures({characters:feature('characters'),gearLoadouts:feature('gearLoadouts')});terrorized.configure(feature('terrorized'),preferences.terrorizedGatherDrops,preferences.terrorizedGatherChests);qol.configure(feature('qol'),preferences.qolHideHitStars,preferences.qolExtraSharedTabs);}
+  function applyBuiltins(){refreshControls();globalThis.D2Characters.configureFeatures({characters:feature('characters'),gearLoadouts:feature('gearLoadouts')});terrorized.configure(feature('terrorized'),preferences.terrorizedGatherDrops,preferences.terrorizedGatherChests);qol.configure(feature('qol'),preferences.qolHideHitStars,preferences.qolExtraSharedTabs,preferences.qolWheelZoom);}
   const attention=D2ModAttention.create({onChange:entries=>view?.paintAttention(entries)});
   globalThis.D2LootGuard.setAttention(attention.source('loot-guard','Loot Guard'));
   const gameMenu=D2ModGameMenu.create(()=>show());
@@ -57,7 +57,7 @@
   });}
   async function uninstall(){return task(async()=>{record=await db.write(null,record?.revision??0);assertOpen();apply();notice='Mod removed';channel.postMessage({changed:true});return summary();});}
   async function savePreferences(changes){
-    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['managerEnabled','showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars','qolExtraSharedTabs'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
+    if(!changes||typeof changes!=='object'||!Object.keys(changes).length||Object.keys(changes).some(k=>!['managerEnabled','showGem','charactersEnabled','gearLoadoutsEnabled','terrorizedEnabled','terrorizedGatherDrops','terrorizedGatherChests','qolEnabled','qolHideHitStars','qolExtraSharedTabs','qolWheelZoom'].includes(k)||typeof changes[k]!=='boolean'))throw Error('Invalid manager setting');
     const next={...preferences,...changes};qol.checkStash(next.managerEnabled&&next.qolEnabled&&next.qolExtraSharedTabs);
     preferences=await db.writePreferences({...preferences,...changes},preferences.revision);assertOpen();applyBuiltins();apply();notice='';channel.postMessage({changed:true});return summary();
   }
@@ -99,7 +99,7 @@
     }finally{installing=false;if(!closed)paint();}
   }
   function summary(){return{version:VERSION,ready:initialized&&!closed,busy:busy||installing,checking,updates,hotkey:'M',origin:location.origin,storage:'IndexedDB',persistent,notice,managerEnabled:preferences.managerEnabled,preferences:{showGem:preferences.showGem},
-    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops,gatherChests:preferences.terrorizedGatherChests},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''},{id:'qol',version:VERSION,enabled:preferences.qolEnabled,options:{hideHitStars:preferences.qolHideHitStars,extraSharedTabs:preferences.qolExtraSharedTabs},problem:qol.status().stash.problem|| (qol.status().combat.problem?'Combat adjustments are unavailable in this game build.':qol.status().problem||badges.status().problem||badgeControls.status().problem?'Automatic charm placement is unavailable.':'')}],
+    builtinMods:[{id:'characters',version:VERSION,enabled:preferences.charactersEnabled},{id:'gear-loadouts',version:VERSION,enabled:preferences.gearLoadoutsEnabled},{id:'terrorized',version:VERSION,enabled:preferences.terrorizedEnabled,options:{gatherRunDrops:preferences.terrorizedGatherDrops,gatherChests:preferences.terrorizedGatherChests},problem:terrorized.status().problem?'Rerun is unavailable in this game build.':terrorized.status().gather?.problem?'Gather Run Drops is unavailable in this game build.':''},{id:'qol',version:VERSION,enabled:preferences.qolEnabled,options:{hideHitStars:preferences.qolHideHitStars,extraSharedTabs:preferences.qolExtraSharedTabs,wheelZoom:preferences.qolWheelZoom},problem:qol.status().zoom.problem||qol.status().stash.problem|| (qol.status().combat.problem?'Combat adjustments are unavailable in this game build.':qol.status().problem||badges.status().problem||badgeControls.status().problem?'Automatic charm placement is unavailable.':'')}],
     mod:record?.pack?{id:record.pack.id,name:record.pack.name,version:record.pack.version,sha256:record.sha256,customRules:!!record.customRules,settings:{...record.settings},ruleCount:record.pack.builtinRules.length+record.pack.extraRules.length,revision:record.revision}:null,
     runtime:globalThis.D2LootGuard.snapshot(),attention:attention.snapshot(),gameMenu:gameMenu.status(),terrorized:terrorized.status(),qol:qol.status(),badges:badges.status(),badgeControls:badgeControls.status(),session:gameUI.snapshot()};}
   function report(error){notice=error.message||String(error);console.error('[D2 Mods]',error);show();paint();}

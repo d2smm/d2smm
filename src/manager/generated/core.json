@@ -6,7 +6,7 @@
     "read": 3,
     "unread": 4
   },
-  "bytes": 11137,
+  "bytes": 11829,
   "capacity": 256,
   "keyLimit": 64,
   "managerFeatures": {
@@ -27,22 +27,24 @@
     "sameWorld": 4
   },
   "schema": "d2smm.native-core.v1",
-  "sha256": "584f285c93729b34b1f6df4ac121e0b5ca887538cb2e2d1c54f914bb4ed75aa6",
+  "sha256": "c5277c0930c8394f359254db21329471618361e43daf713c3cfb415055ea0dc7",
   "sources": {
     "mods/characters/core/perfection.cpp": "81da423bda792cbd8415e9f2c5a2b0a6259a632c40702f0ceba41f2b9001994d",
     "mods/characters/core/perfection.hpp": "f05fbfdb10af9a293b84ccdd35e4858b17d561368c0968fe2319e2fd99510a78",
-    "mods/qol/core/CMakeLists.txt": "0b05cbae517e1ecc54c0662892aacfc0da83cc6432a5d639c199665e2c469bc7",
+    "mods/qol/core/CMakeLists.txt": "df194d8c58a86330fc05e219fecbf6e4ff1d506618718fd147f30fda7f95b5cf",
     "mods/qol/core/combat.cpp": "bf14c2347a4c34c3d93f9e3f1b980d11c55134b23d26f9977f3ad32cbe65cb7b",
     "mods/qol/core/combat.hpp": "02ef47600322a6bb31c02b37a6bb716367507abcbf8652b397989384c379a49b",
     "mods/qol/core/qol.cpp": "b941faccb9204ef965bb8b277a202a93b521235e4a0a7dfd7d62e661297a8576",
     "mods/qol/core/qol.hpp": "7997e3c9eacd15d3dd9c4e8796f64aebad2f85ae9cb2b51e2e9049548f0742af",
     "mods/qol/core/stash.cpp": "2e9597f7eee3cfbc5f64a8b380d9e30e01d17871852cdd4fe1c0e7a0e30cede1",
     "mods/qol/core/stash.hpp": "f3593c301c4bb3d40a5499f4884657ff232caadcf946d32740dac52f2d1a5608",
-    "src/manager/core/CMakeLists.txt": "66bbf7050ecd3ec433bf075cee90448781f2ff25352b022c17b10cbe3210738a",
+    "mods/qol/core/zoom.cpp": "9a31fd8bedbeae1fca2a7af119fed3f90ea0910a992c0c1fbdb53279601eef3f",
+    "mods/qol/core/zoom.hpp": "64a6adf5e64df7895127d73d7f1a33fd83313bf1c44f5204eaf415efa5c2e7fd",
+    "src/manager/core/CMakeLists.txt": "a2b9954ee10f8a2181429f6be6024ed24edcfb27fc3002de2d0aa58ab6ccaec5",
     "src/manager/core/badges.cpp": "5a7268a799c8e87bd22382d09899bcf45e1d842b2211d5d0518c54fe62c609a6",
     "src/manager/core/badges.hpp": "58c0b10af3537a7ee9a09f7bc0e78e345d03d13bca735c20d2995173fe3a32fd",
     "src/manager/core/controls.hpp": "48058f551d7a0a9305bfa3891248681e58d24e775b1664da17fb34f734b63e6a",
-    "src/manager/core/wasm.cpp": "6285dcbac200762dde83e213a92cc7be342c64162d8d1d77e766b095d0c22ec9"
+    "src/manager/core/wasm.cpp": "5a4b36aadb977f20d18bbffae6c14e69ad6f9a86138367708a2c6f623b349a1a"
   },
   "stash": {
     "backupPrefix": "D2SMM1:",

@@ -3,6 +3,7 @@
   function create({getGame,coreReady,badges,controls,onChange=()=>{},connectGame=()=>D2GameContract.connect(),prepare=D2QolNative.prepare}){
     const combat=D2QolCombat.create({getGame,coreReady,onChange,connectGame});
     const stash=D2QolStash.create({getGame,onChange,connectGame});
+    const zoom=D2QolZoom.create({getGame,coreReady,onChange,connectGame});
     let enabled=true,closed=false,core=null,native=null,pending=null,source=null,restore=null,problem='';
     const flags=D2ManagerKernel.qolFlags;
     const ready=Promise.all([coreReady,badges.ready]).then(([value])=>{core=value;if(badges.isReady())source=badges.source('qol');else throw Error('Unread notifications are unavailable');return connect();}).catch(fail);
@@ -21,6 +22,7 @@
     }
     async function connect(){
       void combat.connect();
+      void zoom.connect();
       if(closed||!enabled||!core||!source||native||pending||problem)return;
       pending=(async()=>{const contract=await connectGame();if(!contract||closed)return;const candidate=await prepare(contract);if(closed)return;
         const p=candidate.Game.prototype,original=candidate.original.carry;if(p.carry!==original||!Object.getOwnPropertyDescriptor(p,'carry')?.writable)throw Error('Native pickup ownership changed');
@@ -30,7 +32,20 @@
     }
     const observer=new PerformanceObserver(()=>void connect());observer.observe({type:'resource',buffered:true});
     const timer=setInterval(()=>void connect(),500);
-    return Object.freeze({ready:Promise.all([ready,combat.ready,stash.ready]),checkStash:value=>stash.check(value),configure(value,hideHitStars=false,extraSharedTabs=false){if([value,hideHitStars,extraSharedTabs].some(v=>typeof v!=='boolean'))throw Error('Invalid QoL setting');enabled=value;combat.configure(value,hideHitStars);stash.configure(value&&extraSharedTabs);void connect();onChange();},status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,combat:combat.status(),stash:stash.status()}),async dispose(){if(closed)return;await stash.dispose();closed=true;observer.disconnect();clearInterval(timer);await combat.dispose();await ready;if(pending)await pending;restore?.();source?.dispose();}});
+    return Object.freeze({
+      ready:Promise.all([ready,combat.ready,stash.ready,zoom.ready]),
+      checkStash:value=>stash.check(value),
+      configure(value,hideHitStars=false,extraSharedTabs=false,wheelZoom=true){
+        if([value,hideHitStars,extraSharedTabs,wheelZoom].some(v=>typeof v!=='boolean'))throw Error('Invalid QoL setting');
+        enabled=value;combat.configure(value,hideHitStars);stash.configure(value&&extraSharedTabs);
+        zoom.configure(value&&wheelZoom);void connect();onChange();
+      },
+      status:()=>({enabled,connected:!!native,problem,evidence:native?.evidence??null,combat:combat.status(),stash:stash.status(),zoom:zoom.status()}),
+      async dispose(){
+        if(closed)return;await stash.dispose();closed=true;observer.disconnect();clearInterval(timer);
+        await zoom.dispose();await combat.dispose();await ready;if(pending)await pending;restore?.();source?.dispose();
+      }
+    });
   }
   globalThis.D2Qol=Object.freeze({create});
 })();

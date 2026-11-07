@@ -41,7 +41,7 @@ void write(const fs::path& path, const std::string& value) {
 }
 std::string sha256(const std::string& value);
 const std::vector<std::string> terrorSources={"core/core.hpp","core/core.cpp","core/gather.hpp","core/gather.cpp","core/math.cpp","core/wasm.cpp","core/CMakeLists.txt"};
-const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/controls.hpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/stash.hpp","mods/qol/core/stash.cpp","mods/qol/core/CMakeLists.txt"};
+const std::vector<std::string> managerSources={"mods/characters/core/perfection.hpp","mods/characters/core/perfection.cpp","src/manager/core/badges.hpp","src/manager/core/badges.cpp","src/manager/core/controls.hpp","src/manager/core/wasm.cpp","src/manager/core/CMakeLists.txt","mods/qol/core/qol.hpp","mods/qol/core/qol.cpp","mods/qol/core/combat.hpp","mods/qol/core/combat.cpp","mods/qol/core/stash.hpp","mods/qol/core/stash.cpp","mods/qol/core/zoom.hpp","mods/qol/core/zoom.cpp","mods/qol/core/CMakeLists.txt"};
 const std::vector<std::string> lootSources={"core/loot.hpp","core/loot.cpp","core/wasm.cpp","core/CMakeLists.txt"};
 void stageLootCore(const fs::path& root,const fs::path& input){
     const auto bytes=read(input);

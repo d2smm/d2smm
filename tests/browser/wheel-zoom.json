@@ -1,0 +1,68 @@
+{
+  "schema": "arken.codecast.native-browser-proof.v1",
+  "steps": [
+    {
+      "id": "game-ready",
+      "waitFor": "globalThis.D2Mods?.status().qol.zoom.connected && D2Characters.currentGame()?.state==='camp' && !document.querySelector('#d2-mod-system').shadowRoot.querySelector('dialog').open",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "baseline",
+      "evaluate": "(()=>{const game=D2Characters.currentGame();globalThis.d2smmZoomProof={game,world:game.world,origin:performance.timeOrigin,base:game.scale};return{distance:D2Mods.status().qol.zoom.distance}})()",
+      "expect": {
+        "/distance": 1
+      }
+    },
+    {
+      "id": "normal",
+      "capture": "normal.png"
+    },
+    {
+      "id": "wheel-out",
+      "wheel": {
+        "selector": "#stage canvas",
+        "deltaY": 100,
+        "steps": 12,
+        "intervalMs": 16
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "id": "wide-assert",
+      "evaluate": "(()=>{const g=d2smmZoomProof.game;return{distance:D2Mods.status().qol.zoom.distance,ratio:g.scale/d2smmZoomProof.base,halfW:g.world.view.halfW*g.scale*2===g.app.screen.width}})()",
+      "expect": {
+        "/distance": 4,
+        "/ratio": 0.25,
+        "/halfW": true
+      }
+    },
+    {
+      "id": "wide",
+      "capture": "wide.png"
+    },
+    {
+      "id": "wheel-in",
+      "wheel": {
+        "selector": "#stage canvas",
+        "deltaY": -100,
+        "steps": 12,
+        "intervalMs": 16
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "id": "restored",
+      "waitFor": "D2Mods.status().qol.zoom.distance===1",
+      "timeoutMs": 3000
+    },
+    {
+      "id": "retained",
+      "evaluate": "(()=>{const g=d2smmZoomProof.game;return{scale:g.scale===d2smmZoomProof.base,world:g.world===d2smmZoomProof.world,origin:performance.timeOrigin===d2smmZoomProof.origin}})()",
+      "expect": {
+        "/scale": true,
+        "/world": true,
+        "/origin": true
+      }
+    }
+  ]
+}

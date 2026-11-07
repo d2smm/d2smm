@@ -64,7 +64,8 @@
       {key:'gatherChests',label:'Gather Chests',configure:value=>actions.configurePreferences({terrorizedGatherChests:value})}
     ]:id==='qol'?[
       {key:'hideHitStars',label:'Hide hit stars',configure:value=>actions.configurePreferences({qolHideHitStars:value})},
-      {key:'extraSharedTabs',label:'Six Shared tabs',configure:value=>actions.configurePreferences({qolExtraSharedTabs:value})}
+      {key:'extraSharedTabs',label:'Six Shared tabs',configure:value=>actions.configurePreferences({qolExtraSharedTabs:value})},
+      {key:'wheelZoom',label:'Mouse-wheel zoom',configure:value=>actions.configurePreferences({qolWheelZoom:value})}
     ]:[]}));
     panel.append(header,empty,card,...builtins.map(c=>c.node),more,footer,updateActions,notice,error);shadow.append(style,attention.host,panel);document.body.append(host);
     launcher.addEventListener('click',run(actions.toggleManager));

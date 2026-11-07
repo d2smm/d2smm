@@ -1,4 +1,4 @@
-add_library(d2smm-qol-core STATIC "${CMAKE_CURRENT_SOURCE_DIR}/qol.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/combat.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/stash.cpp")
+add_library(d2smm-qol-core STATIC "${CMAKE_CURRENT_SOURCE_DIR}/qol.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/combat.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/stash.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/zoom.cpp")
 target_include_directories(d2smm-qol-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 add_executable(d2smm-qol-combat-checks "${PROJECT_SOURCE_DIR}/tests/qol-combat.cpp")
 target_link_libraries(d2smm-qol-combat-checks PRIVATE d2smm-qol-core)

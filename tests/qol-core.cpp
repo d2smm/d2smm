@@ -1,4 +1,5 @@
 #include "qol.hpp"
+#include "zoom.hpp"
 #include "badges.hpp"
 #include <iostream>
 #include <cstring>
@@ -8,6 +9,23 @@ int main(int argc,char** argv){
     if(argc==2&&std::string_view(argv[1])=="--version"){std::cout<<"d2smm-qol-checks 1.0.0\n";return 0;}
     using namespace d2smm;unsigned checks=0;
     const auto check=[&](bool ok,const char* label){++checks;if(!ok)std::cerr<<label<<'\n';return ok;};
+    qol::Zoom zoom;
+    if(!check(!zoom.wheel(100,0,1400,15)&&zoom.scale(2)==2,"Disabled zoom preserves native layout"))return 1;
+    zoom.configure(true);
+    for(unsigned bits:{0u,7u,11u,13u,14u})if(!check(!zoom.wheel(100,0,1400,bits),"Wheel requires canvas, play state, clear panels and no modifiers"))return 1;
+    for(double delta:{0.,std::numeric_limits<double>::infinity(),std::numeric_limits<double>::quiet_NaN()})if(!check(!zoom.wheel(delta,0,1400,15),"Invalid wheel values are ignored"))return 1;
+    if(!check(!zoom.wheel(100,3,1400,15),"Unknown delta units are ignored"))return 1;
+    for(int i=0;i<20;++i)zoom.wheel(100,0,1400,15);
+    if(!check(zoom.distance()==4&&zoom.scale(2)==.5&&zoom.halfExtent(2500,2)==2500,"Fourfold view has matching scale and world extents"))return 1;
+    if(!check(zoom.scale(3)==.75&&zoom.halfExtent(1500,3)==1000,"Resize uses new native scale without accumulating transforms"))return 1;
+    for(int i=0;i<20;++i)zoom.wheel(-100,0,1400,15);
+    if(!check(zoom.distance()==1&&zoom.halfExtent(2500,2)==625,"Reverse wheel returns precisely to native scale"))return 1;
+    zoom.wheel(6.25,1,1400,15);
+    if(!check(zoom.distance()==1.25,"Line-mode wheel matches pixel-mode distance"))return 1;
+    zoom.configure(false);zoom.configure(true);zoom.wheel(1,2,100,15);
+    if(!check(zoom.distance()==1.25,"Page-mode wheel uses viewport height"))return 1;
+    zoom.configure(false);
+    if(!check(zoom.distance()==1,"Master or option disable resets zoom"))return 1;
     constexpr unsigned flags=qol::enabled|qol::pickedUp|qol::sameWorld|qol::sameClass|qol::cursorClear|qol::nativeAllowed|qol::notificationsReady|qol::notSwapping;
     qol::Placement p{1,0,3,2,0,1,5,4,flags};
     if(!check(qol::admit(p),"Native approved placement is admitted"))return 1;

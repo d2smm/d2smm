@@ -24,6 +24,7 @@ if(D2SMM_WASM_CXX)
       -Wl,--export=d2smm_badge_input -Wl,--export=d2smm_badge_length -Wl,--export=d2smm_badge_valid_key
       -Wl,--export=d2smm_badge_reset -Wl,--export=d2smm_badge_apply -Wl,--export=d2smm_badge_count -Wl,--export=d2smm_badge_key
       -Wl,--export=d2smm_qol_candidate -Wl,--export=d2smm_qol_admit -Wl,--export=d2smm_qol_transferred
+      -Wl,--export=d2smm_zoom_configure -Wl,--export=d2smm_zoom_wheel -Wl,--export=d2smm_zoom_scale -Wl,--export=d2smm_zoom_half_extent -Wl,--export=d2smm_zoom_distance
       -Wl,--export=d2smm_qol_combat_configure -Wl,--export=d2smm_qol_query_mode -Wl,--export=d2smm_qol_tint_reset -Wl,--export=d2smm_qol_tint_open -Wl,--export=d2smm_qol_tint -Wl,--export=d2smm_qol_tint_release
       -Wl,--export=d2smm_qol_effect_visible
       -Wl,--export=d2smm_stash_validate -Wl,--export=d2smm_stash_has_items -Wl,--export=d2smm_stash_configure -Wl,--export=d2smm_stash_selected
@@ -34,7 +35,7 @@ if(D2SMM_WASM_CXX)
       -Wl,--export=d2smm_perfection_begin -Wl,--export=d2smm_perfection_property -Wl,--export=d2smm_perfection_input -Wl,--export=d2smm_perfection_member -Wl,--export=d2smm_perfection_end -Wl,--export=d2smm_perfection_finish -Wl,--export=d2smm_perfection_rolls
       -Wl,--export=d2smm_perfection_observe -Wl,--export=d2smm_perfection_armor -Wl,--export=d2smm_perfection_value
       -o "${manager_wasm}"
-    DEPENDS badges.cpp badges.hpp controls.hpp wasm.cpp CMakeLists.txt ${qol_sources} "${qol_includes}/qol.hpp" "${qol_includes}/combat.hpp" "${qol_includes}/stash.hpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.cpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.hpp" VERBATIM)
+    DEPENDS badges.cpp badges.hpp controls.hpp wasm.cpp CMakeLists.txt ${qol_sources} "${qol_includes}/qol.hpp" "${qol_includes}/combat.hpp" "${qol_includes}/stash.hpp" "${qol_includes}/zoom.hpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.cpp" "${PROJECT_SOURCE_DIR}/mods/characters/core/perfection.hpp" VERBATIM)
   add_custom_target(d2smm-manager-wasm DEPENDS "${manager_wasm}")
 endif()
 add_library(d2smm-manager-controls INTERFACE)

@@ -3,12 +3,19 @@
 #include "qol.hpp"
 #include "combat.hpp"
 #include "stash.hpp"
+#include "zoom.hpp"
 #include "perfection.hpp"
 namespace d2smm {
 namespace {badges::Ledger ledger;char input[3][badges::keyLimit+1];unsigned lengths[3];
 bool decode(badges::Mark& m){return badges::key(input[0],lengths[0],m.source)&&badges::key(input[1],lengths[1],m.target)&&badges::key(input[2],lengths[2],m.context);}}
 extern "C" {
 static qol::Combat combat;
+static qol::Zoom zoom;
+void d2smm_zoom_configure(unsigned enabled) { zoom.configure(enabled == 1); }
+unsigned d2smm_zoom_wheel(double delta, unsigned mode, double height, unsigned context) { return zoom.wheel(delta, mode, height, context); }
+double d2smm_zoom_scale(double nativeScale) { return zoom.scale(nativeScale); }
+double d2smm_zoom_half_extent(double pixels, double nativeScale) { return zoom.halfExtent(pixels, nativeScale); }
+double d2smm_zoom_distance() { return zoom.distance(); }
 static manager::Controls controls;
 static qol::stash::ImportFence stashImport;
 static char stashPrefix[8];

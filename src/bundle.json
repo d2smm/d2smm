@@ -41,6 +41,7 @@
     "mods/qol/runtime/stash-transfer.js",
     "mods/qol/runtime/stash-view.js",
     "mods/qol/runtime/stash.js",
+    "mods/qol/runtime/zoom.js",
     "mods/qol/runtime/qol.js",
     "mods/terrorized/runtime/native.js",
     "mods/terrorized/runtime/gather-native.js",
